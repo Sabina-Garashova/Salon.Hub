@@ -28,4 +28,4 @@ C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\
 C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\Debug\net8.0\SalonHub.Persistence.pdb
 C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\Debug\net8.0\SalonHub.Persistence.genruntimeconfig.cache
 C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\Debug\net8.0\ref\SalonHub.Persistence.dll
-C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\Debug\net8.0\swae.build.ex.cache
+C:\Users\Omen\source\repos\SalonHub\src\Infrastructure\SalonHub.Persistence\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

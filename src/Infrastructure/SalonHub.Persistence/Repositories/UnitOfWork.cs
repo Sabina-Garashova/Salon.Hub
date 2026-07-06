@@ -1,19 +1,11 @@
-﻿
-using SalonHub.Application.Interfaces.Repositories;
+﻿using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using SalonHub.Persistence.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Persistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -27,7 +19,6 @@ namespace SalonHub.Persistence.Repositories
             Reservations = new GenericRepository<Reservation>(_context);
             Reviews = new GenericRepository<Review>(_context);
         }
-
         public IGenericRepository<Salon> Salons { get; }
         public IGenericRepository<Branch> Branches { get; }
         public IGenericRepository<Category> Categories { get; }
@@ -37,9 +28,7 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<Equipment> Equipments { get; }
         public IGenericRepository<Reservation> Reservations { get; }
         public IGenericRepository<Review> Reviews { get; }
-
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
-
         public void Dispose() => _context.Dispose();
     }
 }
