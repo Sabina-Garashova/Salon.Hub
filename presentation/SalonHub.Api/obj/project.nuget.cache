@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "YZGSM+qJcO8=",
+  "dgSpecHash": "hgAD6U0wBvs=",
   "success": true,
   "projectFilePath": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\SalonHub.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Omen\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Omen\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\Omen\\.nuget\\packages\\fluentvalidation\\8.6.3\\fluentvalidation.8.6.3.nupkg.sha512",
+    "C:\\Users\\Omen\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\8.6.3\\fluentvalidation.dependencyinjectionextensions.8.6.3.nupkg.sha512",
     "C:\\Users\\Omen\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.28\\microsoft.aspnetcore.authentication.jwtbearer.8.0.28.nupkg.sha512",
     "C:\\Users\\Omen\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.28\\microsoft.aspnetcore.cryptography.internal.8.0.28.nupkg.sha512",
     "C:\\Users\\Omen\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.28\\microsoft.aspnetcore.cryptography.keyderivation.8.0.28.nupkg.sha512",

@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "SalonHub.Domain/1.0.0": {
+        "runtime": {
+          "SalonHub.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SalonHub.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

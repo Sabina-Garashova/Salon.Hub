@@ -1,0 +1,26 @@
+﻿using SalonHub.Application.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using SalonHub.Application.Services;
+
+namespace SalonHub.Application
+{
+    public static class DependencyInjection
+    {
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        {
+            services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+            services.AddScoped<ISalonService, SalonService>();
+            services.AddScoped<IReservationService, ReservationService>();
+
+            return services;
+        }
+    }
+}
