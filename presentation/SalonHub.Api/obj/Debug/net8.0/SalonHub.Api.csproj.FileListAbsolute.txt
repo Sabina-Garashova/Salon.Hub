@@ -90,10 +90,11 @@ C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\s
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\staticwebassets.build.json.cache
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\SalonHub.8B335C24.Up2Date
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\SalonHub.Api.dll
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\refint\SalonHub.Api.dll
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\SalonHub.Api.pdb
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\SalonHub.Api.genruntimeconfig.cache
 C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\ref\SalonHub.Api.dll
+C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\bin\Debug\net8.0\SalonHub.Persistence.staticwebassets.endpoints.json
+C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api\obj\Debug\net8.0\swae.build.ex.cache

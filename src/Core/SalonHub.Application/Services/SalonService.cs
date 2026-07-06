@@ -6,8 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SalonHub.Domain.Entities;
-using SalonHub.Application.DTOs.Salons;
-using SalonHub.Application.Interfaces.Repositories;
+
 
 namespace SalonHub.Application.Services
 {

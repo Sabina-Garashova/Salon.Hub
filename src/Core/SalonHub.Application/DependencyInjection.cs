@@ -6,8 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
-using SalonHub.Application.Services;
+
 
 namespace SalonHub.Application
 {
