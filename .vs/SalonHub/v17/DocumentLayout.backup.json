@@ -3,12 +3,36 @@
   "WorkspaceRootPath": "C:\\Users\\Omen\\source\\repos\\SalonHub\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|c:\\users\\omen\\source\\repos\\salonhub\\presentation\\salonhub.api\\controllers\\employeecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|solutionrelative:presentation\\salonhub.api\\controllers\\employeecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|c:\\users\\omen\\source\\repos\\salonhub\\presentation\\salonhub.api\\controllers\\branchcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|solutionrelative:presentation\\salonhub.api\\controllers\\branchcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|solutionrelative:src\\core\\salonhub.application\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\services\\branchservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|solutionrelative:src\\core\\salonhub.application\\services\\branchservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\dtos\\branches\\branchdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|solutionrelative:src\\core\\salonhub.application\\dtos\\branches\\branchdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|c:\\users\\omen\\source\\repos\\salonhub\\presentation\\salonhub.api\\controllers\\equipmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|solutionrelative:presentation\\salonhub.api\\controllers\\equipmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\services\\equipmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|solutionrelative:src\\core\\salonhub.application\\services\\equipmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\dtos\\equipments\\equipmentdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|solutionrelative:src\\core\\salonhub.application\\dtos\\equipments\\equipmentdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|c:\\users\\omen\\source\\repos\\salonhub\\presentation\\salonhub.api\\controllers\\employeecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{460B685C-B5F1-4827-9B1C-A5385BD5D494}|presentation\\SalonHub.Api\\SalonHub.Api.csproj|solutionrelative:presentation\\salonhub.api\\controllers\\employeecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A99ECC6E-580C-40BB-A057-997C0F7EB448}|src\\Core\\SalonHub.Application\\SalonHub.Application.csproj|c:\\users\\omen\\source\\repos\\salonhub\\src\\core\\salonhub.application\\services\\employeeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -215,6 +239,84 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "BranchController.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\BranchController.cs",
+              "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\BranchController.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\BranchController.cs",
+              "RelativeToolTip": "presentation\\SalonHub.Api\\Controllers\\BranchController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:35:31.458Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "BranchService.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\BranchService.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\BranchService.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\BranchService.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\BranchService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFwAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:34:40.075Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "BranchDtos.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Branches\\BranchDtos.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Branches\\BranchDtos.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Branches\\BranchDtos.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Branches\\BranchDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:34:06.611Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EquipmentController.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\EquipmentController.cs",
+              "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\EquipmentController.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\EquipmentController.cs",
+              "RelativeToolTip": "presentation\\SalonHub.Api\\Controllers\\EquipmentController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADQAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:32:04.116Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "EquipmentService.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EquipmentService.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\EquipmentService.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EquipmentService.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\EquipmentService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF0AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:31:02.762Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "EquipmentDtos.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Equipments\\EquipmentDtos.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Equipments\\EquipmentDtos.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Equipments\\EquipmentDtos.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Equipments\\EquipmentDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:30:33.54Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "EmployeeController.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\EmployeeController.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\EmployeeController.cs",
@@ -227,33 +329,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "EmployeeService.cs",
-              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
-              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAswGIAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-07T13:25:40.979Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "EmployeeDtos.cs",
-              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
-              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-07T13:24:48.117Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 10,
               "Title": "CategoryController.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
@@ -261,12 +337,36 @@
               "RelativeToolTip": "presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-07T13:17:00.149Z",
+              "WhenOpened": "2026-07-07T13:17:00.149Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DependencyInjection.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABYAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-06T14:29:39.542Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
+              "Title": "EmployeeDtos.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Employees\\EmployeeDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:24:48.117Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "CategoryDtos.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
@@ -278,7 +378,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 16,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\AuthController.cs",
@@ -290,7 +390,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 8,
+              "Title": "EmployeeService.cs",
+              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
+              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\EmployeeService.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAswGIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-07T13:25:40.979Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
               "Title": "GenericRepository.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\Repositories\\GenericRepository.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\Repositories\\GenericRepository.cs",
@@ -302,7 +414,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 22,
               "Title": "EntityConfigurations..cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\Data\\Configurations\\EntityConfigurations..cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\Data\\Configurations\\EntityConfigurations..cs",
@@ -314,20 +426,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "DependencyInjection.cs",
-              "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
-              "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABQAAABEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-06T14:29:39.542Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 11,
               "Title": "CategoryService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
@@ -339,7 +438,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 23,
               "Title": "20260706161110_InitialCreate.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\Migrations\\20260706161110_InitialCreate.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\Migrations\\20260706161110_InitialCreate.cs",
@@ -350,7 +449,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 15,
               "Title": "SalonController.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\SalonController.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\SalonController.cs",
@@ -362,7 +461,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 14,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Program.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Program.cs",
@@ -374,7 +473,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 13,
               "Title": "SalonHub.Application.csproj",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
@@ -386,7 +485,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 24,
               "Title": "SalonHub.Api.http",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\SalonHub.Api.http",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\SalonHub.Api.http",
@@ -398,7 +497,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 25,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\appsettings.json",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\appsettings.json",
@@ -410,7 +509,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 17,
               "Title": "SalonHub.Api.csproj",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\SalonHub.Api.csproj",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\SalonHub.Api.csproj",
@@ -422,7 +521,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 18,
               "Title": "20260706163420_InitialCreate.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\Migrations\\20260706163420_InitialCreate.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\Migrations\\20260706163420_InitialCreate.cs",
@@ -434,7 +533,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 19,
               "Title": "UnitOfWork.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\Repositories\\UnitOfWork.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\Repositories\\UnitOfWork.cs",
@@ -446,7 +545,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 26,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Infrastructure\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Infrastructure\\DependencyInjection.cs",
@@ -458,7 +557,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 21,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Persistence\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Persistence\\DependencyInjection.cs",
@@ -470,7 +569,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 28,
               "Title": "SalonHub.Infrastructure.csproj",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Infrastructure\\SalonHub.Infrastructure.csproj",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Infrastructure\\SalonHub.Infrastructure.csproj",
@@ -482,7 +581,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 35,
               "Title": "Tag.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Tag.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Tag.cs",
@@ -494,7 +593,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 32,
               "Title": "Reservation.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Reservation.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Reservation.cs",
@@ -506,7 +605,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 34,
               "Title": "WorkingHour.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\WorkingHour.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\WorkingHour.cs",
@@ -518,7 +617,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 29,
               "Title": "SalonService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\SalonService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\SalonService.cs",
@@ -530,7 +629,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 33,
               "Title": "ITokenService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Interfaces\\Services\\ITokenService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Interfaces\\Services\\ITokenService.cs",
@@ -542,7 +641,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 27,
               "Title": "TokenService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Infrastructure\\SalonHub.Infrastructure\\Services\\TokenService.cs",
               "RelativeDocumentMoniker": "src\\Infrastructure\\SalonHub.Infrastructure\\Services\\TokenService.cs",
@@ -554,7 +653,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 30,
               "Title": "BaseEntity.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Common\\BaseEntity.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Common\\BaseEntity.cs",
@@ -566,7 +665,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 31,
               "Title": "ReservationService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\ReservationService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\ReservationService.cs",
@@ -578,7 +677,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 36,
               "Title": "ServiceTag.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\ServiceTag.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\ServiceTag.cs",
@@ -590,7 +689,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 37,
               "Title": "Service.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Service.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Service.cs",
@@ -602,7 +701,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 38,
               "Title": "Salon.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Salon.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Salon.cs",
@@ -614,7 +713,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 39,
               "Title": "Review.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Review.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Review.cs",
@@ -626,7 +725,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 40,
               "Title": "GalleryImage.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\GalleryImage.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\GalleryImage.cs",
@@ -638,7 +737,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 41,
               "Title": "EmployeeService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\EmployeeService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\EmployeeService.cs",
@@ -650,7 +749,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 42,
               "Title": "Branch.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Branch.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Branch.cs",
@@ -662,7 +761,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 43,
               "Title": "IUnitOfWork.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Interfaces\\Repositories\\IUnitOfWork.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Interfaces\\Repositories\\IUnitOfWork.cs",
@@ -674,7 +773,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 44,
               "Title": "IGenericRepository.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Interfaces\\Repositories\\IGenericRepository.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Interfaces\\Repositories\\IGenericRepository.cs",
@@ -686,7 +785,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 45,
               "Title": "SalonDtos.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Salons\\SalonDtos.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Salons\\SalonDtos.cs",
@@ -698,7 +797,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 46,
               "Title": "SalonHub.Domain.csproj",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\SalonHub.Domain.csproj",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\SalonHub.Domain.csproj",
@@ -710,7 +809,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 47,
               "Title": "ReservationDtos.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Reservations\\ReservationDtos.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Reservations\\ReservationDtos.cs",
@@ -722,7 +821,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 48,
               "Title": "AuthDtos.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Auth\\AuthDtos.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Auth\\AuthDtos.cs",
@@ -734,7 +833,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 49,
               "Title": "Validators.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Validators\\Validators.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Validators\\Validators.cs",
@@ -746,7 +845,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 50,
               "Title": "Equipment.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Equipment.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Equipment.cs",
@@ -758,7 +857,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 51,
               "Title": "Employee.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Employee.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Employee.cs",
@@ -770,7 +869,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 52,
               "Title": "Category.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Entities\\Category.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Entities\\Category.cs",
@@ -782,7 +881,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 53,
               "Title": "GalleryImageType.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Enums\\GalleryImageType.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Enums\\GalleryImageType.cs",
@@ -794,7 +893,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 54,
               "Title": "ReservationStatus.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Enums\\ReservationStatus.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Enums\\ReservationStatus.cs",
@@ -806,7 +905,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 55,
               "Title": "EquipmentStatus.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Domain\\Enums\\EquipmentStatus.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Domain\\Enums\\EquipmentStatus.cs",

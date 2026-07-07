@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SalonHub.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4889352855f6a61a3df972f0d944d97c14c019e5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+263a28eb59ac01a08cf680c586262fcf8bafddd6")]
 [assembly: System.Reflection.AssemblyProductAttribute("SalonHub.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SalonHub.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
