@@ -1,3 +1,4 @@
+using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,13 @@ using SalonHub.Persistence;
 using SalonHub.Persistence.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog((context, config) =>
+{
+    config
+        .WriteTo.Console()
+        .WriteTo.File("Logs/salonhub-.log", rollingInterval: RollingInterval.Day)
+        .MinimumLevel.Information();
+});
 
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);

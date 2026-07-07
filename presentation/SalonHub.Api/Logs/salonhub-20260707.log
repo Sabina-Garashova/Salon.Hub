@@ -1,0 +1,153 @@
+2026-07-07 17:08:57.252 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Branch'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:08:57.278 +04:00 [WRN] Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'EmployeeService'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:08:57.279 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'GalleryImage'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:08:57.279 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Review'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:08:57.280 +04:00 [WRN] Entity 'Service' has a global query filter defined and is the required end of a relationship with the entity 'ServiceTag'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:08:57.727 +04:00 [INF] Executed DbCommand (45ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:08:57.809 +04:00 [INF] Executed DbCommand (2ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:08:57.817 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:08:57.819 +04:00 [INF] Executed DbCommand (0ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:08:57.963 +04:00 [INF] User profile is available. Using 'C:\Users\Omen\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-07 17:08:58.163 +04:00 [INF] Now listening on: https://localhost:7289
+2026-07-07 17:08:58.164 +04:00 [INF] Now listening on: http://localhost:5067
+2026-07-07 17:08:58.245 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-07 17:08:58.291 +04:00 [INF] Hosting environment: Development
+2026-07-07 17:08:58.293 +04:00 [INF] Content root path: C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api
+2026-07-07 17:08:58.564 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - null null
+2026-07-07 17:08:58.561 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_vs/browserLink - null null
+2026-07-07 17:08:59.081 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - 200 16509 application/javascript; charset=utf-8 523.4023ms
+2026-07-07 17:08:59.258 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_vs/browserLink - 200 null text/javascript; charset=UTF-8 711.3217ms
+2026-07-07 17:08:59.316 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - null null
+2026-07-07 17:08:59.376 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 59.7749ms
+2026-07-07 17:09:10.876 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Branch'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:09:10.900 +04:00 [WRN] Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'EmployeeService'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:09:10.903 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'GalleryImage'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:09:10.904 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Review'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:09:10.904 +04:00 [WRN] Entity 'Service' has a global query filter defined and is the required end of a relationship with the entity 'ServiceTag'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:09:11.340 +04:00 [INF] Executed DbCommand (23ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:09:11.392 +04:00 [INF] Executed DbCommand (2ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:09:11.398 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:09:11.401 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:09:11.472 +04:00 [INF] User profile is available. Using 'C:\Users\Omen\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-07 17:09:11.582 +04:00 [INF] Now listening on: https://localhost:7289
+2026-07-07 17:09:11.583 +04:00 [INF] Now listening on: http://localhost:5067
+2026-07-07 17:09:11.618 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-07 17:09:11.619 +04:00 [INF] Hosting environment: Development
+2026-07-07 17:09:11.621 +04:00 [INF] Content root path: C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api
+2026-07-07 17:09:11.923 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_vs/browserLink - null null
+2026-07-07 17:09:11.923 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - null null
+2026-07-07 17:09:11.962 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - 200 16509 application/javascript; charset=utf-8 43.7283ms
+2026-07-07 17:09:11.987 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_vs/browserLink - 200 null text/javascript; charset=UTF-8 68.9824ms
+2026-07-07 17:09:12.011 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - null null
+2026-07-07 17:09:12.056 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 44.6666ms
+2026-07-07 17:18:05.307 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Branch'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:18:05.334 +04:00 [WRN] Entity 'Employee' has a global query filter defined and is the required end of a relationship with the entity 'EmployeeService'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:18:05.335 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'GalleryImage'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:18:05.335 +04:00 [WRN] Entity 'Salon' has a global query filter defined and is the required end of a relationship with the entity 'Review'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:18:05.336 +04:00 [WRN] Entity 'Service' has a global query filter defined and is the required end of a relationship with the entity 'ServiceTag'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-07-07 17:18:05.839 +04:00 [INF] Executed DbCommand (47ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:18:05.883 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:18:05.885 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:18:05.887 +04:00 [INF] Executed DbCommand (1ms) [Parameters=[@__normalizedName_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[ConcurrencyStamp], [a].[Name], [a].[NormalizedName]
+FROM [AspNetRoles] AS [a]
+WHERE [a].[NormalizedName] = @__normalizedName_0
+2026-07-07 17:18:05.949 +04:00 [INF] User profile is available. Using 'C:\Users\Omen\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-07-07 17:18:06.041 +04:00 [INF] Now listening on: https://localhost:7289
+2026-07-07 17:18:06.041 +04:00 [INF] Now listening on: http://localhost:5067
+2026-07-07 17:18:06.072 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-07-07 17:18:06.076 +04:00 [INF] Hosting environment: Development
+2026-07-07 17:18:06.077 +04:00 [INF] Content root path: C:\Users\Omen\source\repos\SalonHub\presentation\SalonHub.Api
+2026-07-07 17:18:06.401 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_vs/browserLink - null null
+2026-07-07 17:18:06.401 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - null null
+2026-07-07 17:18:06.428 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_framework/aspnetcore-browser-refresh.js - 200 16509 application/javascript; charset=utf-8 30.0969ms
+2026-07-07 17:18:06.466 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/_vs/browserLink - 200 null text/javascript; charset=UTF-8 71.3937ms
+2026-07-07 17:18:06.495 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - null null
+2026-07-07 17:18:06.535 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 40.175ms
+2026-07-07 17:18:47.882 +04:00 [INF] Request starting HTTP/2 POST https://localhost:7289/api/Category - application/json 91
+2026-07-07 17:18:47.963 +04:00 [INF] Authorization failed. These requirements were not met:
+RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (SalonAdmin|SuperAdmin)
+2026-07-07 17:18:47.972 +04:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-07-07 17:18:47.975 +04:00 [INF] Request finished HTTP/2 POST https://localhost:7289/api/Category - 401 0 null 93.0742ms
+2026-07-07 17:19:37.687 +04:00 [INF] Request starting HTTP/2 POST https://localhost:7289/api/Auth/login - application/json 62
+2026-07-07 17:19:37.699 +04:00 [INF] Executing endpoint 'SalonHub.Api.Controllers.AuthController.Login (SalonHub.Api)'
+2026-07-07 17:19:37.739 +04:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(SalonHub.Application.DTOs.Auth.LoginDto) on controller SalonHub.Api.Controllers.AuthController (SalonHub.Api).
+2026-07-07 17:19:37.941 +04:00 [INF] Executed DbCommand (15ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[FullName], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[ProfileImageUrl], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+2026-07-07 17:19:38.150 +04:00 [INF] Executed DbCommand (15ms) [Parameters=[@__userId_0='?' (Size = 450)], CommandType='"Text"', CommandTimeout='30']
+SELECT [a0].[Name]
+FROM [AspNetUserRoles] AS [a]
+INNER JOIN [AspNetRoles] AS [a0] ON [a].[RoleId] = [a0].[Id]
+WHERE [a].[UserId] = @__userId_0
+2026-07-07 17:19:38.229 +04:00 [INF] Executing OkObjectResult, writing value of type 'SalonHub.Application.DTOs.Auth.AuthResponseDto'.
+2026-07-07 17:19:38.258 +04:00 [INF] Executed action SalonHub.Api.Controllers.AuthController.Login (SalonHub.Api) in 504.6542ms
+2026-07-07 17:19:38.264 +04:00 [INF] Executed endpoint 'SalonHub.Api.Controllers.AuthController.Login (SalonHub.Api)'
+2026-07-07 17:19:38.272 +04:00 [INF] Request finished HTTP/2 POST https://localhost:7289/api/Auth/login - 200 null application/json; charset=utf-8 588.0553ms
+2026-07-07 17:19:42.198 +04:00 [INF] Request starting HTTP/2 POST https://localhost:7289/api/Category - application/json 91
+2026-07-07 17:19:42.205 +04:00 [INF] Authorization failed. These requirements were not met:
+RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (SalonAdmin|SuperAdmin)
+2026-07-07 17:19:42.209 +04:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-07-07 17:19:42.211 +04:00 [INF] Request finished HTTP/2 POST https://localhost:7289/api/Category - 401 0 null 13.4103ms
+2026-07-07 17:19:46.815 +04:00 [INF] Request starting HTTP/2 POST https://localhost:7289/api/Category - application/json 91
+2026-07-07 17:19:46.838 +04:00 [INF] Authorization failed. These requirements were not met:
+RolesAuthorizationRequirement:User.IsInRole must be true for one of the following roles: (SalonAdmin|SuperAdmin)
+2026-07-07 17:19:46.839 +04:00 [INF] AuthenticationScheme: Bearer was challenged.
+2026-07-07 17:19:46.841 +04:00 [INF] Request finished HTTP/2 POST https://localhost:7289/api/Category - 401 0 null 26.0254ms
+2026-07-07 17:20:23.119 +04:00 [INF] Request starting HTTP/2 POST https://localhost:7289/api/Category - application/json 91
+2026-07-07 17:20:23.211 +04:00 [INF] Executing endpoint 'SalonHub.Api.Controllers.CategoryController.Create (SalonHub.Api)'
+2026-07-07 17:20:23.221 +04:00 [INF] Route matched with {action = "Create", controller = "Category"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Create(SalonHub.Application.DTOs.Categories.CategoryCreateDto) on controller SalonHub.Api.Controllers.CategoryController (SalonHub.Api).
+2026-07-07 17:20:23.577 +04:00 [INF] Executed DbCommand (13ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (Size = 4000), @p2='?' (DbType = Boolean), @p3='?' (Size = 4000), @p4='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Categories] ([CreatedAt], [Description], [IsDeleted], [Name], [UpdatedAt])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4);
+2026-07-07 17:20:23.622 +04:00 [INF] Executing CreatedAtActionResult, writing value of type 'SalonHub.Application.DTOs.Categories.CategoryReadDto'.
+2026-07-07 17:20:23.646 +04:00 [INF] Executed action SalonHub.Api.Controllers.CategoryController.Create (SalonHub.Api) in 421.9775ms
+2026-07-07 17:20:23.649 +04:00 [INF] Executed endpoint 'SalonHub.Api.Controllers.CategoryController.Create (SalonHub.Api)'
+2026-07-07 17:20:23.652 +04:00 [INF] Request finished HTTP/2 POST https://localhost:7289/api/Category - 201 null application/json; charset=utf-8 533.1021ms
+2026-07-07 17:20:53.146 +04:00 [INF] Request starting HTTP/2 GET https://localhost:7289/api/Category - null null
+2026-07-07 17:20:53.156 +04:00 [INF] Executing endpoint 'SalonHub.Api.Controllers.CategoryController.GetAll (SalonHub.Api)'
+2026-07-07 17:20:53.163 +04:00 [INF] Route matched with {action = "GetAll", controller = "Category"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetAll() on controller SalonHub.Api.Controllers.CategoryController (SalonHub.Api).
+2026-07-07 17:20:53.200 +04:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [c].[Id], [c].[CreatedAt], [c].[Description], [c].[IsDeleted], [c].[Name], [c].[UpdatedAt]
+FROM [Categories] AS [c]
+2026-07-07 17:20:53.207 +04:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[SalonHub.Application.DTOs.Categories.CategoryReadDto, SalonHub.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-07-07 17:20:53.211 +04:00 [INF] Executed action SalonHub.Api.Controllers.CategoryController.GetAll (SalonHub.Api) in 44.5462ms
+2026-07-07 17:20:53.231 +04:00 [INF] Executed endpoint 'SalonHub.Api.Controllers.CategoryController.GetAll (SalonHub.Api)'
+2026-07-07 17:20:53.235 +04:00 [INF] Request finished HTTP/2 GET https://localhost:7289/api/Category - 200 null application/json; charset=utf-8 89.9016ms

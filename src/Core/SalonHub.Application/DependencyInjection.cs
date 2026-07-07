@@ -17,6 +17,7 @@ namespace SalonHub.Application
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
 
             services.AddScoped<ISalonService, SalonService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IReservationService, ReservationService>();
 
             return services;
