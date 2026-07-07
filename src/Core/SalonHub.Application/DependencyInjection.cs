@@ -23,6 +23,7 @@ namespace SalonHub.Application
             services.AddScoped<IBranchService, BranchService>();
             services.AddScoped<ITagService, TagService>();
             services.AddScoped<IServiceCrudService, ServiceCrudService>();
+            services.AddScoped<IWorkingHourService, WorkingHourService>();
             services.AddScoped<IReservationService, ReservationService>();
 
             return services;

@@ -3,12 +3,14 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using SalonHub.Api.Middlewares;
 using SalonHub.Application;
 using SalonHub.Infrastructure;
 using SalonHub.Persistence;
 using SalonHub.Persistence.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Host.UseSerilog((context, config) =>
 {
     config
@@ -33,7 +35,6 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header
     });
-
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -89,6 +90,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

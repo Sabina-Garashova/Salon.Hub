@@ -1,6 +1,5 @@
 ﻿using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-
 namespace SalonHub.Persistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
@@ -18,6 +17,7 @@ namespace SalonHub.Persistence.Repositories
             Equipments = new GenericRepository<Equipment>(_context);
             Reservations = new GenericRepository<Reservation>(_context);
             Reviews = new GenericRepository<Review>(_context);
+            WorkingHours = new GenericRepository<WorkingHour>(_context);
         }
         public IGenericRepository<Salon> Salons { get; }
         public IGenericRepository<Branch> Branches { get; }
@@ -28,6 +28,8 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<Equipment> Equipments { get; }
         public IGenericRepository<Reservation> Reservations { get; }
         public IGenericRepository<Review> Reviews { get; }
+        public IGenericRepository<WorkingHour> WorkingHours { get; }
+
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
         public void Dispose() => _context.Dispose();
     }
