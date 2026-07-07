@@ -18,6 +18,7 @@ namespace SalonHub.Application
 
             services.AddScoped<ISalonService, SalonService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IReservationService, ReservationService>();
 
             return services;

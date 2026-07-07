@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SalonHub.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2cebac4d696565358997c50267639177d60ef65a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ff7ec4ece79b8cda97a2a830b31beb8d4a447eed")]
 [assembly: System.Reflection.AssemblyProductAttribute("SalonHub.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SalonHub.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

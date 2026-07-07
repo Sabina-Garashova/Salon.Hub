@@ -198,17 +198,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "CategoryController.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
               "RelativeDocumentMoniker": "presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\CategoryController.cs*",
-              "RelativeToolTip": "presentation\\SalonHub.Api\\Controllers\\CategoryController.cs*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADUAAAABAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
+              "RelativeToolTip": "presentation\\SalonHub.Api\\Controllers\\CategoryController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-07T13:17:00.149Z",
               "EditorCaption": ""
@@ -219,8 +223,8 @@
               "Title": "CategoryService.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\CategoryService.cs*",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\CategoryService.cs*",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\Services\\CategoryService.cs",
               "ViewState": "AgIAAEoAAAAAAAAAAAAYwFMAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-07T13:15:02.976Z",
@@ -232,8 +236,8 @@
               "Title": "CategoryDtos.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs*",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs*",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DTOs\\Categories\\CategoryDtos.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-07T13:13:49.892Z",
@@ -295,8 +299,8 @@
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs*",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DependencyInjection.cs*",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\DependencyInjection.cs",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\DependencyInjection.cs",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAABMAAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-06T14:29:39.542Z",
@@ -334,16 +338,12 @@
               "Title": "SalonHub.Application.csproj",
               "DocumentMoniker": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
               "RelativeDocumentMoniker": "src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
-              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\SalonHub.Application.csproj*",
-              "RelativeToolTip": "src\\Core\\SalonHub.Application\\SalonHub.Application.csproj*",
+              "ToolTip": "C:\\Users\\Omen\\source\\repos\\SalonHub\\src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
+              "RelativeToolTip": "src\\Core\\SalonHub.Application\\SalonHub.Application.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2026-07-06T14:35:03.628Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             },
             {
               "$type": "Document",
