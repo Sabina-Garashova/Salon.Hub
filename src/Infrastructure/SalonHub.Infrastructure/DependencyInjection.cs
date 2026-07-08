@@ -14,6 +14,7 @@ namespace SalonHub.Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
         {
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<INotificationService, NotificationService>();
             return services;
         }
     }

@@ -33,7 +33,7 @@ namespace SalonHub.Api.Middlewares
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 InvalidOperationException => HttpStatusCode.Conflict,
-                UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+                UnauthorizedAccessException => HttpStatusCode.Forbidden,
                 ArgumentException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };

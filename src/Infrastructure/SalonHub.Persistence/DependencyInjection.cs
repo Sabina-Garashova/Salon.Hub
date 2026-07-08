@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SalonHub.Persistence.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Application.Interfaces.Services;
+using SalonHub.Persistence.Identity;
 using SalonHub.Persistence.Repositories;
 
 namespace SalonHub.Persistence
@@ -23,6 +24,7 @@ namespace SalonHub.Persistence
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+           
             return services;
         }
     }
