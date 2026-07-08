@@ -4,7 +4,6 @@ using SalonHub.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
@@ -16,6 +15,8 @@ namespace SalonHub.Application.Services
         Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto);
         Task UpdateAsync(int id, EmployeeUpdateDto dto);
         Task DeleteAsync(int id);
+        Task AssignServiceAsync(int employeeId, int serviceId);
+        Task RemoveServiceAsync(int employeeId, int serviceId);
     }
 
     public class EmployeeService : IEmployeeService
@@ -26,7 +27,6 @@ namespace SalonHub.Application.Services
         {
             _unitOfWork = unitOfWork;
         }
-
 
         public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync()
         {
@@ -86,6 +86,39 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task AssignServiceAsync(int employeeId, int serviceId)
+        {
+            var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
+                e => e.Id == employeeId, e => e.EmployeeServices)
+                ?? throw new KeyNotFoundException("İşçi tapılmadı.");
+
+            var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
+                ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            if (employee.EmployeeServices.Any(es => es.ServiceId == serviceId))
+                throw new InvalidOperationException("Bu xidmət artıq bu işçiyə təyin olunub.");
+
+            employee.EmployeeServices.Add(new SalonHub.Domain.Entities.EmployeeService
+            {
+                EmployeeId = employeeId,
+                ServiceId = serviceId
+            });
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task RemoveServiceAsync(int employeeId, int serviceId)
+        {
+            var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
+                e => e.Id == employeeId, e => e.EmployeeServices)
+                ?? throw new KeyNotFoundException("İşçi tapılmadı.");
+
+            var employeeService = employee.EmployeeServices.FirstOrDefault(es => es.ServiceId == serviceId)
+                ?? throw new KeyNotFoundException("Bu xidmət bu işçiyə təyin olunmayıb.");
+
+            employee.EmployeeServices.Remove(employeeService);
+            await _unitOfWork.CompleteAsync();
+        }
+
         private static EmployeeReadDto MapToReadDto(Employee employee) => new()
         {
             Id = employee.Id,
@@ -95,17 +128,5 @@ namespace SalonHub.Application.Services
             SalonId = employee.SalonId,
             BranchId = employee.BranchId
         };
-        public interface IEmployeeService
-        {
-            Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync();
-            Task<EmployeeReadDto?> GetByIdAsync(int id);
-            Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto);
-            Task UpdateAsync(int id, EmployeeUpdateDto dto);
-            Task DeleteAsync(int id);
-            Task AssignServiceAsync(int employeeId, int serviceId);
-            Task RemoveServiceAsync(int employeeId, int serviceId);
-        }
-
     }
-
 }

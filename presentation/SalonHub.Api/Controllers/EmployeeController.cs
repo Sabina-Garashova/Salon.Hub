@@ -50,5 +50,20 @@ namespace SalonHub.Api.Controllers
             await _employeeService.DeleteAsync(id);
             return NoContent();
         }
+        [HttpPost("{employeeId}/services/{serviceId}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> AssignService(int employeeId, int serviceId)
+        {
+            await _employeeService.AssignServiceAsync(employeeId, serviceId);
+            return NoContent();
+        }
+
+        [HttpDelete("{employeeId}/services/{serviceId}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> RemoveService(int employeeId, int serviceId)
+        {
+            await _employeeService.RemoveServiceAsync(employeeId, serviceId);
+            return NoContent();
+        }
     }
 }
