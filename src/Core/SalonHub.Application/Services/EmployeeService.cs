@@ -27,6 +27,7 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
+
         public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync()
         {
             var employees = await _unitOfWork.Employees.GetAllAsync();
@@ -94,6 +95,17 @@ namespace SalonHub.Application.Services
             SalonId = employee.SalonId,
             BranchId = employee.BranchId
         };
+        public interface IEmployeeService
+        {
+            Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync();
+            Task<EmployeeReadDto?> GetByIdAsync(int id);
+            Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto);
+            Task UpdateAsync(int id, EmployeeUpdateDto dto);
+            Task DeleteAsync(int id);
+            Task AssignServiceAsync(int employeeId, int serviceId);
+            Task RemoveServiceAsync(int employeeId, int serviceId);
+        }
+
     }
 
 }

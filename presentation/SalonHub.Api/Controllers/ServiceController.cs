@@ -50,5 +50,20 @@ namespace SalonHub.Api.Controllers
             await _serviceCrudService.DeleteAsync(id);
             return NoContent();
         }
+        [HttpPost("{serviceId}/tags/{tagId}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> AddTag(int serviceId, int tagId)
+        {
+            await _serviceCrudService.AddTagAsync(serviceId, tagId);
+            return NoContent();
+        }
+
+        [HttpDelete("{serviceId}/tags/{tagId}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> RemoveTag(int serviceId, int tagId)
+        {
+            await _serviceCrudService.RemoveTagAsync(serviceId, tagId);
+            return NoContent();
+        }
     }
 }

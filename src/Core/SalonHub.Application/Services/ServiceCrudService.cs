@@ -16,6 +16,8 @@ namespace SalonHub.Application.Services
         Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto);
         Task UpdateAsync(int id, ServiceUpdateDto dto);
         Task DeleteAsync(int id);
+        Task AddTagAsync(int serviceId, int tagId);
+        Task RemoveTagAsync(int serviceId, int tagId);
     }
 
     public class ServiceCrudService : IServiceCrudService
@@ -97,6 +99,35 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task AddTagAsync(int serviceId, int tagId)
+        {
+            var service = await _unitOfWork.Services.SingleOrDefaultAsync(
+                s => s.Id == serviceId, s => s.ServiceTags)
+                ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            var tag = await _unitOfWork.Tags.GetByIdAsync(tagId)
+                ?? throw new KeyNotFoundException("Tag tapılmadı.");
+
+            if (service.ServiceTags.Any(st => st.TagId == tagId))
+                throw new InvalidOperationException("Bu tag artıq əlavə olunub.");
+
+            service.ServiceTags.Add(new ServiceTag { ServiceId = serviceId, TagId = tagId });
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task RemoveTagAsync(int serviceId, int tagId)
+        {
+            var service = await _unitOfWork.Services.SingleOrDefaultAsync(
+                s => s.Id == serviceId, s => s.ServiceTags)
+                ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            var serviceTag = service.ServiceTags.FirstOrDefault(st => st.TagId == tagId)
+                ?? throw new KeyNotFoundException("Bu tag bu xidmətə əlavə olunmayıb.");
+
+            service.ServiceTags.Remove(serviceTag);
+            await _unitOfWork.CompleteAsync();
+        }
+
         private static ServiceReadDto MapToReadDto(Service service) => new()
         {
             Id = service.Id,
@@ -110,3 +141,5 @@ namespace SalonHub.Application.Services
         };
     }
 }
+    
+
