@@ -1,0 +1,101 @@
+﻿using SalonHub.Application.DTOs.GalleryImages;
+using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Domain.Entities;
+using SalonHub.Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SalonHub.Application.Services
+{
+    public interface IGalleryImageService
+    {
+        Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync();
+        Task<GalleryImageReadDto?> GetByIdAsync(int id);
+        Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto);
+        Task UpdateAsync(int id, GalleryImageUpdateDto dto);
+        Task DeleteAsync(int id);
+    }
+
+    public class GalleryImageService : IGalleryImageService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public GalleryImageService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync()
+        {
+            var images = await _unitOfWork.GalleryImages.GetAllAsync();
+            return images.Select(MapToReadDto).ToList();
+        }
+
+        public async Task<GalleryImageReadDto?> GetByIdAsync(int id)
+        {
+            var image = await _unitOfWork.GalleryImages.GetByIdAsync(id);
+            return image is null ? null : MapToReadDto(image);
+        }
+
+        public async Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto)
+        {
+            var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
+                ?? throw new KeyNotFoundException("Salon tapılmadı.");
+
+            if (!Enum.TryParse<GalleryImageType>(dto.Type, true, out var type))
+                throw new ArgumentException("Şəkil növü düzgün deyil. Interior, Exterior, Before, After və ya Portfolio olmalıdır.");
+
+            var image = new GalleryImage
+            {
+                ImageUrl = dto.ImageUrl,
+                Description = dto.Description,
+                Type = type,
+                SalonId = dto.SalonId,
+                EmployeeId = dto.EmployeeId
+            };
+
+            await _unitOfWork.GalleryImages.AddAsync(image);
+            await _unitOfWork.CompleteAsync();
+
+            return MapToReadDto(image);
+        }
+
+        public async Task UpdateAsync(int id, GalleryImageUpdateDto dto)
+        {
+            var image = await _unitOfWork.GalleryImages.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Şəkil tapılmadı: {id}");
+
+            if (!Enum.TryParse<GalleryImageType>(dto.Type, true, out var type))
+                throw new ArgumentException("Şəkil növü düzgün deyil.");
+
+            image.Description = dto.Description;
+            image.Type = type;
+            image.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.GalleryImages.Update(image);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var image = await _unitOfWork.GalleryImages.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Şəkil tapılmadı: {id}");
+
+            _unitOfWork.GalleryImages.Remove(image);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        private static GalleryImageReadDto MapToReadDto(GalleryImage image) => new()
+        {
+            Id = image.Id,
+            ImageUrl = image.ImageUrl,
+            Description = image.Description,
+            Type = image.Type.ToString(),
+            SalonId = image.SalonId,
+            EmployeeId = image.EmployeeId
+        };
+    }
+}

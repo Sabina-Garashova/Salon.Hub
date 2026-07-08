@@ -1,4 +1,5 @@
 ﻿using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Application.Services;
 using SalonHub.Domain.Entities;
 namespace SalonHub.Persistence.Repositories
 {
@@ -18,10 +19,14 @@ namespace SalonHub.Persistence.Repositories
             Reservations = new GenericRepository<Reservation>(_context);
             Reviews = new GenericRepository<Review>(_context);
             WorkingHours = new GenericRepository<WorkingHour>(_context);
+            GalleryImages = new GenericRepository<GalleryImage>(_context);
+            
         }
         public IGenericRepository<Salon> Salons { get; }
         public IGenericRepository<Branch> Branches { get; }
         public IGenericRepository<Category> Categories { get; }
+        public IGenericRepository<GalleryImage> GalleryImages { get; }
+
         public IGenericRepository<Service> Services { get; }
         public IGenericRepository<Tag> Tags { get; }
         public IGenericRepository<Employee> Employees { get; }

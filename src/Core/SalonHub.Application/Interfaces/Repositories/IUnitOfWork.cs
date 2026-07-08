@@ -18,7 +18,9 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<Equipment> Equipments { get; }
         IGenericRepository<Reservation> Reservations { get; }
         IGenericRepository<Review> Reviews { get; }
+        IGenericRepository<GalleryImage> GalleryImages { get; }
         IGenericRepository<WorkingHour> WorkingHours { get; }
+       
 
         Task<int> CompleteAsync();
 
