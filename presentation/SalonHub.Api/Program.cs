@@ -1,13 +1,15 @@
-using Serilog;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using SalonHub.Api.Middlewares;
 using SalonHub.Application;
+using SalonHub.Application.Interfaces.Services;
+using SalonHub.Application.Services;
 using SalonHub.Infrastructure;
 using SalonHub.Persistence;
 using SalonHub.Persistence.Identity;
+using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,7 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

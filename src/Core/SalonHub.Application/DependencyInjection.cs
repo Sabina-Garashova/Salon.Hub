@@ -1,11 +1,12 @@
-﻿using SalonHub.Application.Services;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using SalonHub.Application.Interfaces.Services;
+using SalonHub.Application.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using FluentValidation;
 
 
 namespace SalonHub.Application
@@ -27,6 +28,7 @@ namespace SalonHub.Application
             services.AddScoped<IReservationService, ReservationService>();
             services.AddScoped<IGalleryImageService, GalleryImageService>();
             services.AddScoped<IReviewService, ReviewService>();
+            
 
             return services;
         }
