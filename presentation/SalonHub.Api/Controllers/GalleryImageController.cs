@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.GalleryImages;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
+using System.Security.Claims;
 
 namespace SalonHub.Api.Controllers
 {
@@ -11,7 +12,6 @@ namespace SalonHub.Api.Controllers
     public class GalleryImageController : ControllerBase
     {
         private readonly IGalleryImageService _galleryImageService;
-
         public GalleryImageController(IGalleryImageService galleryImageService)
         {
             _galleryImageService = galleryImageService;
@@ -31,7 +31,9 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Create(GalleryImageCreateDto dto)
         {
-            var created = await _galleryImageService.CreateAsync(dto);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            var created = await _galleryImageService.CreateAsync(dto, requesterId, isSuperAdmin);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -39,7 +41,9 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Update(int id, GalleryImageUpdateDto dto)
         {
-            await _galleryImageService.UpdateAsync(id, dto);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            await _galleryImageService.UpdateAsync(id, dto, requesterId, isSuperAdmin);
             return NoContent();
         }
 
@@ -47,7 +51,9 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _galleryImageService.DeleteAsync(id);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            await _galleryImageService.DeleteAsync(id, requesterId, isSuperAdmin);
             return NoContent();
         }
     }

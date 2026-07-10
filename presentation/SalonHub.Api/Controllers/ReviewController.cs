@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reviews;
 using SalonHub.Application.Services;
+using SalonHub.Persistence.Identity;
+using System.Security.Claims;
 
 namespace SalonHub.Api.Controllers
 {
@@ -10,7 +12,6 @@ namespace SalonHub.Api.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
-
         public ReviewController(IReviewService reviewService)
         {
             _reviewService = reviewService;
@@ -30,7 +31,8 @@ namespace SalonHub.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Create(ReviewCreateDto dto)
         {
-            var created = await _reviewService.CreateAsync(dto);
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var created = await _reviewService.CreateAsync(dto, customerId);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -38,7 +40,9 @@ namespace SalonHub.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Update(int id, ReviewUpdateDto dto)
         {
-            await _reviewService.UpdateAsync(id, dto);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
+            await _reviewService.UpdateAsync(id, dto, requesterId, isAdmin);
             return NoContent();
         }
 
@@ -46,7 +50,9 @@ namespace SalonHub.Api.Controllers
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            await _reviewService.DeleteAsync(id);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
+            await _reviewService.DeleteAsync(id, requesterId, isAdmin);
             return NoContent();
         }
     }
