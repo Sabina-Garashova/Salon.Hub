@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using SalonHub.Api.Middlewares;
@@ -24,7 +24,7 @@ builder.Host.UseSerilog((context, config) =>
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
-builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+// Service bypass
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -76,6 +76,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddScoped<SalonHub.Application.Interfaces.Services.IAnalyticsService, SalonHub.Application.Services.AnalyticsService>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -103,3 +104,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+

@@ -8,6 +8,7 @@ namespace SalonHub.Application.DTOs.Reservations
 {
     public class ReservationCreateDto
     {
+        public string? CustomerFullName { get; set; }
         public string CustomerId { get; set; } = string.Empty;
         public int ServiceId { get; set; }
         public int EmployeeId { get; set; }
@@ -35,3 +36,5 @@ namespace SalonHub.Application.DTOs.Reservations
         public TimeSpan StartTime { get; set; }
     }
 }
+
+

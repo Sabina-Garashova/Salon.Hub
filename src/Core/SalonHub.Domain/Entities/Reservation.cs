@@ -14,6 +14,7 @@ namespace SalonHub.Domain.Entities
 {
     public class Reservation : BaseEntity
     {
+        public string? CustomerFullName { get; set; }
         public string CustomerId { get; set; } = string.Empty;
 
         public int ServiceId { get; set; }
@@ -36,3 +37,5 @@ namespace SalonHub.Domain.Entities
         public string? CancellationReason { get; set; }
     }
 }
+
+

@@ -12,6 +12,7 @@ namespace SalonHub.Domain.Enums
         Confirmed = 2,
         Cancelled = 3,
         Completed = 4,
+        Rejected = 6,
         NoShow = 5
     }
 }

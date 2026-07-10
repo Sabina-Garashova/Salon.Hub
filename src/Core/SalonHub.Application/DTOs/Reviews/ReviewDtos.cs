@@ -31,3 +31,4 @@ namespace SalonHub.Application.DTOs.Reviews
         public string? Comment { get; set; }
     }
 }
+

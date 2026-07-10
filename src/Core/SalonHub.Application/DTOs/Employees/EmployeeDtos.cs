@@ -34,3 +34,5 @@ namespace SalonHub.Application.DTOs.Employees
         public int? BranchId { get; set; }
     }
 }
+
+

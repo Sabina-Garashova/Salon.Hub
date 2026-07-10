@@ -21,3 +21,5 @@ namespace SalonHub.Domain.Entities
         public Employee? Employee { get; set; }
     }
 }
+
+

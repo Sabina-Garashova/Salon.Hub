@@ -31,3 +31,5 @@ namespace SalonHub.Application.DTOs.GalleryImages
         public string Type { get; set; } = string.Empty;
     }
 }
+
+

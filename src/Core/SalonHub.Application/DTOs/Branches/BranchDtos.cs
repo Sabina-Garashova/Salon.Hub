@@ -30,3 +30,5 @@ namespace SalonHub.Application.DTOs.Branches
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }
+
+

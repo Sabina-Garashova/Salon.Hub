@@ -21,3 +21,5 @@ namespace SalonHub.Domain.Entities
         public string? Comment { get; set; }
     }
 }
+
+

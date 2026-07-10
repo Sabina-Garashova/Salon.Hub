@@ -23,7 +23,7 @@ namespace SalonHub.Application.DTOs.Analytics
     {
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public Guid? SalonId { get; set; }
+        public int? SalonId { get; set; }
         public ReportGroupBy GroupBy { get; set; } = ReportGroupBy.Day;
     }
 
@@ -52,7 +52,7 @@ namespace SalonHub.Application.DTOs.Analytics
 
     public class SalonRevenueDto
     {
-        public Guid SalonId { get; set; }
+        public int SalonId { get; set; }
         public string SalonName { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
         public int ReservationCount { get; set; }
@@ -96,7 +96,7 @@ namespace SalonHub.Application.DTOs.Analytics
 
     public class PopularSalonDto
     {
-        public Guid SalonId { get; set; }
+        public int SalonId { get; set; }
         public string SalonName { get; set; } = string.Empty;
         public int TimesBooked { get; set; }
         public decimal TotalRevenue { get; set; }
@@ -121,4 +121,7 @@ namespace SalonHub.Application.DTOs.Analytics
         public decimal TotalSpent { get; set; }
     }
 }
+
+
+
 

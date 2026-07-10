@@ -39,3 +39,5 @@ namespace SalonHub.Application.DTOs.Services
         public int? RequiredEquipmentId { get; set; }
     }
 }
+
+

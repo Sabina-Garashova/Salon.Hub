@@ -28,3 +28,5 @@ namespace SalonHub.Domain.Entities
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
+
+
