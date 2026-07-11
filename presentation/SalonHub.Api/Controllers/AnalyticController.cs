@@ -11,10 +11,12 @@ namespace SalonHub.Api.Controllers
     public class AnalyticController : ControllerBase
     {
         private readonly IAnalyticsService _analyticsService;
+        private readonly IExcelExportService _excelExportService;
 
-        public AnalyticController(IAnalyticsService analyticsService)
+        public AnalyticController(IAnalyticsService analyticsService, IExcelExportService excelExportService)
         {
             _analyticsService = analyticsService;
+            _excelExportService = excelExportService;
         }
 
         [HttpGet("dashboard-summary")]
@@ -29,6 +31,14 @@ namespace SalonHub.Api.Controllers
         {
             var result = await _analyticsService.GetRevenueReportAsync(request);
             return Ok(result);
+        }
+
+        [HttpPost("revenue-report/export")]
+        public async Task<IActionResult> ExportRevenueReport([FromBody] RevenueReportRequestDto request)
+        {
+            var report = await _analyticsService.GetRevenueReportAsync(request);
+            var fileBytes = await _excelExportService.ExportRevenueReportAsync(report);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "gelir-hesabati.xlsx");
         }
 
         [HttpGet("reservation-stats")]
