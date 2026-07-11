@@ -29,6 +29,7 @@ namespace SalonHub.Application
             services.AddScoped<IGalleryImageService, GalleryImageService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IExcelExportService, ExcelExportService>();
+            services.AddScoped<ReservationReminderJob>();
 
 
             return services;

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using SalonHub.Api.Middlewares;
@@ -11,6 +12,7 @@ using SalonHub.Persistence.Identity;
 using Serilog;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
@@ -22,6 +24,9 @@ builder.Host.UseSerilog((context, config) =>
 });
 
 builder.Services.AddApplicationServices();
+builder.Services.AddHangfire(config => config
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfireServer();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
 // Service bypass
@@ -96,6 +101,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseHangfireDashboard("/hangfire");
+
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+    recurringJobManager.AddOrUpdate<SalonHub.Application.Services.ReservationReminderJob>(
+        "reservation-reminder",
+        job => job.SendUpcomingReminders(),
+        "*/5 * * * *");
+}
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
