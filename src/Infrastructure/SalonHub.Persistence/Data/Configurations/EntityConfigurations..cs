@@ -176,4 +176,25 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasForeignKey(x => x.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
     }
+    public class LoyaltyAccountConfiguration : IEntityTypeConfiguration<LoyaltyAccount>
+    {
+        public void Configure(EntityTypeBuilder<LoyaltyAccount> builder)
+        {
+            builder.HasOne(x => x.Salon)
+                .WithMany()
+                .HasForeignKey(x => x.SalonId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+
+    public class LoyaltyTransactionConfiguration : IEntityTypeConfiguration<LoyaltyTransaction>
+    {
+        public void Configure(EntityTypeBuilder<LoyaltyTransaction> builder)
+        {
+            builder.HasOne(x => x.LoyaltyAccount)
+                .WithMany(a => a.Transactions)
+                .HasForeignKey(x => x.LoyaltyAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
 }

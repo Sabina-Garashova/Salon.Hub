@@ -19,6 +19,7 @@ namespace SalonHub.Application.Services
         Task<ReservationReadDto> CancelAsync(int reservationId, string reason);
         Task<ReservationReadDto> ConfirmAsync(int reservationId, string currentUserId, bool isAdmin);
         Task<ReservationReadDto> RejectAsync(int reservationId, string reason, string currentUserId, bool isAdmin);
+        Task<ReservationReadDto> CompleteAsync(int reservationId);
         Task<List<string>> GetAvailableSlotsAsync(int employeeId, int serviceId, DateTime date);
     }
 
@@ -26,11 +27,13 @@ namespace SalonHub.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
+        private readonly ILoyaltyService _loyaltyService;
 
-        public ReservationService(IUnitOfWork unitOfWork, INotificationService notificationService)
+        public ReservationService(IUnitOfWork unitOfWork, INotificationService notificationService, ILoyaltyService loyaltyService)
         {
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
+            _loyaltyService = loyaltyService;
         }
 
         public async Task<List<ReservationReadDto>> GetAllAsync()
@@ -156,7 +159,6 @@ namespace SalonHub.Application.Services
             if (reservation.Status == ReservationStatus.Cancelled)
                 throw new InvalidOperationException("Ləğv olunmuş rezervasiya dəyişdirilə bilməz.");
 
-            // --- Sahiblik yoxlaması ---
             if (!isAdmin)
             {
                 var isOwnerCustomer = reservation.CustomerId == currentUserId;
@@ -168,7 +170,6 @@ namespace SalonHub.Application.Services
                 if (!isOwnerCustomer && !isAssignedEmployee)
                     throw new UnauthorizedAccessException("Bu rezervasiyanı dəyişmək icazəniz yoxdur.");
             }
-            // --- Sahiblik yoxlaması bitdi ---
 
             var service = await _unitOfWork.Services.GetByIdAsync(dto.ServiceId)
                 ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
@@ -228,7 +229,6 @@ namespace SalonHub.Application.Services
 
             if (timeChanged)
             {
-                // Saat dəyişəndə müştəridən yenidən təsdiq tələb olunur
                 reservation.Status = ReservationStatus.Pending;
             }
 
@@ -330,6 +330,41 @@ namespace SalonHub.Application.Services
 
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
+
+            var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
+            var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);
+
+            return new ReservationReadDto
+            {
+                Id = reservation.Id,
+                ServiceName = service?.Name ?? string.Empty,
+                EmployeeName = employee?.FullName ?? string.Empty,
+                ReservationDate = reservation.ReservationDate,
+                StartTime = reservation.StartTime,
+                EndTime = reservation.EndTime,
+                Status = reservation.Status.ToString()
+            };
+        }
+
+        public async Task<ReservationReadDto> CompleteAsync(int reservationId)
+        {
+            var reservation = await _unitOfWork.Reservations.GetByIdAsync(reservationId)
+                ?? throw new KeyNotFoundException("Rezervasiya tapılmadı.");
+
+            if (reservation.Status == ReservationStatus.Cancelled)
+                throw new InvalidOperationException("Ləğv olunmuş rezervasiya tamamlanmış sayıla bilməz.");
+
+            // 1. Statusu dəyişirik
+            reservation.Status = ReservationStatus.Completed;
+            reservation.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Reservations.Update(reservation);
+
+            // 2. Öncə rezervasiyanın tamamlanmasını bazaya yazırıq (Save edirik)
+            await _unitOfWork.CompleteAsync();
+
+            // 3. Rezervasiya rəsmən tamamlandıqdan SONRA xal qazanma metodunu çağırırıq
+            // Bu metod öz daxilində xalı hesablayıb öz CompleteAsync-ini edəcək və heç bir konflikt olmayacaq!
+            await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
 
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
             var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);

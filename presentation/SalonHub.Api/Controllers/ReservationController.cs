@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reservations;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
+using System;
+using System.Threading.Tasks;
 
 namespace SalonHub.Api.Controllers
 {
@@ -79,30 +81,13 @@ namespace SalonHub.Api.Controllers
             var slots = await _reservationService.GetAvailableSlotsAsync(employeeId, serviceId, date);
             return Ok(slots);
         }
-    
-        [Microsoft.AspNetCore.Mvc.HttpPost("{id}/complete")]
-        public async System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> CompleteReservation(string id)
+
+        [HttpPost("{id}/complete")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
+        public async Task<IActionResult> Complete(int id)
         {
-            try
-            {
-                var unitOfWork = HttpContext.RequestServices.GetRequiredService<SalonHub.Application.Interfaces.Repositories.IUnitOfWork>();
-                var allReservations = await unitOfWork.Reservations.GetAllAsync();
-                var reservation = System.Linq.Enumerable.FirstOrDefault(allReservations, x => x.Id.ToString() == id);
-                
-                if (reservation == null) 
-                    return NotFound(new { message = "Rezervasiya tapılmadı." });
-                
-                reservation.Status = SalonHub.Domain.Enums.ReservationStatus.Completed;
-                unitOfWork.Reservations.Update(reservation);
-                await unitOfWork.CompleteAsync();
-                
-                return Ok(new { message = "Rezervasiya uğurla 'Completed' edildi və kassaya gəlir kimi yazıldı!" });
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = "Xəta baş verdi", detail = ex.Message });
-            }
-        }}
+            var result = await _reservationService.CompleteAsync(id);
+            return Ok(result);
+        }
+    }
 }
-
-

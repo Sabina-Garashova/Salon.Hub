@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SalonHub.Application.Interfaces.Services;
+using SalonHub.Application.Services;
 using SalonHub.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace SalonHub.Infrastructure
         {
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddHttpClient<IStyleRecommendationService, StyleRecommendationService>();
             return services;
         }
     }

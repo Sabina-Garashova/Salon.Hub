@@ -20,7 +20,9 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<Review> Reviews { get; }
         IGenericRepository<GalleryImage> GalleryImages { get; }
         IGenericRepository<WorkingHour> WorkingHours { get; }
-       
+        IGenericRepository<LoyaltyAccount> LoyaltyAccounts { get; }
+        IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
+
 
         Task<int> CompleteAsync();
 

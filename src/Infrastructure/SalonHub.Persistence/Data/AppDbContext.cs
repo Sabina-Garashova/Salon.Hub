@@ -27,6 +27,8 @@ namespace SalonHub.Persistence
         public DbSet<Equipment> Equipments => Set<Equipment>();
         public DbSet<WorkingHour> WorkingHours => Set<WorkingHour>();
         public DbSet<Reservation> Reservations => Set<Reservation>();
+        public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
+        public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
         public DbSet<GalleryImage> GalleryImages => Set<GalleryImage>();
         public DbSet<Review> Reviews => Set<Review>();
 

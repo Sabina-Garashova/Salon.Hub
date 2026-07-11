@@ -30,6 +30,7 @@ namespace SalonHub.Application
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IExcelExportService, ExcelExportService>();
             services.AddScoped<ReservationReminderJob>();
+            services.AddScoped<ILoyaltyService, LoyaltyService>();
 
 
             return services;

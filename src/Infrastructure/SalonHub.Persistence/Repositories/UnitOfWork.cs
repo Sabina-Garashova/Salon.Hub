@@ -20,7 +20,9 @@ namespace SalonHub.Persistence.Repositories
             Reviews = new GenericRepository<Review>(_context);
             WorkingHours = new GenericRepository<WorkingHour>(_context);
             GalleryImages = new GenericRepository<GalleryImage>(_context);
-            
+            LoyaltyAccounts = new GenericRepository<LoyaltyAccount>(_context);
+            LoyaltyTransactions = new GenericRepository<LoyaltyTransaction>(_context);
+
         }
         public IGenericRepository<Salon> Salons { get; }
         public IGenericRepository<Branch> Branches { get; }
@@ -34,6 +36,9 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<Reservation> Reservations { get; }
         public IGenericRepository<Review> Reviews { get; }
         public IGenericRepository<WorkingHour> WorkingHours { get; }
+        public IGenericRepository<LoyaltyAccount> LoyaltyAccounts { get; }
+        public IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
+
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
         public void Dispose() => _context.Dispose();
