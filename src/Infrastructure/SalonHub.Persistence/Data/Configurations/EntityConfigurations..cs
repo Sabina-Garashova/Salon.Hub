@@ -127,6 +127,11 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .WithMany(b => b.Employees)
             .HasForeignKey(x => x.BranchId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.AssignedEquipment)
+            .WithMany()
+            .HasForeignKey(x => x.AssignedEquipmentId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 
@@ -175,26 +180,5 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .WithMany(e => e.Reviews)
             .HasForeignKey(x => x.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
-    }
-    public class LoyaltyAccountConfiguration : IEntityTypeConfiguration<LoyaltyAccount>
-    {
-        public void Configure(EntityTypeBuilder<LoyaltyAccount> builder)
-        {
-            builder.HasOne(x => x.Salon)
-                .WithMany()
-                .HasForeignKey(x => x.SalonId)
-                .OnDelete(DeleteBehavior.Restrict);
-        }
-    }
-
-    public class LoyaltyTransactionConfiguration : IEntityTypeConfiguration<LoyaltyTransaction>
-    {
-        public void Configure(EntityTypeBuilder<LoyaltyTransaction> builder)
-        {
-            builder.HasOne(x => x.LoyaltyAccount)
-                .WithMany(a => a.Transactions)
-                .HasForeignKey(x => x.LoyaltyAccountId)
-                .OnDelete(DeleteBehavior.Cascade);
-        }
     }
 }

@@ -105,16 +105,24 @@ namespace SalonHub.Application.Services
             if (employeeReservations.Any())
                 throw new InvalidOperationException("Seçilmiş usta bu saat aralığında məşğuldur.");
 
+            // Xidmət avadanlıq tələb edirsə - İŞÇİNİN ÖZ TƏYİN OLUNMUŞ AVADANLIĞINI yoxlayırıq
+            int? equipmentIdToUse = null;
+
             if (service.RequiredEquipmentId.HasValue)
             {
-                var equipment = await _unitOfWork.Equipments.GetByIdAsync(service.RequiredEquipmentId.Value)
+                if (!employee.AssignedEquipmentId.HasValue)
+                    throw new InvalidOperationException("Seçilmiş işçiyə bu xidmət üçün lazımi avadanlıq təyin olunmayıb.");
+
+                var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
                     ?? throw new KeyNotFoundException("Tələb olunan avadanlıq tapılmadı.");
 
                 if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
                     throw new InvalidOperationException("Tələb olunan avadanlıq hazırda nasazdır və ya təmirdədir.");
 
+                equipmentIdToUse = equipment.Id;
+
                 var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
-                    r.EquipmentId == service.RequiredEquipmentId &&
+                    r.EquipmentId == equipmentIdToUse &&
                     r.ReservationDate.Date == dto.ReservationDate.Date &&
                     r.Status != ReservationStatus.Cancelled &&
                     r.StartTime < endTime && dto.StartTime < r.EndTime);
@@ -129,7 +137,7 @@ namespace SalonHub.Application.Services
                 ServiceId = dto.ServiceId,
                 EmployeeId = dto.EmployeeId,
                 BranchId = dto.BranchId,
-                EquipmentId = service.RequiredEquipmentId,
+                EquipmentId = equipmentIdToUse,
                 ReservationDate = dto.ReservationDate.Date,
                 StartTime = dto.StartTime,
                 EndTime = endTime,
@@ -194,17 +202,24 @@ namespace SalonHub.Application.Services
             if (employeeReservations.Any())
                 throw new InvalidOperationException("Seçilmiş usta bu saat aralığında məşğuldur.");
 
+            int? equipmentIdToUse = null;
+
             if (service.RequiredEquipmentId.HasValue)
             {
-                var equipment = await _unitOfWork.Equipments.GetByIdAsync(service.RequiredEquipmentId.Value)
+                if (!employee.AssignedEquipmentId.HasValue)
+                    throw new InvalidOperationException("Seçilmiş işçiyə bu xidmət üçün lazımi avadanlıq təyin olunmayıb.");
+
+                var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
                     ?? throw new KeyNotFoundException("Tələb olunan avadanlıq tapılmadı.");
 
                 if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
                     throw new InvalidOperationException("Tələb olunan avadanlıq hazırda nasazdır və ya təmirdədir.");
 
+                equipmentIdToUse = equipment.Id;
+
                 var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
                     r.Id != id &&
-                    r.EquipmentId == service.RequiredEquipmentId &&
+                    r.EquipmentId == equipmentIdToUse &&
                     r.ReservationDate.Date == dto.ReservationDate.Date &&
                     r.Status != ReservationStatus.Cancelled &&
                     r.StartTime < endTime && dto.StartTime < r.EndTime);
@@ -219,7 +234,7 @@ namespace SalonHub.Application.Services
             reservation.ServiceId = dto.ServiceId;
             reservation.EmployeeId = dto.EmployeeId;
             reservation.BranchId = dto.BranchId;
-            reservation.EquipmentId = service.RequiredEquipmentId;
+            reservation.EquipmentId = equipmentIdToUse;
             reservation.ReservationDate = dto.ReservationDate.Date;
             reservation.StartTime = dto.StartTime;
             reservation.EndTime = endTime;
@@ -354,16 +369,12 @@ namespace SalonHub.Application.Services
             if (reservation.Status == ReservationStatus.Cancelled)
                 throw new InvalidOperationException("Ləğv olunmuş rezervasiya tamamlanmış sayıla bilməz.");
 
-            // 1. Statusu dəyişirik
             reservation.Status = ReservationStatus.Completed;
             reservation.UpdatedAt = DateTime.UtcNow;
-            _unitOfWork.Reservations.Update(reservation);
 
-            // 2. Öncə rezervasiyanın tamamlanmasını bazaya yazırıq (Save edirik)
+            _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
 
-            // 3. Rezervasiya rəsmən tamamlandıqdan SONRA xal qazanma metodunu çağırırıq
-            // Bu metod öz daxilində xalı hesablayıb öz CompleteAsync-ini edəcək və heç bir konflikt olmayacaq!
             await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
 
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);

@@ -1,10 +1,6 @@
 ﻿using SalonHub.Application.DTOs.Employees;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -45,6 +41,21 @@ namespace SalonHub.Application.Services
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
 
+            if (dto.AssignedEquipmentId.HasValue)
+            {
+                var equipment = await _unitOfWork.Equipments.GetByIdAsync(dto.AssignedEquipmentId.Value)
+                    ?? throw new KeyNotFoundException("Avadanlıq tapılmadı.");
+
+                if (dto.BranchId.HasValue && equipment.BranchId != dto.BranchId.Value)
+                    throw new InvalidOperationException("Seçilmiş avadanlıq bu filiala aid deyil.");
+
+                var alreadyAssigned = await _unitOfWork.Employees.FindAsync(e =>
+                    e.AssignedEquipmentId == dto.AssignedEquipmentId.Value);
+
+                if (alreadyAssigned.Any())
+                    throw new InvalidOperationException("Bu avadanlıq artıq başqa bir işçiyə təyin olunub.");
+            }
+
             var employee = new Employee
             {
                 FullName = dto.FullName,
@@ -52,7 +63,8 @@ namespace SalonHub.Application.Services
                 Bio = dto.Bio,
                 ApplicationUserId = dto.ApplicationUserId,
                 SalonId = dto.SalonId,
-                BranchId = dto.BranchId
+                BranchId = dto.BranchId,
+                AssignedEquipmentId = dto.AssignedEquipmentId
             };
 
             await _unitOfWork.Employees.AddAsync(employee);
@@ -66,10 +78,27 @@ namespace SalonHub.Application.Services
             var employee = await _unitOfWork.Employees.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"İşçi tapılmadı: {id}");
 
+            if (dto.AssignedEquipmentId.HasValue)
+            {
+                var equipment = await _unitOfWork.Equipments.GetByIdAsync(dto.AssignedEquipmentId.Value)
+                    ?? throw new KeyNotFoundException("Avadanlıq tapılmadı.");
+
+                var effectiveBranchId = dto.BranchId ?? employee.BranchId;
+                if (effectiveBranchId.HasValue && equipment.BranchId != effectiveBranchId.Value)
+                    throw new InvalidOperationException("Seçilmiş avadanlıq bu filiala aid deyil.");
+
+                var alreadyAssigned = await _unitOfWork.Employees.FindAsync(e =>
+                    e.Id != id && e.AssignedEquipmentId == dto.AssignedEquipmentId.Value);
+
+                if (alreadyAssigned.Any())
+                    throw new InvalidOperationException("Bu avadanlıq artıq başqa bir işçiyə təyin olunub.");
+            }
+
             employee.FullName = dto.FullName;
             employee.PhoneNumber = dto.PhoneNumber;
             employee.Bio = dto.Bio;
             employee.BranchId = dto.BranchId;
+            employee.AssignedEquipmentId = dto.AssignedEquipmentId;
             employee.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Employees.Update(employee);
@@ -126,7 +155,8 @@ namespace SalonHub.Application.Services
             PhoneNumber = employee.PhoneNumber,
             Bio = employee.Bio,
             SalonId = employee.SalonId,
-            BranchId = employee.BranchId
+            BranchId = employee.BranchId,
+            AssignedEquipmentId = employee.AssignedEquipmentId
         };
     }
 }

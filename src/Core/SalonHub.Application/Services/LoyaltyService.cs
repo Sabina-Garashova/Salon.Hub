@@ -2,11 +2,6 @@
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -71,24 +66,10 @@ namespace SalonHub.Application.Services
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId)
                 ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
 
-            int targetSalonId = service.SalonId;
-            if (targetSalonId <= 0)
-            {
-                var branch = await _unitOfWork.Branches.GetByIdAsync(reservation.BranchId);
-                targetSalonId = branch?.SalonId ?? 1;
-            }
+            var pointsToAward = (int)(service.Price * PointsPerCurrencyUnit);
+            if (pointsToAward <= 0) return;
 
-            // ÖNƏMLİ DƏYİŞİKLİK: Əgər xidmətin qiyməti 0-dırsa, müştəriyə standart 10 xal veririk,
-            // qiymət varsa qiymət qədər xal hesablayırıq. Beləcə metod əsla 'return' olub sıfırlanmır!
-            int pointsToAward = (int)(service.Price * PointsPerCurrencyUnit);
-            if (pointsToAward <= 0)
-            {
-                pointsToAward = 10; // Qiymət tapılmadıqda və ya 0 olduqda standart bonus xal
-            }
-
-            var account = await GetOrCreateAccountAsync(reservation.CustomerId, targetSalonId);
-
-            // Xalı artırırıq
+            var account = await GetOrCreateAccountAsync(reservation.CustomerId, service.SalonId);
             account.Points += pointsToAward;
             account.UpdatedAt = DateTime.UtcNow;
 
@@ -104,34 +85,32 @@ namespace SalonHub.Application.Services
             };
 
             await _unitOfWork.LoyaltyTransactions.AddAsync(transaction);
-
-            // Bütün dəyişiklikləri tək səfərdə bazaya yazırıq
             await _unitOfWork.CompleteAsync();
         }
 
         public async Task<RedeemPointsResultDto> RedeemPointsAsync(string customerId, RedeemPointsDto dto)
         {
-            if (dto.PointsToRedeem <= 0)
-                throw new ArgumentException("Ərinən xal sayı müsbət olmalıdır.");
+            if (dto.DiscountAmount <= 0)
+                throw new ArgumentException("Endirim məbləği müsbət olmalıdır.");
+
+            var pointsToRedeem = (int)(dto.DiscountAmount * PointsRequiredPerDiscountUnit);
 
             var account = await GetOrCreateAccountAsync(customerId, dto.SalonId);
 
-            if (account.Points < dto.PointsToRedeem)
+            if (account.Points < pointsToRedeem)
                 throw new InvalidOperationException("Kifayət qədər xalınız yoxdur.");
 
-            account.Points -= dto.PointsToRedeem;
+            account.Points -= pointsToRedeem;
             account.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.LoyaltyAccounts.Update(account);
 
-            var discountAmount = Math.Round((decimal)dto.PointsToRedeem / PointsRequiredPerDiscountUnit, 2);
-
             var transaction = new LoyaltyTransaction
             {
                 LoyaltyAccountId = account.Id,
-                Points = -dto.PointsToRedeem,
+                Points = -pointsToRedeem,
                 Type = LoyaltyTransactionType.Redeemed,
-                Description = $"{dto.PointsToRedeem} xal ərinərək {discountAmount} AZN endirim əldə edildi"
+                Description = $"{dto.DiscountAmount} AZN endirim üçün {pointsToRedeem} xal ərinildi"
             };
 
             await _unitOfWork.LoyaltyTransactions.AddAsync(transaction);
@@ -140,7 +119,7 @@ namespace SalonHub.Application.Services
             return new RedeemPointsResultDto
             {
                 RemainingPoints = account.Points,
-                DiscountAmount = discountAmount
+                DiscountAmount = dto.DiscountAmount
             };
         }
 
@@ -157,13 +136,10 @@ namespace SalonHub.Application.Services
             {
                 CustomerId = customerId,
                 SalonId = salonId,
-                Points = 0,
-                CreatedAt = DateTime.UtcNow
+                Points = 0
             };
 
             await _unitOfWork.LoyaltyAccounts.AddAsync(newAccount);
-
-            // ÖNƏMLİ DƏYİŞİKLİK: Yeni hesab yaranan kimi bazaya yazılsın ki, Id-si 0 olaraq qalmasın!
             await _unitOfWork.CompleteAsync();
 
             return newAccount;
