@@ -2,11 +2,6 @@
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Services;
 using SalonHub.Infrastructure.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Infrastructure
 {
@@ -16,6 +11,8 @@ namespace SalonHub.Infrastructure
         {
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IEmailService, MockNotificationService>();
+            services.AddScoped<ISmsService, AwsSnsSmsService>();
             services.AddHttpClient<IStyleRecommendationService, StyleRecommendationService>();
             return services;
         }

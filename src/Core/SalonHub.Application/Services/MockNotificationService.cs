@@ -1,34 +1,63 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Net;
+using System.Net.Mail;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SalonHub.Application.Interfaces.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
-    public class MockNotificationService : IEmailService, ISmsService
+    public class MockNotificationService : IEmailService
     {
         private readonly ILogger<MockNotificationService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public MockNotificationService(ILogger<MockNotificationService> logger)
+        public MockNotificationService(ILogger<MockNotificationService> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
 
-        public Task SendEmailAsync(string to, string subject, string body)
+        public async Task SendEmailAsync(string to, string subject, string body)
         {
-            // Gələcəkdə bura SendGrid və ya MailKit kodları gələcək
-            _logger.LogInformation("📧 [EMAIL GÖNDƏRİLDİ] Kimə: {To} | Mövzu: {Subject} | Məzmun: {Body}", to, subject, body);
-            return Task.CompletedTask;
-        }
+            var host = _configuration["Mailtrap:Host"];
+            var portString = _configuration["Mailtrap:Port"];
+            var username = _configuration["Mailtrap:Username"];
+            var password = _configuration["Mailtrap:Password"];
+            var fromEmail = _configuration["Mailtrap:FromEmail"] ?? "noreply@salonhub.com";
+            var fromName = _configuration["Mailtrap:FromName"] ?? "SalonHub";
 
-        public Task SendSmsAsync(string toPhoneNumber, string message)
-        {
-            // Gələcəkdə bura Twilio kodu gələcək
-            _logger.LogInformation("📱 [SMS GÖNDƏRİLDİ] Nömrə: {To} | Mesaj: {Message}", toPhoneNumber, message);
-            return Task.CompletedTask;
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                _logger.LogWarning("Mailtrap konfiqurasiyası tam deyil. Email göndərilmədi: {To}", to);
+                return;
+            }
+
+            var port = int.TryParse(portString, out var parsedPort) ? parsedPort : 2525;
+
+            try
+            {
+                using var client = new SmtpClient(host, port)
+                {
+                    Credentials = new NetworkCredential(username, password),
+                    EnableSsl = true
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, fromName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = false
+                };
+                mailMessage.To.Add(to);
+
+                await client.SendMailAsync(mailMessage);
+                _logger.LogInformation("📧 Email uğurla göndərildi (Mailtrap): {To}", to);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Email göndərilərkən xəta baş verdi: {To}", to);
+            }
         }
     }
 }

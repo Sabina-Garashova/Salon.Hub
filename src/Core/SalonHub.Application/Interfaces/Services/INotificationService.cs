@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SalonHub.Application.Interfaces.Services;
 
-namespace SalonHub.Application.Interfaces.Services
+public interface INotificationService
 {
-    public interface INotificationService
-    {
-        Task NotifyReservationChangedAsync(string customerId, string message);
-    }
+    Task NotifyReservationChangedAsync(string customerId, string message);
+    Task NotifyEmployeeAsync(int employeeId, string message);
 }

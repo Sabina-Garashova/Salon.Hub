@@ -182,3 +182,19 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public class TimeBlockConfiguration : IEntityTypeConfiguration<TimeBlock>
+{
+    public void Configure(EntityTypeBuilder<TimeBlock> builder)
+    {
+        builder.HasOne(x => x.Employee)
+            .WithMany()
+            .HasForeignKey(x => x.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

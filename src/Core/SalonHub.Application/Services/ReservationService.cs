@@ -36,6 +36,27 @@ namespace SalonHub.Application.Services
             _loyaltyService = loyaltyService;
         }
 
+        private async Task CheckTimeBlockAsync(int employeeId, int branchId, DateTime date, TimeSpan startTime, TimeSpan endTime)
+        {
+            var employee = await _unitOfWork.Employees.GetByIdAsync(employeeId);
+
+            var blocks = await _unitOfWork.TimeBlocks.FindAsync(tb =>
+                (tb.EmployeeId == employeeId || (tb.EmployeeId == null && tb.BranchId == branchId)) &&
+                tb.StartDate.Date <= date.Date && tb.EndDate.Date >= date.Date);
+
+            foreach (var block in blocks)
+            {
+                var blockStart = block.StartTime ?? TimeSpan.Zero;
+                var blockEnd = block.EndTime ?? TimeSpan.FromHours(24);
+
+                if (startTime < blockEnd && blockStart < endTime)
+                {
+                    throw new InvalidOperationException(
+                        $"Seçilmiş vaxt bloklanıb. Səbəb: {block.Reason}");
+                }
+            }
+        }
+
         public async Task<List<ReservationReadDto>> GetAllAsync()
         {
             var reservations = await _unitOfWork.Reservations.GetAllAsync();
@@ -96,6 +117,8 @@ namespace SalonHub.Application.Services
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
+            await CheckTimeBlockAsync(dto.EmployeeId, dto.BranchId, dto.ReservationDate, dto.StartTime, endTime);
+
             var employeeReservations = await _unitOfWork.Reservations.FindAsync(r =>
                 r.EmployeeId == dto.EmployeeId &&
                 r.ReservationDate.Date == dto.ReservationDate.Date &&
@@ -105,7 +128,15 @@ namespace SalonHub.Application.Services
             if (employeeReservations.Any())
                 throw new InvalidOperationException("Seçilmiş usta bu saat aralığında məşğuldur.");
 
-            // Xidmət avadanlıq tələb edirsə - İŞÇİNİN ÖZ TƏYİN OLUNMUŞ AVADANLIĞINI yoxlayırıq
+            var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
+                r.CustomerId == dto.CustomerId &&
+                r.ReservationDate.Date == dto.ReservationDate.Date &&
+                r.Status != ReservationStatus.Cancelled &&
+                r.StartTime < endTime && dto.StartTime < r.EndTime);
+
+            if (customerReservations.Any())
+                throw new InvalidOperationException("Siz artıq bu saat aralığında başqa bir rezervasiyaya maliksiniz.");
+
             int? equipmentIdToUse = null;
 
             if (service.RequiredEquipmentId.HasValue)
@@ -192,6 +223,8 @@ namespace SalonHub.Application.Services
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
+            await CheckTimeBlockAsync(dto.EmployeeId, dto.BranchId, dto.ReservationDate, dto.StartTime, endTime);
+
             var employeeReservations = await _unitOfWork.Reservations.FindAsync(r =>
                 r.Id != id &&
                 r.EmployeeId == dto.EmployeeId &&
@@ -201,6 +234,16 @@ namespace SalonHub.Application.Services
 
             if (employeeReservations.Any())
                 throw new InvalidOperationException("Seçilmiş usta bu saat aralığında məşğuldur.");
+
+            var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
+                r.Id != id &&
+                r.CustomerId == reservation.CustomerId &&
+                r.ReservationDate.Date == dto.ReservationDate.Date &&
+                r.Status != ReservationStatus.Cancelled &&
+                r.StartTime < endTime && dto.StartTime < r.EndTime);
+
+            if (customerReservations.Any())
+                throw new InvalidOperationException("Müştərinin artıq bu saat aralığında başqa bir rezervasiyası var.");
 
             int? equipmentIdToUse = null;
 

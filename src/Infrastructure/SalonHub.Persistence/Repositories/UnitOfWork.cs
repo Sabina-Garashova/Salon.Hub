@@ -1,11 +1,12 @@
 ﻿using SalonHub.Application.Interfaces.Repositories;
-using SalonHub.Application.Services;
 using SalonHub.Domain.Entities;
+
 namespace SalonHub.Persistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
+
         public UnitOfWork(AppDbContext context)
         {
             _context = context;
@@ -22,13 +23,13 @@ namespace SalonHub.Persistence.Repositories
             GalleryImages = new GenericRepository<GalleryImage>(_context);
             LoyaltyAccounts = new GenericRepository<LoyaltyAccount>(_context);
             LoyaltyTransactions = new GenericRepository<LoyaltyTransaction>(_context);
-
+            TimeBlocks = new GenericRepository<TimeBlock>(_context);
         }
+
         public IGenericRepository<Salon> Salons { get; }
         public IGenericRepository<Branch> Branches { get; }
         public IGenericRepository<Category> Categories { get; }
         public IGenericRepository<GalleryImage> GalleryImages { get; }
-
         public IGenericRepository<Service> Services { get; }
         public IGenericRepository<Tag> Tags { get; }
         public IGenericRepository<Employee> Employees { get; }
@@ -38,9 +39,10 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<WorkingHour> WorkingHours { get; }
         public IGenericRepository<LoyaltyAccount> LoyaltyAccounts { get; }
         public IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
-
+        public IGenericRepository<TimeBlock> TimeBlocks { get; }
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
+
         public void Dispose() => _context.Dispose();
     }
 }

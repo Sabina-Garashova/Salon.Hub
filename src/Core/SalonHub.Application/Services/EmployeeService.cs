@@ -44,6 +44,11 @@ namespace SalonHub.Application.Services
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
 
+            var existingWithSameUser = await _unitOfWork.Employees.FindAsync(e =>
+                e.ApplicationUserId == dto.ApplicationUserId);
+            if (existingWithSameUser.Any())
+                throw new InvalidOperationException("Bu istifadəçi hesabı artıq bir işçiyə bağlıdır.");
+
             if (dto.AssignedEquipmentId.HasValue)
             {
                 var equipment = await _unitOfWork.Equipments.GetByIdAsync(dto.AssignedEquipmentId.Value)
@@ -64,6 +69,7 @@ namespace SalonHub.Application.Services
                 FullName = dto.FullName,
                 PhoneNumber = dto.PhoneNumber,
                 Bio = dto.Bio,
+                ProfileImageUrl = dto.ProfileImageUrl,
                 ApplicationUserId = dto.ApplicationUserId,
                 SalonId = dto.SalonId,
                 BranchId = dto.BranchId,
@@ -80,6 +86,16 @@ namespace SalonHub.Application.Services
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"İşçi tapılmadı: {id}");
+
+            if (!string.IsNullOrEmpty(dto.ApplicationUserId) && dto.ApplicationUserId != employee.ApplicationUserId)
+            {
+                var existingWithSameUser = await _unitOfWork.Employees.FindAsync(e =>
+                    e.Id != id && e.ApplicationUserId == dto.ApplicationUserId);
+                if (existingWithSameUser.Any())
+                    throw new InvalidOperationException("Bu istifadəçi hesabı artıq başqa bir işçiyə bağlıdır.");
+
+                employee.ApplicationUserId = dto.ApplicationUserId;
+            }
 
             if (dto.AssignedEquipmentId.HasValue)
             {
@@ -100,6 +116,7 @@ namespace SalonHub.Application.Services
             employee.FullName = dto.FullName;
             employee.PhoneNumber = dto.PhoneNumber;
             employee.Bio = dto.Bio;
+            employee.ProfileImageUrl = dto.ProfileImageUrl;
             employee.BranchId = dto.BranchId;
             employee.AssignedEquipmentId = dto.AssignedEquipmentId;
             employee.UpdatedAt = DateTime.UtcNow;
@@ -162,6 +179,7 @@ namespace SalonHub.Application.Services
                 FullName = employee.FullName,
                 PhoneNumber = employee.PhoneNumber,
                 Bio = employee.Bio,
+                ProfileImageUrl = employee.ProfileImageUrl,
                 SalonId = employee.SalonId,
                 BranchId = employee.BranchId,
                 AssignedEquipmentId = employee.AssignedEquipmentId,

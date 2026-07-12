@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SalonHub.Domain.Entities;
+﻿using SalonHub.Domain.Entities;
 
 namespace SalonHub.Application.Interfaces.Repositories
 {
@@ -22,10 +17,8 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<WorkingHour> WorkingHours { get; }
         IGenericRepository<LoyaltyAccount> LoyaltyAccounts { get; }
         IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
-
+        IGenericRepository<TimeBlock> TimeBlocks { get; }
 
         Task<int> CompleteAsync();
-
-        
     }
 }

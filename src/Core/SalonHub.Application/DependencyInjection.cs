@@ -2,12 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace SalonHub.Application
 {
@@ -16,7 +10,6 @@ namespace SalonHub.Application
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
-
             services.AddScoped<ISalonService, SalonService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
@@ -31,8 +24,7 @@ namespace SalonHub.Application
             services.AddScoped<IExcelExportService, ExcelExportService>();
             services.AddScoped<ReservationReminderJob>();
             services.AddScoped<ILoyaltyService, LoyaltyService>();
-
-
+            services.AddScoped<ITimeBlockService, TimeBlockService>();
             return services;
         }
     }
