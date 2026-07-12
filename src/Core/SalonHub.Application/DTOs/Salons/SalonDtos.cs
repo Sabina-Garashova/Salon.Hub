@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.Salons
+﻿namespace SalonHub.Application.DTOs.Salons
 {
     public class SalonReadDto
     {
@@ -13,6 +7,8 @@ namespace SalonHub.Application.DTOs.Salons
         public string Description { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
     }
 
     public class SalonCreateDto

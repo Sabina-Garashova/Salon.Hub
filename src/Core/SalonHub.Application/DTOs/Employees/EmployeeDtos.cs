@@ -9,6 +9,8 @@ public class EmployeeReadDto
     public int SalonId { get; set; }
     public int? BranchId { get; set; }
     public int? AssignedEquipmentId { get; set; }
+    public double AverageRating { get; set; }
+    public int ReviewCount { get; set; }
 }
 
 public class EmployeeCreateDto

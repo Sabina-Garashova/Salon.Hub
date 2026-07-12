@@ -27,13 +27,16 @@ namespace SalonHub.Application.Services
         public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync()
         {
             var employees = await _unitOfWork.Employees.GetAllAsync();
-            return employees.Select(MapToReadDto).ToList();
+            var result = new List<EmployeeReadDto>();
+            foreach (var employee in employees)
+                result.Add(await MapToReadDtoAsync(employee));
+            return result;
         }
 
         public async Task<EmployeeReadDto?> GetByIdAsync(int id)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id);
-            return employee is null ? null : MapToReadDto(employee);
+            return employee is null ? null : await MapToReadDtoAsync(employee);
         }
 
         public async Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto)
@@ -70,7 +73,7 @@ namespace SalonHub.Application.Services
             await _unitOfWork.Employees.AddAsync(employee);
             await _unitOfWork.CompleteAsync();
 
-            return MapToReadDto(employee);
+            return await MapToReadDtoAsync(employee);
         }
 
         public async Task UpdateAsync(int id, EmployeeUpdateDto dto)
@@ -148,15 +151,23 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        private static EmployeeReadDto MapToReadDto(Employee employee) => new()
+        private async Task<EmployeeReadDto> MapToReadDtoAsync(Employee employee)
         {
-            Id = employee.Id,
-            FullName = employee.FullName,
-            PhoneNumber = employee.PhoneNumber,
-            Bio = employee.Bio,
-            SalonId = employee.SalonId,
-            BranchId = employee.BranchId,
-            AssignedEquipmentId = employee.AssignedEquipmentId
-        };
+            var reviews = await _unitOfWork.Reviews.FindAsync(r => r.EmployeeId == employee.Id);
+            var reviewList = reviews.ToList();
+
+            return new EmployeeReadDto
+            {
+                Id = employee.Id,
+                FullName = employee.FullName,
+                PhoneNumber = employee.PhoneNumber,
+                Bio = employee.Bio,
+                SalonId = employee.SalonId,
+                BranchId = employee.BranchId,
+                AssignedEquipmentId = employee.AssignedEquipmentId,
+                AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
+                ReviewCount = reviewList.Count
+            };
+        }
     }
 }
