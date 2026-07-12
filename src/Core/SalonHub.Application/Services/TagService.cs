@@ -4,7 +4,6 @@ using SalonHub.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
@@ -41,11 +40,14 @@ namespace SalonHub.Application.Services
 
         public async Task<TagReadDto> CreateAsync(TagCreateDto dto)
         {
-            var tag = new Tag { Name = dto.Name };
+            var existing = await _unitOfWork.Tags.FindAsync(t =>
+                t.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı tag artıq mövcuddur.");
 
+            var tag = new Tag { Name = dto.Name };
             await _unitOfWork.Tags.AddAsync(tag);
             await _unitOfWork.CompleteAsync();
-
             return MapToReadDto(tag);
         }
 
@@ -54,9 +56,13 @@ namespace SalonHub.Application.Services
             var tag = await _unitOfWork.Tags.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Tag tapılmadı: {id}");
 
+            var existing = await _unitOfWork.Tags.FindAsync(t =>
+                t.Id != id && t.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı tag artıq mövcuddur.");
+
             tag.Name = dto.Name;
             tag.UpdatedAt = DateTime.UtcNow;
-
             _unitOfWork.Tags.Update(tag);
             await _unitOfWork.CompleteAsync();
         }
@@ -65,7 +71,6 @@ namespace SalonHub.Application.Services
         {
             var tag = await _unitOfWork.Tags.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Tag tapılmadı: {id}");
-
             _unitOfWork.Tags.Remove(tag);
             await _unitOfWork.CompleteAsync();
         }

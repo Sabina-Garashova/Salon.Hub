@@ -4,7 +4,6 @@ using SalonHub.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
@@ -55,6 +54,11 @@ namespace SalonHub.Application.Services
                     ?? throw new KeyNotFoundException("Avadanlıq tapılmadı.");
             }
 
+            var existing = await _unitOfWork.Services.FindAsync(s =>
+                s.SalonId == dto.SalonId && s.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı xidmət bu salonda artıq mövcuddur.");
+
             var service = new Service
             {
                 Name = dto.Name,
@@ -76,6 +80,11 @@ namespace SalonHub.Application.Services
         {
             var service = await _unitOfWork.Services.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xidmət tapılmadı: {id}");
+
+            var existing = await _unitOfWork.Services.FindAsync(s =>
+                s.Id != id && s.SalonId == service.SalonId && s.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı xidmət bu salonda artıq mövcuddur.");
 
             service.Name = dto.Name;
             service.Description = dto.Description;
@@ -141,5 +150,3 @@ namespace SalonHub.Application.Services
         };
     }
 }
-    
-

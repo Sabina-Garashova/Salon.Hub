@@ -4,7 +4,6 @@ using SalonHub.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
@@ -41,15 +40,18 @@ namespace SalonHub.Application.Services
 
         public async Task<CategoryReadDto> CreateAsync(CategoryCreateDto dto)
         {
+            var existing = await _unitOfWork.Categories.FindAsync(c =>
+                c.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı kateqoriya artıq mövcuddur.");
+
             var category = new Category
             {
                 Name = dto.Name,
                 Description = dto.Description
             };
-
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.CompleteAsync();
-
             return MapToReadDto(category);
         }
 
@@ -58,10 +60,14 @@ namespace SalonHub.Application.Services
             var category = await _unitOfWork.Categories.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Kateqoriya tapılmadı: {id}");
 
+            var existing = await _unitOfWork.Categories.FindAsync(c =>
+                c.Id != id && c.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı kateqoriya artıq mövcuddur.");
+
             category.Name = dto.Name;
             category.Description = dto.Description;
             category.UpdatedAt = DateTime.UtcNow;
-
             _unitOfWork.Categories.Update(category);
             await _unitOfWork.CompleteAsync();
         }
@@ -70,7 +76,6 @@ namespace SalonHub.Application.Services
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Kateqoriya tapılmadı: {id}");
-
             _unitOfWork.Categories.Remove(category);
             await _unitOfWork.CompleteAsync();
         }

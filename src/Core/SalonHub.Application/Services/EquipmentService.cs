@@ -5,7 +5,6 @@ using SalonHub.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
@@ -42,6 +41,11 @@ namespace SalonHub.Application.Services
 
         public async Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto)
         {
+            var existing = await _unitOfWork.Equipments.FindAsync(e =>
+                e.BranchId == dto.BranchId && e.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı avadanlıq bu filialda artıq mövcuddur.");
+
             var equipment = new Equipment
             {
                 Name = dto.Name,
@@ -49,10 +53,8 @@ namespace SalonHub.Application.Services
                 BranchId = dto.BranchId,
                 Status = EquipmentStatus.Active
             };
-
             await _unitOfWork.Equipments.AddAsync(equipment);
             await _unitOfWork.CompleteAsync();
-
             return MapToReadDto(equipment);
         }
 
@@ -64,11 +66,15 @@ namespace SalonHub.Application.Services
             if (!Enum.TryParse<EquipmentStatus>(dto.Status, true, out var status))
                 throw new ArgumentException("Status düzgün deyil. Active, Busy, Faulty və ya InRepair olmalıdır.");
 
+            var existing = await _unitOfWork.Equipments.FindAsync(e =>
+                e.Id != id && e.BranchId == equipment.BranchId && e.Name.ToLower() == dto.Name.ToLower());
+            if (existing.Any())
+                throw new InvalidOperationException($"'{dto.Name}' adlı avadanlıq bu filialda artıq mövcuddur.");
+
             equipment.Name = dto.Name;
             equipment.Type = dto.Type;
             equipment.Status = status;
             equipment.UpdatedAt = DateTime.UtcNow;
-
             _unitOfWork.Equipments.Update(equipment);
             await _unitOfWork.CompleteAsync();
         }
@@ -77,7 +83,6 @@ namespace SalonHub.Application.Services
         {
             var equipment = await _unitOfWork.Equipments.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Avadanlıq tapılmadı: {id}");
-
             equipment.IsDeleted = true;
             _unitOfWork.Equipments.Update(equipment);
             await _unitOfWork.CompleteAsync();
