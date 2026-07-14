@@ -8,6 +8,8 @@ namespace SalonHub.Persistence.Identity
         public string? ProfileImageUrl { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string ReferralCode { get; set; } = string.Empty;
+        public string? ReferredByUserId { get; set; }
     }
 
     public static class Roles

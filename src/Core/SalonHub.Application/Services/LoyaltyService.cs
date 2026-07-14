@@ -12,6 +12,7 @@ namespace SalonHub.Application.Services
         Task AwardPointsForCompletedReservationAsync(int reservationId);
         Task<RedeemPointsResultDto> RedeemPointsAsync(string customerId, RedeemPointsDto dto);
         Task<bool> AwardBirthdayBonusAsync(string customerId, int points);
+        Task AwardReferralBonusAsync(string customerId, int points);
     }
 
     public class LoyaltyService : ILoyaltyService
@@ -21,6 +22,7 @@ namespace SalonHub.Application.Services
         private const int PointsPerCurrencyUnit = 1;
         private const int PointsRequiredPerDiscountUnit = 10;
         private const string BirthdayBonusDescription = "Ad günü hədiyyəsi 🎉";
+        private const string ReferralBonusDescription = "Dəvət bonusu 🎁";
 
         public LoyaltyService(IUnitOfWork unitOfWork)
         {
@@ -167,6 +169,32 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
 
             return !alreadyAwardedThisYear;
+        }
+
+        public async Task AwardReferralBonusAsync(string customerId, int points)
+        {
+            var salons = await _unitOfWork.Salons.GetAllAsync();
+
+            foreach (var salon in salons)
+            {
+                var account = await GetOrCreateAccountAsync(customerId, salon.Id);
+                account.Points += points;
+                account.UpdatedAt = DateTime.UtcNow;
+
+                _unitOfWork.LoyaltyAccounts.Update(account);
+
+                var transaction = new LoyaltyTransaction
+                {
+                    LoyaltyAccountId = account.Id,
+                    Points = points,
+                    Type = LoyaltyTransactionType.Earned,
+                    Description = ReferralBonusDescription
+                };
+
+                await _unitOfWork.LoyaltyTransactions.AddAsync(transaction);
+            }
+
+            await _unitOfWork.CompleteAsync();
         }
 
         private async Task<LoyaltyAccount> GetOrCreateAccountAsync(string customerId, int salonId)

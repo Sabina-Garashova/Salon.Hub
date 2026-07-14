@@ -7,6 +7,7 @@
         public string Password { get; set; } = string.Empty;
         public string Role { get; set; } = "Customer";
         public DateTime? DateOfBirth { get; set; }
+        public string? ReferredByCode { get; set; }
     }
 
     public class LoginDto
@@ -21,5 +22,10 @@
         public DateTime ExpiresAt { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+    }
+
+    public class ReferralCodeDto
+    {
+        public string ReferralCode { get; set; } = string.Empty;
     }
 }
