@@ -6,6 +6,7 @@ using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Persistence.Identity;
 using SalonHub.Persistence.Repositories;
+using SalonHub.Persistence.Services;
 
 namespace SalonHub.Persistence
 {
@@ -15,6 +16,7 @@ namespace SalonHub.Persistence
         {
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -23,8 +25,10 @@ namespace SalonHub.Persistence
             })
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-           
+            services.AddScoped<BirthdayBonusJob>();
+
             return services;
         }
     }

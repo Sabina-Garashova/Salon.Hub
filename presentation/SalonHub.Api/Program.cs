@@ -12,7 +12,6 @@ using SalonHub.Persistence.Identity;
 using Serilog;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
@@ -29,7 +28,6 @@ builder.Services.AddHangfire(config => config
 builder.Services.AddHangfireServer();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
-// Service bypass
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -80,8 +78,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
 builder.Services.AddScoped<SalonHub.Application.Interfaces.Services.IAnalyticsService, SalonHub.Application.Services.AnalyticsService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -106,10 +104,16 @@ app.UseHangfireDashboard("/hangfire");
 using (var scope = app.Services.CreateScope())
 {
     var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
     recurringJobManager.AddOrUpdate<SalonHub.Application.Services.ReservationReminderJob>(
         "reservation-reminder",
         job => job.SendUpcomingReminders(),
         "*/5 * * * *");
+
+    recurringJobManager.AddOrUpdate<SalonHub.Persistence.Services.BirthdayBonusJob>(
+        "birthday-bonus",
+        job => job.SendBirthdayBonuses(),
+        "0 5 * * *"); // hər gün saat 05:00-da (UTC) işə düşür
 }
 
 app.UseHttpsRedirection();
@@ -119,5 +123,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-

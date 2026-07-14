@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalonHub.Persistence;
 
@@ -11,9 +12,11 @@ using SalonHub.Persistence;
 namespace SalonHub.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260714141152_AddDateOfBirthToUser")]
+    partial class AddDateOfBirthToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -412,80 +415,6 @@ namespace SalonHub.Persistence.Migrations
                     b.HasIndex("SalonId");
 
                     b.ToTable("GalleryImages");
-                });
-
-            modelBuilder.Entity("SalonHub.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SalonId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SalonId");
-
-                    b.ToTable("LoyaltyAccounts");
-                });
-
-            modelBuilder.Entity("SalonHub.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("LoyaltyAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReservationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LoyaltyAccountId");
-
-                    b.ToTable("LoyaltyTransactions");
                 });
 
             modelBuilder.Entity("SalonHub.Domain.Entities.Reservation", b =>
@@ -1033,28 +962,6 @@ namespace SalonHub.Persistence.Migrations
                     b.Navigation("Salon");
                 });
 
-            modelBuilder.Entity("SalonHub.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.HasOne("SalonHub.Domain.Entities.Salon", "Salon")
-                        .WithMany()
-                        .HasForeignKey("SalonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Salon");
-                });
-
-            modelBuilder.Entity("SalonHub.Domain.Entities.LoyaltyTransaction", b =>
-                {
-                    b.HasOne("SalonHub.Domain.Entities.LoyaltyAccount", "LoyaltyAccount")
-                        .WithMany("Transactions")
-                        .HasForeignKey("LoyaltyAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("LoyaltyAccount");
-                });
-
             modelBuilder.Entity("SalonHub.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("SalonHub.Domain.Entities.Branch", "Branch")
@@ -1218,11 +1125,6 @@ namespace SalonHub.Persistence.Migrations
             modelBuilder.Entity("SalonHub.Domain.Entities.Equipment", b =>
                 {
                     b.Navigation("Reservations");
-                });
-
-            modelBuilder.Entity("SalonHub.Domain.Entities.LoyaltyAccount", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("SalonHub.Domain.Entities.Salon", b =>

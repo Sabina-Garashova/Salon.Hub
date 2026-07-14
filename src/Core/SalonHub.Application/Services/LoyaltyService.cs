@@ -11,6 +11,7 @@ namespace SalonHub.Application.Services
         Task<List<LoyaltyTransactionDto>> GetHistoryAsync(string customerId, int salonId);
         Task AwardPointsForCompletedReservationAsync(int reservationId);
         Task<RedeemPointsResultDto> RedeemPointsAsync(string customerId, RedeemPointsDto dto);
+        Task<bool> AwardBirthdayBonusAsync(string customerId, int points);
     }
 
     public class LoyaltyService : ILoyaltyService
@@ -19,6 +20,7 @@ namespace SalonHub.Application.Services
 
         private const int PointsPerCurrencyUnit = 1;
         private const int PointsRequiredPerDiscountUnit = 10;
+        private const string BirthdayBonusDescription = "Ad günü hədiyyəsi 🎉";
 
         public LoyaltyService(IUnitOfWork unitOfWork)
         {
@@ -121,6 +123,50 @@ namespace SalonHub.Application.Services
                 RemainingPoints = account.Points,
                 DiscountAmount = dto.DiscountAmount
             };
+        }
+
+        public async Task<bool> AwardBirthdayBonusAsync(string customerId, int points)
+        {
+            var accounts = await _unitOfWork.LoyaltyAccounts.FindAsync(a => a.CustomerId == customerId);
+            var accountList = accounts.ToList();
+
+            if (!accountList.Any())
+                return false;
+
+            var currentYear = DateTime.UtcNow.Year;
+            var alreadyAwardedThisYear = false;
+
+            foreach (var account in accountList)
+            {
+                var existingBirthdayTransactions = await _unitOfWork.LoyaltyTransactions.FindAsync(t =>
+                    t.LoyaltyAccountId == account.Id &&
+                    t.Description == BirthdayBonusDescription &&
+                    t.CreatedAt.Year == currentYear);
+
+                if (existingBirthdayTransactions.Any())
+                {
+                    alreadyAwardedThisYear = true;
+                    continue;
+                }
+
+                account.Points += points;
+                account.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.LoyaltyAccounts.Update(account);
+
+                var transaction = new LoyaltyTransaction
+                {
+                    LoyaltyAccountId = account.Id,
+                    Points = points,
+                    Type = LoyaltyTransactionType.Earned,
+                    Description = BirthdayBonusDescription
+                };
+
+                await _unitOfWork.LoyaltyTransactions.AddAsync(transaction);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            return !alreadyAwardedThisYear;
         }
 
         private async Task<LoyaltyAccount> GetOrCreateAccountAsync(string customerId, int salonId)

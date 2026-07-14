@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Persistence.Identity
 {
@@ -11,6 +6,7 @@ namespace SalonHub.Persistence.Identity
     {
         public string FullName { get; set; } = string.Empty;
         public string? ProfileImageUrl { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
