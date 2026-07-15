@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.Reservations
+﻿namespace SalonHub.Application.DTOs.Reservations
 {
     public class ReservationCreateDto
     {
@@ -27,6 +21,7 @@ namespace SalonHub.Application.DTOs.Reservations
         public TimeSpan EndTime { get; set; }
         public string Status { get; set; } = string.Empty;
     }
+
     public class ReservationUpdateDto
     {
         public int ServiceId { get; set; }
@@ -35,6 +30,20 @@ namespace SalonHub.Application.DTOs.Reservations
         public DateTime ReservationDate { get; set; }
         public TimeSpan StartTime { get; set; }
     }
+
+    public class MultiServiceItemDto
+    {
+        public int ServiceId { get; set; }
+        public int EmployeeId { get; set; }
+    }
+
+    public class MultiServiceReservationCreateDto
+    {
+        public string? CustomerFullName { get; set; }
+        public string CustomerId { get; set; } = string.Empty;
+        public int BranchId { get; set; }
+        public DateTime ReservationDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public List<MultiServiceItemDto> Services { get; set; } = new();
+    }
 }
-
-

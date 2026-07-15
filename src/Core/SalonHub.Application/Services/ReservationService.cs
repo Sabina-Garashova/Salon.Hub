@@ -24,6 +24,7 @@ namespace SalonHub.Application.Services
         Task<ReservationReadDto> CheckInAsync(string checkInCode, int salonId);
         Task<List<string>> GetAvailableSlotsAsync(int employeeId, int serviceId, DateTime date);
         Task<List<EmployeeAvailabilityDto>> GetTodayAvailabilityAsync(int serviceId, int salonId);
+        Task<List<ReservationReadDto>> CreateMultipleAsync(MultiServiceReservationCreateDto dto);
     }
 
     public class ReservationService : IReservationService
@@ -524,6 +525,120 @@ namespace SalonHub.Application.Services
             return slots;
         }
 
+        public async Task<List<ReservationReadDto>> CreateMultipleAsync(MultiServiceReservationCreateDto dto)
+        {
+            if (dto.Services is null || !dto.Services.Any())
+                throw new ArgumentException("Ən azı bir xidmət seçilməlidir.");
+
+            var reservationsToCreate = new List<Reservation>();
+            var currentStartTime = dto.StartTime;
+
+            foreach (var item in dto.Services)
+            {
+                var service = await _unitOfWork.Services.GetByIdAsync(item.ServiceId)
+                    ?? throw new KeyNotFoundException($"Xidmət tapılmadı: {item.ServiceId}");
+
+                var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
+                    e => e.Id == item.EmployeeId, e => e.EmployeeServices)
+                    ?? throw new KeyNotFoundException($"İşçi tapılmadı: {item.EmployeeId}");
+
+                var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == item.ServiceId);
+                if (!isAssigned)
+                    throw new InvalidOperationException($"Seçilmiş usta ({employee.FullName}) '{service.Name}' xidmətini göstərmir.");
+
+                var endTime = currentStartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
+
+                await CheckTimeBlockAsync(item.EmployeeId, dto.BranchId, dto.ReservationDate, currentStartTime, endTime);
+
+                var employeeReservations = await _unitOfWork.Reservations.FindAsync(r =>
+                    r.EmployeeId == item.EmployeeId &&
+                    r.ReservationDate.Date == dto.ReservationDate.Date &&
+                    r.Status != ReservationStatus.Cancelled &&
+                    r.StartTime < endTime && currentStartTime < r.EndTime);
+
+                if (employeeReservations.Any())
+                    throw new InvalidOperationException($"Seçilmiş usta ({employee.FullName}) bu saat aralığında məşğuldur.");
+
+                var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
+                    r.CustomerId == dto.CustomerId &&
+                    r.ReservationDate.Date == dto.ReservationDate.Date &&
+                    r.Status != ReservationStatus.Cancelled &&
+                    r.StartTime < endTime && currentStartTime < r.EndTime);
+
+                if (customerReservations.Any())
+                    throw new InvalidOperationException("Siz artıq bu saat aralığında başqa bir rezervasiyaya maliksiniz.");
+
+                int? equipmentIdToUse = null;
+
+                if (service.RequiredEquipmentId.HasValue)
+                {
+                    if (!employee.AssignedEquipmentId.HasValue)
+                        throw new InvalidOperationException($"Seçilmiş işçiyə ({employee.FullName}) bu xidmət üçün lazımi avadanlıq təyin olunmayıb.");
+
+                    var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
+                        ?? throw new KeyNotFoundException("Tələb olunan avadanlıq tapılmadı.");
+
+                    if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
+                        throw new InvalidOperationException("Tələb olunan avadanlıq hazırda nasazdır və ya təmirdədir.");
+
+                    equipmentIdToUse = equipment.Id;
+
+                    var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
+                        r.EquipmentId == equipmentIdToUse &&
+                        r.ReservationDate.Date == dto.ReservationDate.Date &&
+                        r.Status != ReservationStatus.Cancelled &&
+                        r.StartTime < endTime && currentStartTime < r.EndTime);
+
+                    if (equipmentReservations.Any())
+                        throw new InvalidOperationException("Tələb olunan avadanlıq bu saat aralığında məşğuldur.");
+                }
+
+                reservationsToCreate.Add(new Reservation
+                {
+                    CustomerId = dto.CustomerId,
+                    CustomerFullName = dto.CustomerFullName,
+                    ServiceId = item.ServiceId,
+                    EmployeeId = item.EmployeeId,
+                    BranchId = dto.BranchId,
+                    EquipmentId = equipmentIdToUse,
+                    ReservationDate = dto.ReservationDate.Date,
+                    StartTime = currentStartTime,
+                    EndTime = endTime,
+                    Status = ReservationStatus.Pending,
+                    SalonId = service.SalonId
+                });
+
+                currentStartTime = endTime;
+            }
+
+            foreach (var reservation in reservationsToCreate)
+            {
+                await _unitOfWork.Reservations.AddAsync(reservation);
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            var result = new List<ReservationReadDto>();
+            foreach (var reservation in reservationsToCreate)
+            {
+                var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
+                var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);
+
+                result.Add(new ReservationReadDto
+                {
+                    Id = reservation.Id,
+                    ServiceName = service?.Name ?? string.Empty,
+                    EmployeeName = employee?.FullName ?? string.Empty,
+                    ReservationDate = reservation.ReservationDate,
+                    StartTime = reservation.StartTime,
+                    EndTime = reservation.EndTime,
+                    Status = reservation.Status.ToString()
+                });
+            }
+
+            return result;
+        }
+
         public async Task<List<EmployeeAvailabilityDto>> GetTodayAvailabilityAsync(int serviceId, int salonId)
         {
             var today = DateTime.UtcNow.Date;
@@ -570,4 +685,6 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 

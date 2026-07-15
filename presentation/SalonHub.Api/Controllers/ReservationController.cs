@@ -36,6 +36,13 @@ namespace SalonHub.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPost("batch")]
+        public async Task<IActionResult> CreateMultiple(MultiServiceReservationCreateDto dto)
+        {
+            var result = await _reservationService.CreateMultipleAsync(dto);
+            return Ok(result);
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ReservationUpdateDto dto)
         {
@@ -94,3 +101,4 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
