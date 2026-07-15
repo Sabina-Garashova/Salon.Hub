@@ -1,5 +1,6 @@
 ﻿using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
+using SalonHub.Application.DTOs.Dashboard;
 using SalonHub.Application.DTOs.Reservations;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
@@ -22,6 +23,7 @@ namespace SalonHub.Application.Services
         Task<ReservationReadDto> CompleteAsync(int reservationId);
         Task<ReservationReadDto> CheckInAsync(string checkInCode, int salonId);
         Task<List<string>> GetAvailableSlotsAsync(int employeeId, int serviceId, DateTime date);
+        Task<List<EmployeeAvailabilityDto>> GetTodayAvailabilityAsync(int serviceId, int salonId);
     }
 
     public class ReservationService : IReservationService
@@ -521,5 +523,51 @@ namespace SalonHub.Application.Services
 
             return slots;
         }
+
+        public async Task<List<EmployeeAvailabilityDto>> GetTodayAvailabilityAsync(int serviceId, int salonId)
+        {
+            var today = DateTime.UtcNow.Date;
+
+            var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
+                ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            var allEmployees = await _unitOfWork.Employees.FindAsync(e => e.SalonId == salonId);
+
+            var eligibleEmployees = new List<Employee>();
+            foreach (var emp in allEmployees)
+            {
+                var fullEmployee = await _unitOfWork.Employees.SingleOrDefaultAsync(
+                    e => e.Id == emp.Id, e => e.EmployeeServices);
+
+                if (fullEmployee is not null && fullEmployee.EmployeeServices.Any(es => es.ServiceId == serviceId))
+                    eligibleEmployees.Add(fullEmployee);
+            }
+
+            var result = new List<EmployeeAvailabilityDto>();
+
+            foreach (var employee in eligibleEmployees)
+            {
+                try
+                {
+                    var slots = await GetAvailableSlotsAsync(employee.Id, serviceId, today);
+                    if (slots.Any())
+                    {
+                        result.Add(new EmployeeAvailabilityDto
+                        {
+                            EmployeeId = employee.Id,
+                            EmployeeName = employee.FullName,
+                            AvailableSlots = slots
+                        });
+                    }
+                }
+                catch
+                {
+                    // Bu işçi üçün xəta olsa (məs. iş qrafiki yoxdur), sadəcə keçirik
+                }
+            }
+
+            return result;
+        }
     }
 }
+

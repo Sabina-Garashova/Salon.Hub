@@ -1,7 +1,5 @@
 ﻿using SalonHub.Application.DTOs.Analytics;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using SalonHub.Application.DTOs.Dashboard;
 
 namespace SalonHub.Application.Interfaces.Services
 {
@@ -13,6 +11,6 @@ namespace SalonHub.Application.Interfaces.Services
         Task<List<PopularServiceDto>> GetPopularServicesAsync(DateTime startDate, DateTime endDate, int top = 10);
         Task<List<PopularSalonDto>> GetPopularSalonsAsync(DateTime startDate, DateTime endDate, int top = 10);
         Task<CustomerAnalyticsDto> GetCustomerAnalyticsAsync(DateTime startDate, DateTime endDate);
+        Task<SiteStatisticsDto> GetSiteStatisticsAsync();
     }
 }
-

@@ -24,6 +24,7 @@ namespace SalonHub.Persistence.Repositories
             LoyaltyAccounts = new GenericRepository<LoyaltyAccount>(_context);
             LoyaltyTransactions = new GenericRepository<LoyaltyTransaction>(_context);
             TimeBlocks = new GenericRepository<TimeBlock>(_context);
+            NewsArticles = new GenericRepository<NewsArticle>(_context);
         }
 
         public IGenericRepository<Salon> Salons { get; }
@@ -40,6 +41,7 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<LoyaltyAccount> LoyaltyAccounts { get; }
         public IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
         public IGenericRepository<TimeBlock> TimeBlocks { get; }
+        public IGenericRepository<NewsArticle> NewsArticles { get; }
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 

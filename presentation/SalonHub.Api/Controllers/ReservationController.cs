@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reservations;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
-using System;
-using System.Threading.Tasks;
 
 namespace SalonHub.Api.Controllers
 {
@@ -43,7 +41,6 @@ namespace SalonHub.Api.Controllers
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
-
             var result = await _reservationService.UpdateAsync(id, dto, currentUserId, isAdmin);
             return Ok(result);
         }
@@ -60,7 +57,6 @@ namespace SalonHub.Api.Controllers
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
-
             var result = await _reservationService.ConfirmAsync(id, currentUserId, isAdmin);
             return Ok(result);
         }
@@ -70,7 +66,6 @@ namespace SalonHub.Api.Controllers
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
-
             var result = await _reservationService.RejectAsync(id, reason, currentUserId, isAdmin);
             return Ok(result);
         }
@@ -80,6 +75,14 @@ namespace SalonHub.Api.Controllers
         {
             var slots = await _reservationService.GetAvailableSlotsAsync(employeeId, serviceId, date);
             return Ok(slots);
+        }
+
+        [HttpGet("today-availability")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTodayAvailability(int serviceId, int salonId)
+        {
+            var result = await _reservationService.GetTodayAvailabilityAsync(serviceId, salonId);
+            return Ok(result);
         }
 
         [HttpPost("{id}/complete")]

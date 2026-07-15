@@ -1,8 +1,7 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Analytics;
 using SalonHub.Application.Interfaces.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace SalonHub.Api.Controllers
 {
@@ -66,6 +65,14 @@ namespace SalonHub.Api.Controllers
         public async Task<IActionResult> GetCustomerAnalytics([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
             var result = await _analyticsService.GetCustomerAnalyticsAsync(startDate, endDate);
+            return Ok(result);
+        }
+
+        [HttpGet("site-statistics")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSiteStatistics()
+        {
+            var result = await _analyticsService.GetSiteStatisticsAsync();
             return Ok(result);
         }
     }

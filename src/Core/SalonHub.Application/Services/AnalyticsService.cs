@@ -1,4 +1,5 @@
 ﻿using SalonHub.Application.DTOs.Analytics;
+using SalonHub.Application.DTOs.Dashboard;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
@@ -297,6 +298,29 @@ namespace SalonHub.Application.Services
             return new CustomerAnalyticsDto { TotalCustomers = totalCustomers, NewCustomers = newCustomers, ReturningCustomers = totalCustomers - newCustomers, RetentionRatePercent = totalCustomers > 0 ? Math.Round((double)(totalCustomers - newCustomers) / totalCustomers * 100, 2) : 0, TopCustomers = topCustomers.OrderByDescending(x => x.TotalSpent).Take(10).ToList() };
         }
 
+        public async Task<SiteStatisticsDto> GetSiteStatisticsAsync()
+        {
+            var allReservations = await _unitOfWork.Reservations.GetAllAsync();
+            var completedReservations = allReservations.Where(r => r.Status == SalonHub.Domain.Enums.ReservationStatus.Completed).ToList();
+
+            var totalCustomers = allReservations.Select(r => r.CustomerId).Distinct().Count();
+
+            var allEmployees = await _unitOfWork.Employees.GetAllAsync();
+            var allSalons = await _unitOfWork.Salons.GetAllAsync();
+            var allReviews = await _unitOfWork.Reviews.GetAllAsync();
+
+            var averageRating = allReviews.Any() ? Math.Round(allReviews.Average(r => r.Rating), 2) : 0;
+
+            return new SiteStatisticsDto
+            {
+                TotalCustomers = totalCustomers,
+                TotalEmployees = allEmployees.Count,
+                TotalSalons = allSalons.Count,
+                AverageRating = averageRating,
+                TotalCompletedReservations = completedReservations.Count
+            };
+        }
+
         private static string GetPeriodKey(DateTime date, ReportGroupBy groupBy)
         {
             return groupBy switch
@@ -310,6 +334,9 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
+
 
 
 
