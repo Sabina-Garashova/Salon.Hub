@@ -2,11 +2,6 @@
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -22,6 +17,7 @@ namespace SalonHub.Application.Services
     public class GalleryImageService : IGalleryImageService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public GalleryImageService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -48,7 +44,7 @@ namespace SalonHub.Application.Services
                 throw new UnauthorizedAccessException("Bu salona şəkil əlavə etmək icazəniz yoxdur.");
 
             if (!Enum.TryParse<GalleryImageType>(dto.Type, true, out var type))
-                throw new ArgumentException("Şəkil növü düzgün deyil. Interior, Exterior, Before, After və ya Portfolio olmalıdır.");
+                throw new ArgumentException("Şəkil növü düzgün deyil.");
 
             var image = new GalleryImage
             {
@@ -56,10 +52,13 @@ namespace SalonHub.Application.Services
                 Description = dto.Description,
                 Type = type,
                 SalonId = dto.SalonId,
-                EmployeeId = dto.EmployeeId
+                EmployeeId = dto.EmployeeId,
+                PairedImageId = dto.PairedImageId
             };
+
             await _unitOfWork.GalleryImages.AddAsync(image);
             await _unitOfWork.CompleteAsync();
+
             return MapToReadDto(image);
         }
 
@@ -68,10 +67,8 @@ namespace SalonHub.Application.Services
             var image = await _unitOfWork.GalleryImages.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Şəkil tapılmadı: {id}");
 
-            var salon = await _unitOfWork.Salons.GetByIdAsync(image.SalonId)
-                ?? throw new KeyNotFoundException("Salon tapılmadı.");
-
-            if (!isSuperAdmin && salon.OwnerId != requesterId)
+            var salon = await _unitOfWork.Salons.GetByIdAsync(image.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Bu şəkli dəyişmək icazəniz yoxdur.");
 
             if (!Enum.TryParse<GalleryImageType>(dto.Type, true, out var type))
@@ -79,7 +76,9 @@ namespace SalonHub.Application.Services
 
             image.Description = dto.Description;
             image.Type = type;
+            image.PairedImageId = dto.PairedImageId;
             image.UpdatedAt = DateTime.UtcNow;
+
             _unitOfWork.GalleryImages.Update(image);
             await _unitOfWork.CompleteAsync();
         }
@@ -89,10 +88,8 @@ namespace SalonHub.Application.Services
             var image = await _unitOfWork.GalleryImages.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Şəkil tapılmadı: {id}");
 
-            var salon = await _unitOfWork.Salons.GetByIdAsync(image.SalonId)
-                ?? throw new KeyNotFoundException("Salon tapılmadı.");
-
-            if (!isSuperAdmin && salon.OwnerId != requesterId)
+            var salon = await _unitOfWork.Salons.GetByIdAsync(image.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Bu şəkli silmək icazəniz yoxdur.");
 
             _unitOfWork.GalleryImages.Remove(image);
@@ -106,7 +103,8 @@ namespace SalonHub.Application.Services
             Description = image.Description,
             Type = image.Type.ToString(),
             SalonId = image.SalonId,
-            EmployeeId = image.EmployeeId
+            EmployeeId = image.EmployeeId,
+            PairedImageId = image.PairedImageId
         };
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.GalleryImages
+﻿namespace SalonHub.Application.DTOs.GalleryImages
 {
     public class GalleryImageReadDto
     {
@@ -14,6 +8,7 @@ namespace SalonHub.Application.DTOs.GalleryImages
         public string Type { get; set; } = string.Empty;
         public int SalonId { get; set; }
         public int? EmployeeId { get; set; }
+        public int? PairedImageId { get; set; }
     }
 
     public class GalleryImageCreateDto
@@ -23,13 +18,13 @@ namespace SalonHub.Application.DTOs.GalleryImages
         public string Type { get; set; } = string.Empty;
         public int SalonId { get; set; }
         public int? EmployeeId { get; set; }
+        public int? PairedImageId { get; set; }
     }
 
     public class GalleryImageUpdateDto
     {
         public string? Description { get; set; }
         public string Type { get; set; } = string.Empty;
+        public int? PairedImageId { get; set; }
     }
 }
-
-
