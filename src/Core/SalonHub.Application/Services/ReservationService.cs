@@ -20,6 +20,7 @@ namespace SalonHub.Application.Services
         Task<ReservationReadDto> ConfirmAsync(int reservationId, string currentUserId, bool isAdmin);
         Task<ReservationReadDto> RejectAsync(int reservationId, string reason, string currentUserId, bool isAdmin);
         Task<ReservationReadDto> CompleteAsync(int reservationId);
+        Task<ReservationReadDto> CheckInAsync(string checkInCode, int salonId);
         Task<List<string>> GetAvailableSlotsAsync(int employeeId, int serviceId, DateTime date);
     }
 
@@ -172,7 +173,8 @@ namespace SalonHub.Application.Services
                 ReservationDate = dto.ReservationDate.Date,
                 StartTime = dto.StartTime,
                 EndTime = endTime,
-                Status = ReservationStatus.Pending
+                Status = ReservationStatus.Pending,
+                SalonId = service.SalonId
             };
 
             await _unitOfWork.Reservations.AddAsync(reservation);
@@ -419,6 +421,42 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
 
             await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
+
+            var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
+            var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);
+
+            return new ReservationReadDto
+            {
+                Id = reservation.Id,
+                ServiceName = service?.Name ?? string.Empty,
+                EmployeeName = employee?.FullName ?? string.Empty,
+                ReservationDate = reservation.ReservationDate,
+                StartTime = reservation.StartTime,
+                EndTime = reservation.EndTime,
+                Status = reservation.Status.ToString()
+            };
+        }
+
+        public async Task<ReservationReadDto> CheckInAsync(string checkInCode, int salonId)
+        {
+            var reservations = await _unitOfWork.Reservations.FindAsync(r =>
+                r.CheckInCode == checkInCode && r.SalonId == salonId);
+
+            var reservation = reservations.FirstOrDefault()
+                ?? throw new KeyNotFoundException("Keçərsiz QR kod və ya rezervasiya tapılmadı.");
+
+            if (reservation.IsCheckedIn)
+                throw new InvalidOperationException("Bu rezervasiya artıq check-in edilib.");
+
+            if (reservation.Status == ReservationStatus.Cancelled)
+                throw new InvalidOperationException("Ləğv olunmuş rezervasiya check-in edilə bilməz.");
+
+            reservation.IsCheckedIn = true;
+            reservation.CheckedInAt = DateTime.UtcNow;
+            reservation.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.Reservations.Update(reservation);
+            await _unitOfWork.CompleteAsync();
 
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
             var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);

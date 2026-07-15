@@ -35,7 +35,10 @@ namespace SalonHub.Domain.Entities
 
         public ReservationStatus Status { get; set; } = ReservationStatus.Pending;
         public string? CancellationReason { get; set; }
+            // QR Check-in sahələri
+        public string CheckInCode { get; set; } = Guid.NewGuid().ToString("N").ToUpper();
+        public bool IsCheckedIn { get; set; } = false;
+        public DateTime? CheckedInAt { get; set; }
+        public int SalonId { get; set; }
     }
 }
-
-
