@@ -17,13 +17,15 @@ namespace SalonHub.Api.Controllers
             _serviceCrudService = serviceCrudService;
         }
 
+        private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _serviceCrudService.GetAllAsync());
+        public async Task<IActionResult> GetAll() => Ok(await _serviceCrudService.GetAllAsync(GetLanguage()));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var service = await _serviceCrudService.GetByIdAsync(id);
+            var service = await _serviceCrudService.GetByIdAsync(id, GetLanguage());
             return service is null ? NotFound() : Ok(service);
         }
 
@@ -50,6 +52,7 @@ namespace SalonHub.Api.Controllers
             await _serviceCrudService.DeleteAsync(id);
             return NoContent();
         }
+
         [HttpPost("{serviceId}/tags/{tagId}")]
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> AddTag(int serviceId, int tagId)

@@ -6,7 +6,6 @@ using SalonHub.Persistence.Identity;
 using System.Security.Claims;
 
 namespace SalonHub.Api.Controllers
-
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -19,13 +18,15 @@ namespace SalonHub.Api.Controllers
             _salonService = salonService;
         }
 
+        private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _salonService.GetAllAsync());
+        public async Task<IActionResult> GetAll() => Ok(await _salonService.GetAllAsync(GetLanguage()));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var salon = await _salonService.GetByIdAsync(id);
+            var salon = await _salonService.GetByIdAsync(id, GetLanguage());
             return salon is null ? NotFound() : Ok(salon);
         }
 

@@ -169,7 +169,7 @@ namespace SalonHub.Application.Services
                 .GroupBy(x => x.Service!.SalonId.ToString())
                 .Select(g => {
                     var salon = salons.FirstOrDefault(s => s.Id.ToString().Equals(g.Key, StringComparison.OrdinalIgnoreCase));
-                    return new SalonRevenueDto { SalonName = salon?.Name ?? "Naməlum salon", Revenue = g.Sum(x => x.Service!.Price), ReservationCount = g.Count() };
+                    return new SalonRevenueDto { SalonName = salon?.NameAz ?? "Naməlum salon", Revenue = g.Sum(x => x.Service!.Price), ReservationCount = g.Count() };
                 })
                 .OrderByDescending(x => x.Revenue)
                 .ToList();
@@ -224,7 +224,7 @@ namespace SalonHub.Application.Services
                 .GroupBy(x => x.ServiceId.ToString())
                 .Select(g => {
                     var service = services.FirstOrDefault(s => s.Id.ToString().Equals(g.Key, StringComparison.OrdinalIgnoreCase));
-                    return new PopularServiceDto { ServiceName = service?.Name ?? "Naməlum xidmət", TimesBooked = g.Count(), TotalRevenue = g.Count() * (service?.Price ?? 0) };
+                    return new PopularServiceDto { ServiceName = service?.NameAz ?? "Naməlum xidmət", TimesBooked = g.Count(), TotalRevenue = g.Count() * (service?.Price ?? 0) };
                 })
                 .OrderByDescending(x => x.TimesBooked)
                 .Take(top)
@@ -246,7 +246,7 @@ namespace SalonHub.Application.Services
                 .Select(g => {
                     var salon = salons.FirstOrDefault(s => s.Id.ToString().Equals(g.Key, StringComparison.OrdinalIgnoreCase));
                     var salonReviews = reviews.Where(rv => rv.SalonId.ToString().Equals(g.Key, StringComparison.OrdinalIgnoreCase)).ToList();
-                    return new PopularSalonDto { SalonName = salon?.Name ?? "Naməlum salon", TimesBooked = g.Count(), TotalRevenue = g.Sum(x => x.Service!.Price), AverageRating = salonReviews.Any() ? Math.Round(salonReviews.Average(rv => Convert.ToDouble(rv.Rating)), 2) : 0 };
+                    return new PopularSalonDto { SalonName = salon?.NameAz ?? "Naməlum salon", TimesBooked = g.Count(), TotalRevenue = g.Sum(x => x.Service!.Price), AverageRating = salonReviews.Any() ? Math.Round(salonReviews.Average(rv => Convert.ToDouble(rv.Rating)), 2) : 0 };
                 })
                 .OrderByDescending(x => x.TimesBooked)
                 .Take(top)
@@ -334,6 +334,8 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 
 
 

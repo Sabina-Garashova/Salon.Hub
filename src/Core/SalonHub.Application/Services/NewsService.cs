@@ -1,4 +1,5 @@
-﻿using SalonHub.Application.DTOs.News;
+﻿using SalonHub.Application.Common;
+using SalonHub.Application.DTOs.News;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 
@@ -6,8 +7,8 @@ namespace SalonHub.Application.Services
 {
     public interface INewsService
     {
-        Task<List<NewsArticleReadDto>> GetAllAsync();
-        Task<NewsArticleReadDto?> GetByIdAsync(int id);
+        Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null);
+        Task<NewsArticleReadDto?> GetByIdAsync(int id, string? language = null);
         Task<NewsArticleReadDto> CreateAsync(NewsArticleCreateDto dto);
         Task UpdateAsync(int id, NewsArticleUpdateDto dto);
         Task DeleteAsync(int id);
@@ -22,21 +23,21 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<NewsArticleReadDto>> GetAllAsync()
+        public async Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null)
         {
             var articles = await _unitOfWork.NewsArticles.GetAllAsync();
             var result = new List<NewsArticleReadDto>();
 
             foreach (var article in articles.OrderByDescending(a => a.PublishedDate))
-                result.Add(await MapToReadDtoAsync(article));
+                result.Add(await MapToReadDtoAsync(article, language));
 
             return result;
         }
 
-        public async Task<NewsArticleReadDto?> GetByIdAsync(int id)
+        public async Task<NewsArticleReadDto?> GetByIdAsync(int id, string? language = null)
         {
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(id);
-            return article is null ? null : await MapToReadDtoAsync(article);
+            return article is null ? null : await MapToReadDtoAsync(article, language);
         }
 
         public async Task<NewsArticleReadDto> CreateAsync(NewsArticleCreateDto dto)
@@ -55,8 +56,12 @@ namespace SalonHub.Application.Services
 
             var article = new NewsArticle
             {
-                Title = dto.Title,
-                Content = dto.Content,
+                TitleAz = dto.TitleAz,
+                TitleRu = dto.TitleRu,
+                TitleEn = dto.TitleEn,
+                ContentAz = dto.ContentAz,
+                ContentRu = dto.ContentRu,
+                ContentEn = dto.ContentEn,
                 ImageUrl = dto.ImageUrl,
                 SalonId = dto.SalonId,
                 AuthorEmployeeId = dto.AuthorEmployeeId,
@@ -66,7 +71,7 @@ namespace SalonHub.Application.Services
             await _unitOfWork.NewsArticles.AddAsync(article);
             await _unitOfWork.CompleteAsync();
 
-            return await MapToReadDtoAsync(article);
+            return await MapToReadDtoAsync(article, null);
         }
 
         public async Task UpdateAsync(int id, NewsArticleUpdateDto dto)
@@ -74,8 +79,12 @@ namespace SalonHub.Application.Services
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xəbər tapılmadı: {id}");
 
-            article.Title = dto.Title;
-            article.Content = dto.Content;
+            article.TitleAz = dto.TitleAz;
+            article.TitleRu = dto.TitleRu;
+            article.TitleEn = dto.TitleEn;
+            article.ContentAz = dto.ContentAz;
+            article.ContentRu = dto.ContentRu;
+            article.ContentEn = dto.ContentEn;
             article.ImageUrl = dto.ImageUrl;
             article.UpdatedAt = DateTime.UtcNow;
 
@@ -92,13 +101,13 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        private async Task<NewsArticleReadDto> MapToReadDtoAsync(NewsArticle article)
+        private async Task<NewsArticleReadDto> MapToReadDtoAsync(NewsArticle article, string? language)
         {
             string? salonName = null;
             if (article.SalonId.HasValue)
             {
                 var salon = await _unitOfWork.Salons.GetByIdAsync(article.SalonId.Value);
-                salonName = salon?.Name;
+                salonName = salon is null ? null : LanguageHelper.Select(salon.NameAz, salon.NameRu, salon.NameEn, language);
             }
 
             string? authorName = null;
@@ -111,8 +120,8 @@ namespace SalonHub.Application.Services
             return new NewsArticleReadDto
             {
                 Id = article.Id,
-                Title = article.Title,
-                Content = article.Content,
+                Title = LanguageHelper.Select(article.TitleAz, article.TitleRu, article.TitleEn, language),
+                Content = LanguageHelper.Select(article.ContentAz, article.ContentRu, article.ContentEn, language),
                 ImageUrl = article.ImageUrl,
                 PublishedDate = article.PublishedDate,
                 SalonId = article.SalonId,

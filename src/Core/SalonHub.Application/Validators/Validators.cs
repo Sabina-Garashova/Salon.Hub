@@ -14,7 +14,7 @@ namespace SalonHub.Application.Validators
     {
         public SalonCreateValidator()
         {
-            RuleFor(x => x.Name).NotEmpty().MaximumLength(150);
+            RuleFor(x => x.NameAz).NotEmpty().MaximumLength(150);
             RuleFor(x => x.Address).NotEmpty().MaximumLength(250);
             RuleFor(x => x.PhoneNumber).NotEmpty().Matches(@"^\+?[0-9\s\-]{7,15}$")
                 .WithMessage("Telefon nömrəsi düzgün formatda deyil.");
@@ -47,3 +47,4 @@ namespace SalonHub.Application.Validators
         }
     }
 }
+

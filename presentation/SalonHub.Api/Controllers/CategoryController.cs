@@ -17,13 +17,15 @@ namespace SalonHub.Api.Controllers
             _categoryService = categoryService;
         }
 
+        private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _categoryService.GetAllAsync());
+        public async Task<IActionResult> GetAll() => Ok(await _categoryService.GetAllAsync(GetLanguage()));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
+            var category = await _categoryService.GetByIdAsync(id, GetLanguage());
             return category is null ? NotFound() : Ok(category);
         }
 

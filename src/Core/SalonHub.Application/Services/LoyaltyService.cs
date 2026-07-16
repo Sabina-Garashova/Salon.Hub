@@ -37,7 +37,7 @@ namespace SalonHub.Application.Services
             return new LoyaltyBalanceDto
             {
                 SalonId = salonId,
-                SalonName = salon?.Name ?? string.Empty,
+                SalonName = salon?.NameAz ?? string.Empty,
                 Points = account.Points,
                 EquivalentDiscount = Math.Round((decimal)account.Points / PointsRequiredPerDiscountUnit, 2)
             };
@@ -84,7 +84,7 @@ namespace SalonHub.Application.Services
                 LoyaltyAccountId = account.Id,
                 Points = pointsToAward,
                 Type = LoyaltyTransactionType.Earned,
-                Description = $"'{service.Name}' xidmətinə görə qazanılan xallar",
+                Description = $"'{service.NameAz}' xidmətinə görə qazanılan xallar",
                 ReservationId = reservation.Id
             };
 
@@ -220,3 +220,4 @@ namespace SalonHub.Application.Services
         }
     }
 }
+

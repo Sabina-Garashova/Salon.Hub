@@ -8,7 +8,7 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
 {
     public void Configure(EntityTypeBuilder<Service> builder)
     {
-        builder.Property(x => x.Name).IsRequired().HasMaxLength(150);
+        builder.Property(x => x.NameAz).IsRequired().HasMaxLength(150);
         builder.Property(x => x.Price).HasColumnType("decimal(10,2)");
 
         builder.HasOne(x => x.Category)
@@ -198,3 +198,4 @@ public class TimeBlockConfiguration : IEntityTypeConfiguration<TimeBlock>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

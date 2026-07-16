@@ -17,13 +17,15 @@ namespace SalonHub.Api.Controllers
             _tagService = tagService;
         }
 
+        private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _tagService.GetAllAsync());
+        public async Task<IActionResult> GetAll() => Ok(await _tagService.GetAllAsync(GetLanguage()));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var tag = await _tagService.GetByIdAsync(id);
+            var tag = await _tagService.GetByIdAsync(id, GetLanguage());
             return tag is null ? NotFound() : Ok(tag);
         }
 

@@ -15,8 +15,12 @@ public class NewsArticleReadDto
 
 public class NewsArticleCreateDto
 {
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
+    public string TitleAz { get; set; } = string.Empty;
+    public string? TitleRu { get; set; }
+    public string? TitleEn { get; set; }
+    public string ContentAz { get; set; } = string.Empty;
+    public string? ContentRu { get; set; }
+    public string? ContentEn { get; set; }
     public string? ImageUrl { get; set; }
     public int? SalonId { get; set; }
     public int? AuthorEmployeeId { get; set; }
@@ -24,7 +28,11 @@ public class NewsArticleCreateDto
 
 public class NewsArticleUpdateDto
 {
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
+    public string TitleAz { get; set; } = string.Empty;
+    public string? TitleRu { get; set; }
+    public string? TitleEn { get; set; }
+    public string ContentAz { get; set; } = string.Empty;
+    public string? ContentRu { get; set; }
+    public string? ContentEn { get; set; }
     public string? ImageUrl { get; set; }
 }

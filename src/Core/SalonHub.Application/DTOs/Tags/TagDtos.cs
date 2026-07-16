@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.Tags
+﻿namespace SalonHub.Application.DTOs.Tags
 {
     public class TagReadDto
     {
@@ -14,11 +8,15 @@ namespace SalonHub.Application.DTOs.Tags
 
     public class TagCreateDto
     {
-        public string Name { get; set; } = string.Empty;
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
     }
 
     public class TagUpdateDto
     {
-        public string Name { get; set; } = string.Empty;
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
     }
 }

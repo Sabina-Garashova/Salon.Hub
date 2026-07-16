@@ -74,7 +74,7 @@ namespace SalonHub.Application.Services
                 result.Add(new ReservationReadDto
                 {
                     Id = r.Id,
-                    ServiceName = service?.Name ?? string.Empty,
+                    ServiceName = service?.NameAz ?? string.Empty,
                     EmployeeName = employee?.FullName ?? string.Empty,
                     ReservationDate = r.ReservationDate,
                     StartTime = r.StartTime,
@@ -97,7 +97,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -186,7 +186,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service.Name,
+                ServiceName = service.NameAz,
                 EmployeeName = employee.FullName,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -307,7 +307,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service.Name,
+                ServiceName = service.NameAz,
                 EmployeeName = employee.FullName,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -336,7 +336,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -368,7 +368,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -400,7 +400,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -431,7 +431,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -467,7 +467,7 @@ namespace SalonHub.Application.Services
             return new ReservationReadDto
             {
                 Id = reservation.Id,
-                ServiceName = service?.Name ?? string.Empty,
+                ServiceName = service?.NameAz ?? string.Empty,
                 EmployeeName = employee?.FullName ?? string.Empty,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
@@ -544,7 +544,7 @@ namespace SalonHub.Application.Services
 
                 var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == item.ServiceId);
                 if (!isAssigned)
-                    throw new InvalidOperationException($"Seçilmiş usta ({employee.FullName}) '{service.Name}' xidmətini göstərmir.");
+                    throw new InvalidOperationException($"Seçilmiş usta ({employee.FullName}) '{service.NameAz}' xidmətini göstərmir.");
 
                 var endTime = currentStartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -627,7 +627,7 @@ namespace SalonHub.Application.Services
                 result.Add(new ReservationReadDto
                 {
                     Id = reservation.Id,
-                    ServiceName = service?.Name ?? string.Empty,
+                    ServiceName = service?.NameAz ?? string.Empty,
                     EmployeeName = employee?.FullName ?? string.Empty,
                     ReservationDate = reservation.ReservationDate,
                     StartTime = reservation.StartTime,
@@ -685,6 +685,8 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 
 
 

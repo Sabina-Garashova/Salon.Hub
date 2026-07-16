@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SalonHub.Persistence;
 
@@ -11,9 +12,11 @@ using SalonHub.Persistence;
 namespace SalonHub.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716073221_AddMultiLanguageToServiceAndSalon")]
+    partial class AddMultiLanguageToServiceAndSalon
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -514,14 +517,8 @@ namespace SalonHub.Persistence.Migrations
                     b.Property<int?>("AuthorEmployeeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ContentAz")
+                    b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContentEn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContentRu")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -539,14 +536,8 @@ namespace SalonHub.Persistence.Migrations
                     b.Property<int?>("SalonId")
                         .HasColumnType("int");
 
-                    b.Property<string>("TitleAz")
+                    b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TitleEn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TitleRu")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")

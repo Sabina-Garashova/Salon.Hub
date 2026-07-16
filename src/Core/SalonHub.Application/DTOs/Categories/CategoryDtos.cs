@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.Categories
+﻿namespace SalonHub.Application.DTOs.Categories
 {
     public class CategoryReadDto
     {
@@ -15,13 +9,21 @@ namespace SalonHub.Application.DTOs.Categories
 
     public class CategoryCreateDto
     {
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
+        public string? DescriptionAz { get; set; }
+        public string? DescriptionRu { get; set; }
+        public string? DescriptionEn { get; set; }
     }
 
     public class CategoryUpdateDto
     {
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
+        public string? DescriptionAz { get; set; }
+        public string? DescriptionRu { get; set; }
+        public string? DescriptionEn { get; set; }
     }
 }

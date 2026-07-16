@@ -1,17 +1,14 @@
-﻿using SalonHub.Application.DTOs.Services;
+﻿using SalonHub.Application.Common;
+using SalonHub.Application.DTOs.Services;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
     public interface IServiceCrudService
     {
-        Task<IReadOnlyList<ServiceReadDto>> GetAllAsync();
-        Task<ServiceReadDto?> GetByIdAsync(int id);
+        Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null);
+        Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null);
         Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto);
         Task UpdateAsync(int id, ServiceUpdateDto dto);
         Task DeleteAsync(int id);
@@ -28,16 +25,16 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<ServiceReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null)
         {
             var services = await _unitOfWork.Services.GetAllAsync();
-            return services.Select(MapToReadDto).ToList();
+            return services.Select(s => MapToReadDto(s, language)).ToList();
         }
 
-        public async Task<ServiceReadDto?> GetByIdAsync(int id)
+        public async Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null)
         {
             var service = await _unitOfWork.Services.GetByIdAsync(id);
-            return service is null ? null : MapToReadDto(service);
+            return service is null ? null : MapToReadDto(service, language);
         }
 
         public async Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto)
@@ -55,14 +52,18 @@ namespace SalonHub.Application.Services
             }
 
             var existing = await _unitOfWork.Services.FindAsync(s =>
-                s.SalonId == dto.SalonId && s.Name.ToLower() == dto.Name.ToLower());
+                s.SalonId == dto.SalonId && s.NameAz.ToLower() == dto.NameAz.ToLower());
             if (existing.Any())
-                throw new InvalidOperationException($"'{dto.Name}' adlı xidmət bu salonda artıq mövcuddur.");
+                throw new InvalidOperationException($"'{dto.NameAz}' adlı xidmət bu salonda artıq mövcuddur.");
 
             var service = new Service
             {
-                Name = dto.Name,
-                Description = dto.Description,
+                NameAz = dto.NameAz,
+                NameRu = dto.NameRu,
+                NameEn = dto.NameEn,
+                DescriptionAz = dto.DescriptionAz,
+                DescriptionRu = dto.DescriptionRu,
+                DescriptionEn = dto.DescriptionEn,
                 Price = dto.Price,
                 DurationMinutes = dto.DurationMinutes,
                 CategoryId = dto.CategoryId,
@@ -73,7 +74,7 @@ namespace SalonHub.Application.Services
             await _unitOfWork.Services.AddAsync(service);
             await _unitOfWork.CompleteAsync();
 
-            return MapToReadDto(service);
+            return MapToReadDto(service, null);
         }
 
         public async Task UpdateAsync(int id, ServiceUpdateDto dto)
@@ -82,12 +83,16 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException($"Xidmət tapılmadı: {id}");
 
             var existing = await _unitOfWork.Services.FindAsync(s =>
-                s.Id != id && s.SalonId == service.SalonId && s.Name.ToLower() == dto.Name.ToLower());
+                s.Id != id && s.SalonId == service.SalonId && s.NameAz.ToLower() == dto.NameAz.ToLower());
             if (existing.Any())
-                throw new InvalidOperationException($"'{dto.Name}' adlı xidmət bu salonda artıq mövcuddur.");
+                throw new InvalidOperationException($"'{dto.NameAz}' adlı xidmət bu salonda artıq mövcuddur.");
 
-            service.Name = dto.Name;
-            service.Description = dto.Description;
+            service.NameAz = dto.NameAz;
+            service.NameRu = dto.NameRu;
+            service.NameEn = dto.NameEn;
+            service.DescriptionAz = dto.DescriptionAz;
+            service.DescriptionRu = dto.DescriptionRu;
+            service.DescriptionEn = dto.DescriptionEn;
             service.Price = dto.Price;
             service.DurationMinutes = dto.DurationMinutes;
             service.CategoryId = dto.CategoryId;
@@ -137,11 +142,15 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        private static ServiceReadDto MapToReadDto(Service service) => new()
+        private static ServiceReadDto MapToReadDto(Service service, string? language) => new()
         {
             Id = service.Id,
-            Name = service.Name,
-            Description = service.Description,
+            Name = LanguageHelper.Select(service.NameAz, service.NameRu, service.NameEn, language),
+            Description = LanguageHelper.Select(
+                service.DescriptionAz ?? string.Empty,
+                service.DescriptionRu,
+                service.DescriptionEn,
+                language),
             Price = service.Price,
             DurationMinutes = service.DurationMinutes,
             CategoryId = service.CategoryId,

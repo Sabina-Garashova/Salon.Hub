@@ -17,13 +17,15 @@ namespace SalonHub.Api.Controllers
             _newsService = newsService;
         }
 
+        private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _newsService.GetAllAsync());
+        public async Task<IActionResult> GetAll() => Ok(await _newsService.GetAllAsync(GetLanguage()));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var article = await _newsService.GetByIdAsync(id);
+            var article = await _newsService.GetByIdAsync(id, GetLanguage());
             return article is null ? NotFound() : Ok(article);
         }
 

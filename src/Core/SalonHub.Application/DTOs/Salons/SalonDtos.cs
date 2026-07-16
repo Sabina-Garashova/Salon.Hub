@@ -13,16 +13,24 @@
 
     public class SalonCreateDto
     {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
+        public string? DescriptionAz { get; set; }
+        public string? DescriptionRu { get; set; }
+        public string? DescriptionEn { get; set; }
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
     }
 
     public class SalonUpdateDto
     {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string NameAz { get; set; } = string.Empty;
+        public string? NameRu { get; set; }
+        public string? NameEn { get; set; }
+        public string? DescriptionAz { get; set; }
+        public string? DescriptionRu { get; set; }
+        public string? DescriptionEn { get; set; }
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
     }

@@ -1,17 +1,14 @@
-﻿using SalonHub.Application.DTOs.Tags;
+﻿using SalonHub.Application.Common;
+using SalonHub.Application.DTOs.Tags;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
     public interface ITagService
     {
-        Task<IReadOnlyList<TagReadDto>> GetAllAsync();
-        Task<TagReadDto?> GetByIdAsync(int id);
+        Task<IReadOnlyList<TagReadDto>> GetAllAsync(string? language = null);
+        Task<TagReadDto?> GetByIdAsync(int id, string? language = null);
         Task<TagReadDto> CreateAsync(TagCreateDto dto);
         Task UpdateAsync(int id, TagUpdateDto dto);
         Task DeleteAsync(int id);
@@ -26,29 +23,31 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<TagReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<TagReadDto>> GetAllAsync(string? language = null)
         {
             var tags = await _unitOfWork.Tags.GetAllAsync();
-            return tags.Select(MapToReadDto).ToList();
+            return tags.Select(t => MapToReadDto(t, language)).ToList();
         }
 
-        public async Task<TagReadDto?> GetByIdAsync(int id)
+        public async Task<TagReadDto?> GetByIdAsync(int id, string? language = null)
         {
             var tag = await _unitOfWork.Tags.GetByIdAsync(id);
-            return tag is null ? null : MapToReadDto(tag);
+            return tag is null ? null : MapToReadDto(tag, language);
         }
 
         public async Task<TagReadDto> CreateAsync(TagCreateDto dto)
         {
             var existing = await _unitOfWork.Tags.FindAsync(t =>
-                t.Name.ToLower() == dto.Name.ToLower());
+                t.NameAz.ToLower() == dto.NameAz.ToLower());
             if (existing.Any())
-                throw new InvalidOperationException($"'{dto.Name}' adlı tag artıq mövcuddur.");
+                throw new InvalidOperationException($"'{dto.NameAz}' adlı tag artıq mövcuddur.");
 
-            var tag = new Tag { Name = dto.Name };
+            var tag = new Tag { NameAz = dto.NameAz, NameRu = dto.NameRu, NameEn = dto.NameEn };
+
             await _unitOfWork.Tags.AddAsync(tag);
             await _unitOfWork.CompleteAsync();
-            return MapToReadDto(tag);
+
+            return MapToReadDto(tag, null);
         }
 
         public async Task UpdateAsync(int id, TagUpdateDto dto)
@@ -57,12 +56,15 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException($"Tag tapılmadı: {id}");
 
             var existing = await _unitOfWork.Tags.FindAsync(t =>
-                t.Id != id && t.Name.ToLower() == dto.Name.ToLower());
+                t.Id != id && t.NameAz.ToLower() == dto.NameAz.ToLower());
             if (existing.Any())
-                throw new InvalidOperationException($"'{dto.Name}' adlı tag artıq mövcuddur.");
+                throw new InvalidOperationException($"'{dto.NameAz}' adlı tag artıq mövcuddur.");
 
-            tag.Name = dto.Name;
+            tag.NameAz = dto.NameAz;
+            tag.NameRu = dto.NameRu;
+            tag.NameEn = dto.NameEn;
             tag.UpdatedAt = DateTime.UtcNow;
+
             _unitOfWork.Tags.Update(tag);
             await _unitOfWork.CompleteAsync();
         }
@@ -71,14 +73,15 @@ namespace SalonHub.Application.Services
         {
             var tag = await _unitOfWork.Tags.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Tag tapılmadı: {id}");
+
             _unitOfWork.Tags.Remove(tag);
             await _unitOfWork.CompleteAsync();
         }
 
-        private static TagReadDto MapToReadDto(Tag tag) => new()
+        private static TagReadDto MapToReadDto(Tag tag, string? language) => new()
         {
             Id = tag.Id,
-            Name = tag.Name
+            Name = LanguageHelper.Select(tag.NameAz, tag.NameRu, tag.NameEn, language)
         };
     }
 }
