@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Employees;
 using SalonHub.Application.Services;
@@ -17,6 +18,9 @@ namespace SalonHub.Api.Controllers
             _employeeService = employeeService;
         }
 
+        private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
+
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _employeeService.GetAllAsync());
 
@@ -31,7 +35,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Create(EmployeeCreateDto dto)
         {
-            var created = await _employeeService.CreateAsync(dto);
+            var created = await _employeeService.CreateAsync(dto, GetRequesterId(), IsSuperAdmin());
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -39,7 +43,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Update(int id, EmployeeUpdateDto dto)
         {
-            await _employeeService.UpdateAsync(id, dto);
+            await _employeeService.UpdateAsync(id, dto, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
 
@@ -47,14 +51,15 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _employeeService.DeleteAsync(id);
+            await _employeeService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
+
         [HttpPost("{employeeId}/services/{serviceId}")]
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> AssignService(int employeeId, int serviceId)
         {
-            await _employeeService.AssignServiceAsync(employeeId, serviceId);
+            await _employeeService.AssignServiceAsync(employeeId, serviceId, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
 
@@ -62,7 +67,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> RemoveService(int employeeId, int serviceId)
         {
-            await _employeeService.RemoveServiceAsync(employeeId, serviceId);
+            await _employeeService.RemoveServiceAsync(employeeId, serviceId, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
     }

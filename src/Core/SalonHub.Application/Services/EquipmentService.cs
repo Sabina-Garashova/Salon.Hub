@@ -2,10 +2,6 @@
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -13,9 +9,9 @@ namespace SalonHub.Application.Services
     {
         Task<IReadOnlyList<EquipmentReadDto>> GetAllAsync();
         Task<EquipmentReadDto?> GetByIdAsync(int id);
-        Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto);
-        Task UpdateAsync(int id, EquipmentUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto, string requesterId, bool isSuperAdmin);
+        Task UpdateAsync(int id, EquipmentUpdateDto dto, string requesterId, bool isSuperAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
     }
 
     public class EquipmentService : IEquipmentService
@@ -39,8 +35,20 @@ namespace SalonHub.Application.Services
             return equipment is null ? null : MapToReadDto(equipment);
         }
 
-        public async Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto)
+        private async Task<bool> IsOwnerOfBranchAsync(int branchId, string requesterId)
         {
+            var branch = await _unitOfWork.Branches.GetByIdAsync(branchId);
+            if (branch is null) return false;
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(branch.SalonId);
+            return salon is not null && salon.OwnerId == requesterId;
+        }
+
+        public async Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto, string requesterId, bool isSuperAdmin)
+        {
+            if (!isSuperAdmin && !await IsOwnerOfBranchAsync(dto.BranchId, requesterId))
+                throw new UnauthorizedAccessException("Bu filiala avadanlıq əlavə etmək icazəniz yoxdur.");
+
             var existing = await _unitOfWork.Equipments.FindAsync(e =>
                 e.BranchId == dto.BranchId && e.Name.ToLower() == dto.Name.ToLower());
             if (existing.Any())
@@ -53,15 +61,20 @@ namespace SalonHub.Application.Services
                 BranchId = dto.BranchId,
                 Status = EquipmentStatus.Active
             };
+
             await _unitOfWork.Equipments.AddAsync(equipment);
             await _unitOfWork.CompleteAsync();
+
             return MapToReadDto(equipment);
         }
 
-        public async Task UpdateAsync(int id, EquipmentUpdateDto dto)
+        public async Task UpdateAsync(int id, EquipmentUpdateDto dto, string requesterId, bool isSuperAdmin)
         {
             var equipment = await _unitOfWork.Equipments.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Avadanlıq tapılmadı: {id}");
+
+            if (!isSuperAdmin && !await IsOwnerOfBranchAsync(equipment.BranchId, requesterId))
+                throw new UnauthorizedAccessException("Bu avadanlığı dəyişmək icazəniz yoxdur.");
 
             if (!Enum.TryParse<EquipmentStatus>(dto.Status, true, out var status))
                 throw new ArgumentException("Status düzgün deyil. Active, Busy, Faulty və ya InRepair olmalıdır.");
@@ -75,14 +88,19 @@ namespace SalonHub.Application.Services
             equipment.Type = dto.Type;
             equipment.Status = status;
             equipment.UpdatedAt = DateTime.UtcNow;
+
             _unitOfWork.Equipments.Update(equipment);
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin)
         {
             var equipment = await _unitOfWork.Equipments.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Avadanlıq tapılmadı: {id}");
+
+            if (!isSuperAdmin && !await IsOwnerOfBranchAsync(equipment.BranchId, requesterId))
+                throw new UnauthorizedAccessException("Bu avadanlığı silmək icazəniz yoxdur.");
+
             equipment.IsDeleted = true;
             _unitOfWork.Equipments.Update(equipment);
             await _unitOfWork.CompleteAsync();

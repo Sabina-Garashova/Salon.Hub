@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Branches;
 using SalonHub.Application.Services;
@@ -17,6 +18,9 @@ namespace SalonHub.Api.Controllers
             _branchService = branchService;
         }
 
+        private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
+
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _branchService.GetAllAsync());
 
@@ -31,7 +35,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Create(BranchCreateDto dto)
         {
-            var created = await _branchService.CreateAsync(dto);
+            var created = await _branchService.CreateAsync(dto, GetRequesterId(), IsSuperAdmin());
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -39,7 +43,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Update(int id, BranchUpdateDto dto)
         {
-            await _branchService.UpdateAsync(id, dto);
+            await _branchService.UpdateAsync(id, dto, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
 
@@ -47,7 +51,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _branchService.DeleteAsync(id);
+            await _branchService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
     }

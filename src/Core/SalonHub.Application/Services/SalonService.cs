@@ -10,8 +10,8 @@ namespace SalonHub.Application.Services
         Task<IReadOnlyList<SalonReadDto>> GetAllAsync(string? language = null);
         Task<SalonReadDto?> GetByIdAsync(int id, string? language = null);
         Task<SalonReadDto> CreateAsync(SalonCreateDto dto, string ownerId);
-        Task UpdateAsync(int id, SalonUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task UpdateAsync(int id, SalonUpdateDto dto, string requesterId, bool isSuperAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
     }
 
     public class SalonService : ISalonService
@@ -59,10 +59,13 @@ namespace SalonHub.Application.Services
             return await MapToReadDtoAsync(salon, null);
         }
 
-        public async Task UpdateAsync(int id, SalonUpdateDto dto)
+        public async Task UpdateAsync(int id, SalonUpdateDto dto, string requesterId, bool isSuperAdmin)
         {
             var salon = await _unitOfWork.Salons.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Salon tapılmadı: {id}");
+
+            if (!isSuperAdmin && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu salonu dəyişmək icazəniz yoxdur.");
 
             salon.NameAz = dto.NameAz;
             salon.NameRu = dto.NameRu;
@@ -78,10 +81,13 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin)
         {
             var salon = await _unitOfWork.Salons.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Salon tapılmadı: {id}");
+
+            if (!isSuperAdmin && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu salonu silmək icazəniz yoxdur.");
 
             salon.IsDeleted = true;
             _unitOfWork.Salons.Update(salon);

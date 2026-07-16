@@ -9,11 +9,11 @@ namespace SalonHub.Application.Services
     {
         Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null);
         Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null);
-        Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto);
-        Task UpdateAsync(int id, ServiceUpdateDto dto);
-        Task DeleteAsync(int id);
-        Task AddTagAsync(int serviceId, int tagId);
-        Task RemoveTagAsync(int serviceId, int tagId);
+        Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto, string requesterId, bool isSuperAdmin);
+        Task UpdateAsync(int id, ServiceUpdateDto dto, string requesterId, bool isSuperAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
+        Task AddTagAsync(int serviceId, int tagId, string requesterId, bool isSuperAdmin);
+        Task RemoveTagAsync(int serviceId, int tagId, string requesterId, bool isSuperAdmin);
     }
 
     public class ServiceCrudService : IServiceCrudService
@@ -37,13 +37,16 @@ namespace SalonHub.Application.Services
             return service is null ? null : MapToReadDto(service, language);
         }
 
-        public async Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto)
+        public async Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto, string requesterId, bool isSuperAdmin)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(dto.CategoryId)
                 ?? throw new KeyNotFoundException("Kateqoriya tapılmadı.");
 
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
+
+            if (!isSuperAdmin && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu salona xidmət əlavə etmək icazəniz yoxdur.");
 
             if (dto.RequiredEquipmentId.HasValue)
             {
@@ -77,10 +80,14 @@ namespace SalonHub.Application.Services
             return MapToReadDto(service, null);
         }
 
-        public async Task UpdateAsync(int id, ServiceUpdateDto dto)
+        public async Task UpdateAsync(int id, ServiceUpdateDto dto, string requesterId, bool isSuperAdmin)
         {
             var service = await _unitOfWork.Services.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xidmət tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(service.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu xidməti dəyişmək icazəniz yoxdur.");
 
             var existing = await _unitOfWork.Services.FindAsync(s =>
                 s.Id != id && s.SalonId == service.SalonId && s.NameAz.ToLower() == dto.NameAz.ToLower());
@@ -103,21 +110,29 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin)
         {
             var service = await _unitOfWork.Services.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xidmət tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(service.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu xidməti silmək icazəniz yoxdur.");
 
             service.IsDeleted = true;
             _unitOfWork.Services.Update(service);
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task AddTagAsync(int serviceId, int tagId)
+        public async Task AddTagAsync(int serviceId, int tagId, string requesterId, bool isSuperAdmin)
         {
             var service = await _unitOfWork.Services.SingleOrDefaultAsync(
                 s => s.Id == serviceId, s => s.ServiceTags)
                 ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(service.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu xidmətə tag əlavə etmək icazəniz yoxdur.");
 
             var tag = await _unitOfWork.Tags.GetByIdAsync(tagId)
                 ?? throw new KeyNotFoundException("Tag tapılmadı.");
@@ -129,11 +144,15 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task RemoveTagAsync(int serviceId, int tagId)
+        public async Task RemoveTagAsync(int serviceId, int tagId, string requesterId, bool isSuperAdmin)
         {
             var service = await _unitOfWork.Services.SingleOrDefaultAsync(
                 s => s.Id == serviceId, s => s.ServiceTags)
                 ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(service.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu xidmətdən tag silmək icazəniz yoxdur.");
 
             var serviceTag = service.ServiceTags.FirstOrDefault(st => st.TagId == tagId)
                 ?? throw new KeyNotFoundException("Bu tag bu xidmətə əlavə olunmayıb.");

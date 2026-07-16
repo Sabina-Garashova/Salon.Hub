@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Equipments;
 using SalonHub.Application.Services;
@@ -17,6 +18,9 @@ namespace SalonHub.Api.Controllers
             _equipmentService = equipmentService;
         }
 
+        private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
+
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _equipmentService.GetAllAsync());
 
@@ -31,7 +35,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Create(EquipmentCreateDto dto)
         {
-            var created = await _equipmentService.CreateAsync(dto);
+            var created = await _equipmentService.CreateAsync(dto, GetRequesterId(), IsSuperAdmin());
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
@@ -39,7 +43,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Update(int id, EquipmentUpdateDto dto)
         {
-            await _equipmentService.UpdateAsync(id, dto);
+            await _equipmentService.UpdateAsync(id, dto, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
 
@@ -47,7 +51,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _equipmentService.DeleteAsync(id);
+            await _equipmentService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
     }

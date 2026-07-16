@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Salons;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
-using System.Security.Claims;
 
 namespace SalonHub.Api.Controllers
 {
@@ -19,6 +19,8 @@ namespace SalonHub.Api.Controllers
         }
 
         private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
+        private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
 
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _salonService.GetAllAsync(GetLanguage()));
@@ -34,7 +36,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Create(SalonCreateDto dto)
         {
-            var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var ownerId = GetRequesterId();
             var created = await _salonService.CreateAsync(dto, ownerId);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -43,7 +45,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Update(int id, SalonUpdateDto dto)
         {
-            await _salonService.UpdateAsync(id, dto);
+            await _salonService.UpdateAsync(id, dto, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
 
@@ -51,7 +53,7 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _salonService.DeleteAsync(id);
+            await _salonService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
             return NoContent();
         }
     }

@@ -8,11 +8,11 @@ namespace SalonHub.Application.Services
     {
         Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync();
         Task<EmployeeReadDto?> GetByIdAsync(int id);
-        Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto);
-        Task UpdateAsync(int id, EmployeeUpdateDto dto);
-        Task DeleteAsync(int id);
-        Task AssignServiceAsync(int employeeId, int serviceId);
-        Task RemoveServiceAsync(int employeeId, int serviceId);
+        Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto, string requesterId, bool isSuperAdmin);
+        Task UpdateAsync(int id, EmployeeUpdateDto dto, string requesterId, bool isSuperAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
+        Task AssignServiceAsync(int employeeId, int serviceId, string requesterId, bool isSuperAdmin);
+        Task RemoveServiceAsync(int employeeId, int serviceId, string requesterId, bool isSuperAdmin);
     }
 
     public class EmployeeService : IEmployeeService
@@ -39,10 +39,13 @@ namespace SalonHub.Application.Services
             return employee is null ? null : await MapToReadDtoAsync(employee);
         }
 
-        public async Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto)
+        public async Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto, string requesterId, bool isSuperAdmin)
         {
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
+
+            if (!isSuperAdmin && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu salona işçi əlavə etmək icazəniz yoxdur.");
 
             var existingWithSameUser = await _unitOfWork.Employees.FindAsync(e =>
                 e.ApplicationUserId == dto.ApplicationUserId);
@@ -82,10 +85,14 @@ namespace SalonHub.Application.Services
             return await MapToReadDtoAsync(employee);
         }
 
-        public async Task UpdateAsync(int id, EmployeeUpdateDto dto)
+        public async Task UpdateAsync(int id, EmployeeUpdateDto dto, string requesterId, bool isSuperAdmin)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"İşçi tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu işçini dəyişmək icazəniz yoxdur.");
 
             if (!string.IsNullOrEmpty(dto.ApplicationUserId) && dto.ApplicationUserId != employee.ApplicationUserId)
             {
@@ -125,21 +132,29 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin)
         {
             var employee = await _unitOfWork.Employees.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"İşçi tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu işçini silmək icazəniz yoxdur.");
 
             employee.IsDeleted = true;
             _unitOfWork.Employees.Update(employee);
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task AssignServiceAsync(int employeeId, int serviceId)
+        public async Task AssignServiceAsync(int employeeId, int serviceId, string requesterId, bool isSuperAdmin)
         {
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
                 e => e.Id == employeeId, e => e.EmployeeServices)
                 ?? throw new KeyNotFoundException("İşçi tapılmadı.");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu işçiyə xidmət təyin etmək icazəniz yoxdur.");
 
             var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
                 ?? throw new KeyNotFoundException("Xidmət tapılmadı.");
@@ -155,11 +170,15 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task RemoveServiceAsync(int employeeId, int serviceId)
+        public async Task RemoveServiceAsync(int employeeId, int serviceId, string requesterId, bool isSuperAdmin)
         {
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
                 e => e.Id == employeeId, e => e.EmployeeServices)
                 ?? throw new KeyNotFoundException("İşçi tapılmadı.");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu işçidən xidmət silmək icazəniz yoxdur.");
 
             var employeeService = employee.EmployeeServices.FirstOrDefault(es => es.ServiceId == serviceId)
                 ?? throw new KeyNotFoundException("Bu xidmət bu işçiyə təyin olunmayıb.");

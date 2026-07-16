@@ -1,11 +1,6 @@
 ﻿using SalonHub.Application.DTOs.Branches;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -13,9 +8,9 @@ namespace SalonHub.Application.Services
     {
         Task<IReadOnlyList<BranchReadDto>> GetAllAsync();
         Task<BranchReadDto?> GetByIdAsync(int id);
-        Task<BranchReadDto> CreateAsync(BranchCreateDto dto);
-        Task UpdateAsync(int id, BranchUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task<BranchReadDto> CreateAsync(BranchCreateDto dto, string requesterId, bool isSuperAdmin);
+        Task UpdateAsync(int id, BranchUpdateDto dto, string requesterId, bool isSuperAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
     }
 
     public class BranchService : IBranchService
@@ -39,10 +34,13 @@ namespace SalonHub.Application.Services
             return branch is null ? null : MapToReadDto(branch);
         }
 
-        public async Task<BranchReadDto> CreateAsync(BranchCreateDto dto)
+        public async Task<BranchReadDto> CreateAsync(BranchCreateDto dto, string requesterId, bool isSuperAdmin)
         {
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
+
+            if (!isSuperAdmin && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu salona filial əlavə etmək icazəniz yoxdur.");
 
             var branch = new Branch
             {
@@ -58,10 +56,14 @@ namespace SalonHub.Application.Services
             return MapToReadDto(branch);
         }
 
-        public async Task UpdateAsync(int id, BranchUpdateDto dto)
+        public async Task UpdateAsync(int id, BranchUpdateDto dto, string requesterId, bool isSuperAdmin)
         {
             var branch = await _unitOfWork.Branches.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Filial tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(branch.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu filialı dəyişmək icazəniz yoxdur.");
 
             branch.Name = dto.Name;
             branch.Address = dto.Address;
@@ -72,10 +74,14 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin)
         {
             var branch = await _unitOfWork.Branches.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Filial tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(branch.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu filialı silmək icazəniz yoxdur.");
 
             branch.IsDeleted = true;
             _unitOfWork.Branches.Update(branch);
