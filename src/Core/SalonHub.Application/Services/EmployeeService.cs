@@ -203,8 +203,10 @@ namespace SalonHub.Application.Services
                 BranchId = employee.BranchId,
                 AssignedEquipmentId = employee.AssignedEquipmentId,
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
-                ReviewCount = reviewList.Count
+                ReviewCount = reviewList.Count,
+                IsMonthlyTopEmployee = employee.IsMonthlyTopEmployee
             };
         }
     }
 }
+

@@ -111,8 +111,10 @@ namespace SalonHub.Application.Services
                 Address = salon.Address,
                 PhoneNumber = salon.PhoneNumber,
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
-                ReviewCount = reviewList.Count
+                ReviewCount = reviewList.Count,
+                IsMonthlyTopSalon = salon.IsMonthlyTopSalon
             };
         }
     }
 }
+

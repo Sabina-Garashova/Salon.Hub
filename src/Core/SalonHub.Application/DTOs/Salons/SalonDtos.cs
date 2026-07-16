@@ -9,6 +9,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
+        public bool IsMonthlyTopSalon { get; set; }
     }
 
     public class SalonCreateDto
@@ -35,3 +36,4 @@
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }
+

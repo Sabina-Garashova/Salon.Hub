@@ -1,11 +1,6 @@
 ﻿using SalonHub.Application.DTOs.Reviews;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SalonHub.Application.Services
 {
@@ -16,11 +11,13 @@ namespace SalonHub.Application.Services
         Task<ReviewReadDto> CreateAsync(ReviewCreateDto dto, string customerId);
         Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isAdmin);
         Task DeleteAsync(int id, string requesterId, bool isAdmin);
+        Task RespondAsync(int id, ReviewResponseDto dto, string requesterId, bool isSuperAdmin);
     }
 
     public class ReviewService : IReviewService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public ReviewService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -54,8 +51,10 @@ namespace SalonHub.Application.Services
                 Rating = dto.Rating,
                 Comment = dto.Comment
             };
+
             await _unitOfWork.Reviews.AddAsync(review);
             await _unitOfWork.CompleteAsync();
+
             return MapToReadDto(review);
         }
 
@@ -73,6 +72,7 @@ namespace SalonHub.Application.Services
             review.Rating = dto.Rating;
             review.Comment = dto.Comment;
             review.UpdatedAt = DateTime.UtcNow;
+
             _unitOfWork.Reviews.Update(review);
             await _unitOfWork.CompleteAsync();
         }
@@ -89,6 +89,23 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task RespondAsync(int id, ReviewResponseDto dto, string requesterId, bool isSuperAdmin)
+        {
+            var review = await _unitOfWork.Reviews.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException($"Rəy tapılmadı: {id}");
+
+            var salon = await _unitOfWork.Salons.GetByIdAsync(review.SalonId);
+            if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
+                throw new UnauthorizedAccessException("Bu rəyə cavab vermək icazəniz yoxdur.");
+
+            review.Response = dto.Response;
+            review.RespondedAt = DateTime.UtcNow;
+            review.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.Reviews.Update(review);
+            await _unitOfWork.CompleteAsync();
+        }
+
         private static ReviewReadDto MapToReadDto(Review review) => new()
         {
             Id = review.Id,
@@ -96,7 +113,9 @@ namespace SalonHub.Application.Services
             SalonId = review.SalonId,
             EmployeeId = review.EmployeeId,
             Rating = review.Rating,
-            Comment = review.Comment
+            Comment = review.Comment,
+            Response = review.Response,
+            RespondedAt = review.RespondedAt
         };
     }
 }

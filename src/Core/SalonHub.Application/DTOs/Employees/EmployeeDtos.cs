@@ -12,6 +12,7 @@ public class EmployeeReadDto
     public int? AssignedEquipmentId { get; set; }
     public double AverageRating { get; set; }
     public int ReviewCount { get; set; }
+    public bool IsMonthlyTopEmployee { get; set; }
 }
 
 public class EmployeeCreateDto
@@ -36,3 +37,4 @@ public class EmployeeUpdateDto
     public int? BranchId { get; set; }
     public int? AssignedEquipmentId { get; set; }
 }
+

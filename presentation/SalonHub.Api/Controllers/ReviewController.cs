@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reviews;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
-using System.Security.Claims;
 
 namespace SalonHub.Api.Controllers
 {
@@ -12,6 +12,7 @@ namespace SalonHub.Api.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
+
         public ReviewController(IReviewService reviewService)
         {
             _reviewService = reviewService;
@@ -53,6 +54,16 @@ namespace SalonHub.Api.Controllers
             var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
             await _reviewService.DeleteAsync(id, requesterId, isAdmin);
+            return NoContent();
+        }
+
+        [HttpPost("{id}/respond")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> Respond(int id, ReviewResponseDto dto)
+        {
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            await _reviewService.RespondAsync(id, dto, requesterId, isSuperAdmin);
             return NoContent();
         }
     }

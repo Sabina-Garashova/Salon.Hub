@@ -25,8 +25,12 @@ namespace SalonHub.Application
             services.AddScoped<ReservationReminderJob>();
             services.AddScoped<ILoyaltyService, LoyaltyService>();
             services.AddScoped<ITimeBlockService, TimeBlockService>();
+            services.AddScoped<MonthlyTopPerformerJob>();
+            services.AddScoped<ReviewFollowUpJob>();
             services.AddScoped<INewsService, NewsService>();
             return services;
         }
     }
 }
+
+

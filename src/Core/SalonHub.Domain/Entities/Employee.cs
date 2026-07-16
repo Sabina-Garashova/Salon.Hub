@@ -1,28 +1,30 @@
 ﻿using SalonHub.Domain.Common;
 
-namespace SalonHub.Domain.Entities;
-
-public class Employee : BaseEntity
+namespace SalonHub.Domain.Entities
 {
-    public string FullName { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string? Bio { get; set; }
-    public string? ProfileImageUrl { get; set; }
+    public class Employee : BaseEntity
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string? Bio { get; set; }
+        public string? ProfileImageUrl { get; set; }
+        public bool IsMonthlyTopEmployee { get; set; } = false;
 
-    public string ApplicationUserId { get; set; } = string.Empty;
+        public string ApplicationUserId { get; set; } = string.Empty;
 
-    public int SalonId { get; set; }
-    public Salon Salon { get; set; } = null!;
+        public int SalonId { get; set; }
+        public Salon Salon { get; set; } = null!;
 
-    public int? BranchId { get; set; }
-    public Branch? Branch { get; set; }
+        public int? BranchId { get; set; }
+        public Branch? Branch { get; set; }
 
-    public int? AssignedEquipmentId { get; set; }
-    public Equipment? AssignedEquipment { get; set; }
+        public int? AssignedEquipmentId { get; set; }
+        public Equipment? AssignedEquipment { get; set; }
 
-    public ICollection<EmployeeService> EmployeeServices { get; set; } = new List<EmployeeService>();
-    public ICollection<WorkingHour> WorkingHours { get; set; } = new List<WorkingHour>();
-    public ICollection<GalleryImage> PortfolioImages { get; set; } = new List<GalleryImage>();
-    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-    public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<EmployeeService> EmployeeServices { get; set; } = new List<EmployeeService>();
+        public ICollection<WorkingHour> WorkingHours { get; set; } = new List<WorkingHour>();
+        public ICollection<GalleryImage> PortfolioImages { get; set; } = new List<GalleryImage>();
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    }
 }

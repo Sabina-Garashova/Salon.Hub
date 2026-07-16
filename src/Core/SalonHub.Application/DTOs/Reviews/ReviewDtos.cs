@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SalonHub.Application.DTOs.Reviews
+﻿namespace SalonHub.Application.DTOs.Reviews
 {
     public class ReviewReadDto
     {
@@ -14,11 +8,12 @@ namespace SalonHub.Application.DTOs.Reviews
         public int? EmployeeId { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
+        public string? Response { get; set; }
+        public DateTime? RespondedAt { get; set; }
     }
 
     public class ReviewCreateDto
     {
-        
         public int SalonId { get; set; }
         public int? EmployeeId { get; set; }
         public int Rating { get; set; }
@@ -30,5 +25,9 @@ namespace SalonHub.Application.DTOs.Reviews
         public int Rating { get; set; }
         public string? Comment { get; set; }
     }
-}
 
+    public class ReviewResponseDto
+    {
+        public string Response { get; set; } = string.Empty;
+    }
+}

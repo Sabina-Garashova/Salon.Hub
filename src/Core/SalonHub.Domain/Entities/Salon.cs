@@ -13,6 +13,8 @@ namespace SalonHub.Domain.Entities
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string OwnerId { get; set; } = string.Empty;
+        public string? PlaylistUrl { get; set; }
+        public bool IsMonthlyTopSalon { get; set; } = false;
 
         public ICollection<Branch> Branches { get; set; } = new List<Branch>();
         public ICollection<Employee> Employees { get; set; } = new List<Employee>();

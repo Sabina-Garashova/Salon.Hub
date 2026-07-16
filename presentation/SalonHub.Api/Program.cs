@@ -136,6 +136,16 @@ using (var scope = app.Services.CreateScope())
         "birthday-bonus",
         job => job.SendBirthdayBonuses(),
         "0 5 * * *");
+
+    recurringJobManager.AddOrUpdate<SalonHub.Application.Services.MonthlyTopPerformerJob>(
+        "monthly-top-performer",
+        job => job.SelectMonthlyWinners(),
+        "0 6 1 * *");
+
+    recurringJobManager.AddOrUpdate<SalonHub.Application.Services.ReviewFollowUpJob>(
+        "review-follow-up",
+        job => job.SendFollowUpsForUnansweredReviews(),
+        "0 7 * * *");
 }
 
 app.UseHttpsRedirection();
@@ -146,3 +156,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
