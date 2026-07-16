@@ -20,6 +20,14 @@ namespace SalonHub.Infrastructure.Services
 
         public async Task SendSmsAsync(string toPhoneNumber, string message)
         {
+            var enableRealSending = _configuration.GetValue<bool>("NotificationSettings:EnableRealSending");
+
+            if (!enableRealSending)
+            {
+                _logger.LogInformation("📱 [TEST REJİMİ - SMS GÖNDƏRİLMƏDİ] Nömrə: {ToPhoneNumber} | Mesaj: {Message}", toPhoneNumber, message);
+                return;
+            }
+
             var accessKey = _configuration["AwsSns:AccessKey"];
             var secretKey = _configuration["AwsSns:SecretKey"];
             var region = _configuration["AwsSns:Region"] ?? "us-east-1";

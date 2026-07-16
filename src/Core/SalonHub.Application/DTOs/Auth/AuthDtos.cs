@@ -10,7 +10,19 @@
         public string? ReferredByCode { get; set; }
     }
 
-    public class LoginDto
+    public class ForgotPasswordDto
+{
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+}
+
+public class LoginDto
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
@@ -29,3 +41,4 @@
         public string ReferralCode { get; set; } = string.Empty;
     }
 }
+

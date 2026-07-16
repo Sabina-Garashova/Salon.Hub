@@ -1,6 +1,8 @@
-﻿using Hangfire;
+﻿using System.Threading.RateLimiting;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using SalonHub.Api.Middlewares;
 using SalonHub.Application;
@@ -28,6 +30,26 @@ builder.Services.AddHangfire(config => config
 builder.Services.AddHangfireServer();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddInfrastructureServices();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var key = httpContext.User.Identity?.IsAuthenticated == true
+            ? httpContext.User.Identity!.Name ?? "authenticated"
+            : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        });
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -113,10 +135,11 @@ using (var scope = app.Services.CreateScope())
     recurringJobManager.AddOrUpdate<SalonHub.Persistence.Services.BirthdayBonusJob>(
         "birthday-bonus",
         job => job.SendBirthdayBonuses(),
-        "0 5 * * *"); // hər gün saat 05:00-da (UTC) işə düşür
+        "0 5 * * *");
 }
 
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

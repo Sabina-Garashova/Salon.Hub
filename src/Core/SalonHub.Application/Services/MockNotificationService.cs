@@ -19,6 +19,14 @@ namespace SalonHub.Application.Services
 
         public async Task SendEmailAsync(string to, string subject, string body)
         {
+            var enableRealSending = bool.TryParse(_configuration["NotificationSettings:EnableRealSending"], out var parsedEnable) && parsedEnable;
+
+            if (!enableRealSending)
+            {
+                _logger.LogInformation("📧 [TEST REJİMİ - EMAIL GÖNDƏRİLMƏDİ] Kimə: {To} | Mövzu: {Subject} | Məzmun: {Body}", to, subject, body);
+                return;
+            }
+
             var host = _configuration["Mailtrap:Host"];
             var portString = _configuration["Mailtrap:Port"];
             var username = _configuration["Mailtrap:Username"];
@@ -61,3 +69,5 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+

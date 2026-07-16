@@ -17,6 +17,7 @@ namespace SalonHub.Api.Controllers
         private readonly ITokenService _tokenService;
         private readonly ILoyaltyService _loyaltyService;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
 
         private const int ReferrerBonusPoints = 50;
         private const int NewUserBonusPoints = 20;
@@ -25,12 +26,14 @@ namespace SalonHub.Api.Controllers
             UserManager<ApplicationUser> userManager,
             ITokenService tokenService,
             ILoyaltyService loyaltyService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _loyaltyService = loyaltyService;
             _notificationService = notificationService;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -73,8 +76,7 @@ namespace SalonHub.Api.Controllers
                     await _loyaltyService.AwardReferralBonusAsync(referredByUserId, ReferrerBonusPoints);
                     await _loyaltyService.AwardReferralBonusAsync(user.Id, NewUserBonusPoints);
 
-                    var trimmedCode = dto.ReferredByCode?.Trim().ToUpperInvariant();
-                    var referrer = _userManager.Users.FirstOrDefault(u => u.ReferralCode.ToUpper() == trimmedCode);
+                    var referrer = await _userManager.FindByIdAsync(referredByUserId);
                     if (referrer is not null)
                     {
                         var message = $"🎁 Dostunuz {user.FullName} sizin dəvət kodunuzla qeydiyyatdan keçdi! Sizə {ReferrerBonusPoints} bonus xal hədiyyə edildi.";
@@ -83,7 +85,7 @@ namespace SalonHub.Api.Controllers
                 }
                 catch
                 {
-                    
+                    // Referral bonusu uğursuz olsa belə, qeydiyyatın özü uğurlu qalmalıdır
                 }
             }
 
@@ -116,6 +118,36 @@ namespace SalonHub.Api.Controllers
                 return NotFound();
 
             return Ok(new ReferralCodeDto { ReferralCode = user.ReferralCode });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+
+            if (user is not null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var message = $"Şifrənizi sıfırlamaq üçün bu kodu istifadə edin: {token}";
+                await _emailService.SendEmailAsync(dto.Email, "SalonHub - Şifrə Sıfırlama", message);
+            }
+
+            // Təhlükəsizlik üçün, email mövcud olsa da olmasa da eyni cavabı veririk
+            return Ok(new { message = "Əgər bu email sistemdə mövcuddursa, şifrə sıfırlama kodu göndərildi." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email)
+                ?? throw new KeyNotFoundException("İstifadəçi tapılmadı.");
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Şifrəniz uğurla yeniləndi." });
         }
 
         private static string GenerateReferralCode()
