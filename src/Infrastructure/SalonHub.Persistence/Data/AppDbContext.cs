@@ -27,6 +27,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LoyaltyAccount> LoyaltyAccounts => Set<LoyaltyAccount>();
     public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
+    public DbSet<SpecialistApplication> SpecialistApplications => Set<SpecialistApplication>();
+    public DbSet<SpecialistApplicationImage> SpecialistApplicationImages => Set<SpecialistApplicationImage>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,6 +40,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Salon>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Service>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Employee>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<SpecialistApplication>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Reservation>().HasQueryFilter(x => !x.IsDeleted);
     }
 }
+
+

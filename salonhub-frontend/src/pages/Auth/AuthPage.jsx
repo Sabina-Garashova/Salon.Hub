@@ -135,6 +135,9 @@ export default function AuthPage() {
                   value={loginData.emailOrPhone}
                   onChange={(e) => setLoginData({ ...loginData, emailOrPhone: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                  maxLength={40}
+                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                  title="Zehmet olmasa etibarli bir email adresi daxil edin"
                   required
                 />
               </div>
@@ -190,6 +193,9 @@ export default function AuthPage() {
                   value={registerData.email}
                   onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                  maxLength={40}
+                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                  title="Zehmet olmasa etibarli bir email adresi daxil edin"
                   required
                 />
               </div>
@@ -257,6 +263,10 @@ export default function AuthPage() {
     </div>
   );
 }
+
+
+
+
 
 
 

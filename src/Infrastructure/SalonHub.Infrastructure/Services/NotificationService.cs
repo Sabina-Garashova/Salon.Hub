@@ -34,6 +34,13 @@ public class NotificationService : INotificationService
 
         try
         {
+            await _unitOfWork.Notifications.AddAsync(new SalonHub.Domain.Entities.Notification
+            {
+                UserId = customerId,
+                Message = message
+            });
+            await _unitOfWork.CompleteAsync();
+
             var user = await _userManager.FindByIdAsync(customerId);
             if (user is null)
             {
@@ -93,3 +100,5 @@ public class NotificationService : INotificationService
         }
     }
 }
+
+

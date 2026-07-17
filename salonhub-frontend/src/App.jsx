@@ -1,9 +1,7 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "./pages/Auth/AuthPage.jsx";
-
-function Dashboard() {
-  return <h1 style={{ textAlign: "center", marginTop: "80px" }}>Dashboard (tezlikl?)</h1>;
-}
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
+import AdminPanel from "./pages/Admin/AdminPanel.jsx";
 
 function App() {
   return (
@@ -12,6 +10,7 @@ function App() {
         <Route path="/" element={<Navigate to="/auth" replace />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>
   );

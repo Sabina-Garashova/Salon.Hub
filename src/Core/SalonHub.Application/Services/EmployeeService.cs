@@ -76,7 +76,8 @@ namespace SalonHub.Application.Services
                 ApplicationUserId = dto.ApplicationUserId,
                 SalonId = dto.SalonId,
                 BranchId = dto.BranchId,
-                AssignedEquipmentId = dto.AssignedEquipmentId
+                AssignedEquipmentId = dto.AssignedEquipmentId,
+                Salary = dto.Salary
             };
 
             await _unitOfWork.Employees.AddAsync(employee);
@@ -204,9 +205,12 @@ namespace SalonHub.Application.Services
                 AssignedEquipmentId = employee.AssignedEquipmentId,
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
                 ReviewCount = reviewList.Count,
-                IsMonthlyTopEmployee = employee.IsMonthlyTopEmployee
+                IsMonthlyTopEmployee = employee.IsMonthlyTopEmployee,
+                Salary = employee.Salary
             };
         }
     }
 }
+
+
 

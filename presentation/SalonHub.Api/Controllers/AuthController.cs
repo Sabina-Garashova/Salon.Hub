@@ -150,6 +150,32 @@ namespace SalonHub.Api.Controllers
             return Ok(new { message = "Şifrəniz uğurla yeniləndi." });
         }
 
+        [HttpPost("request-specialist")]
+        [Authorize]
+        public async Task<IActionResult> RequestSpecialist()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user is null)
+                return NotFound();
+
+            var superAdmins = await _userManager.GetUsersInRoleAsync(Roles.SuperAdmin);
+
+            if (!superAdmins.Any())
+                return Ok(new { message = "Tələbiniz qeydə alındı, amma hazırda sistemdə SuperAdmin tapılmadı." });
+
+            var subject = "SalonHub - Yeni Usta Tələbi";
+            var body = $"İstifadəçi {user.FullName} ({user.Email}) usta/ixtisas sahibi olmaq istəyir. Zəhmət olmasa SuperAdmin panelindən nəzərdən keçirin.";
+
+            foreach (var admin in superAdmins)
+            {
+                await _emailService.SendEmailAsync(admin.Email!, subject, body);
+            }
+
+            return Ok(new { message = "Tələbiniz SuperAdmin-ə göndərildi." });
+        }
+
         private static string GenerateReferralCode()
         {
             var random = new Random();
@@ -162,3 +188,4 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+

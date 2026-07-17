@@ -9,6 +9,7 @@ namespace SalonHub.Domain.Entities
         public string? Bio { get; set; }
         public string? ProfileImageUrl { get; set; }
         public bool IsMonthlyTopEmployee { get; set; } = false;
+        public decimal? Salary { get; set; }
 
         public string ApplicationUserId { get; set; } = string.Empty;
 
@@ -28,3 +29,4 @@ namespace SalonHub.Domain.Entities
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
+

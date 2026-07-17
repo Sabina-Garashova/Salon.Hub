@@ -28,9 +28,11 @@ namespace SalonHub.Application
             services.AddScoped<MonthlyTopPerformerJob>();
             services.AddScoped<ReviewFollowUpJob>();
             services.AddScoped<INewsService, NewsService>();
+            services.AddScoped<ISpecialistApplicationService, SpecialistApplicationService>();
             return services;
         }
     }
 }
+
 
 

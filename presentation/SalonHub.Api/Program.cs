@@ -1,4 +1,4 @@
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -160,6 +160,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowReactFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
@@ -168,6 +169,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
 
 
 

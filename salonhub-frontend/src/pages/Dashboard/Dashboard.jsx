@@ -1,0 +1,348 @@
+import { useState, useEffect } from "react";
+import {
+  DollarSign,
+  Calendar,
+  Users,
+  Star,
+  Scissors,
+  Sparkles,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Phone,
+  ArrowUpRight,
+  Crown,
+} from "lucide-react";
+import Layout from "../../components/Layout";
+import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
+import api from "../../services/api";
+
+function decodeToken(token) {
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(payload);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function getFirstName(fullName) {
+  if (!fullName) return "";
+  return fullName.trim().split(" ")[0];
+}
+
+export default function Dashboard() {
+  const [loading, setLoading] = useState(false);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [salons, setSalons] = useState([]);
+  const [salonsLoading, setSalonsLoading] = useState(true);
+
+  const token = localStorage.getItem("token");
+  const decoded = token ? decodeToken(token) : null;
+  const fullName =
+    decoded?.["FullName"] ||
+    decoded?.name ||
+    decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+    "";
+  const firstName = getFirstName(fullName);
+
+  const role =
+    decoded?.role ||
+    decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+    "Customer";
+  const canSeeRevenue = role === "SalonAdmin" || role === "SuperAdmin";
+
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting =
+    hour < 6 ? "Yaxsi geceler" : hour < 12 ? "Sabahiniz xeyir" : hour < 18 ? "Gununuz xeyir" : "Axsaminiz xeyir";
+  const dateStr = now.toLocaleDateString("az-AZ", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+
+  useEffect(() => {
+    api
+      .get("/salon")
+      .then((res) => setSalons(res.data))
+      .catch((err) => console.error("Salonlari yuklemek olmadi", err))
+      .finally(() => setSalonsLoading(false));
+  }, []);
+
+
+
+  const allStats = [
+    { id: 1, name: "UMUMI QAZANC", value: "1,450.00 AZN", change: "+12.5%", icon: DollarSign, color: "#C9A227", adminOnly: true },
+    { id: 2, name: "AKTIV GORUSLER", value: "24 Seans", change: "+4.3%", icon: Calendar, color: "#B8935A" },
+    { id: 3, name: "MUSTERILER", value: "182 Nefer", change: "+18.2%", icon: Users, color: "#1A1714" },
+    { id: 4, name: "SALON REYTINQI", value: "4.9 / 5.0", change: "Mukemmel", icon: Star, color: "#C9A227" },
+  ];
+  const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
+
+  const appointments = [
+    { id: 1, client: "Gulnar Semedova", service: "Sac Kesimi & Fen", time: "12:00", price: "45 AZN", status: "Gozlenilir" },
+    { id: 2, client: "Leyla Memmedova", service: "Ombre / Balayaj", time: "14:30", price: "120 AZN", status: "Tesdiqlenib" },
+    { id: 3, client: "Aysel Eliyeva", service: "Manikur & Nail Art", time: "16:15", price: "35 AZN", status: "Gozlenilir" },
+  ];
+
+  return (
+    <Layout>
+      <div className="relative min-h-screen w-full overflow-hidden -m-6 p-4 md:p-6 font-sans">
+        <style>{`
+          @keyframes floatOrb1 {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(40px, -60px) scale(1.2); }
+          }
+          @keyframes floatOrb2 {
+            0%, 100% { transform: translate(0px, 0px) scale(1.1); }
+            50% { transform: translate(-50px, 30px) scale(0.9); }
+          }
+          @keyframes floatOrb3 {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(30px, 40px) scale(1.15); }
+          }
+          .animate-orb-1 { animation: floatOrb1 18s infinite ease-in-out; }
+          .animate-orb-2 { animation: floatOrb2 22s infinite ease-in-out; }
+          .animate-orb-3 { animation: floatOrb3 15s infinite ease-in-out; }
+        `}</style>
+
+        <div className="absolute top-[10%] left-[5%] w-[350px] h-[350px] bg-[#C9A227]/8 blur-[100px] rounded-full animate-orb-1 pointer-events-none z-0" />
+        <div className="absolute bottom-[20%] right-[10%] w-[450px] h-[450px] bg-[#B8935A]/6 blur-[120px] rounded-full animate-orb-2 pointer-events-none z-0" />
+        <div className="absolute top-[40%] right-[30%] w-[300px] h-[300px] bg-[#F0D68A]/10 blur-[90px] rounded-full animate-orb-3 pointer-events-none z-0" />
+
+        <div className="relative z-10 space-y-6 max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold text-[#B8935A] uppercase tracking-widest block mb-1">
+                {greeting}{firstName ? `, ${firstName}` : ""} ?
+              </span>
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714] tracking-tight">Idareetme Paneli</h1>
+              <p className="text-gray-400 text-xs mt-0.5 font-medium">Salonunuzun gunluk fealiyyeti ve analitikasi.</p>
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-sm border border-white/60 text-sm text-gray-700 font-semibold flex items-center gap-3 self-start sm:self-center transition-all hover:shadow-md">
+              <div className="p-2 bg-[#C9A227]/10 text-[#C9A227] rounded-xl">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Cari Tarix</div>
+                <div className="font-mono text-[#1A1714] capitalize">{dateStr}</div>
+              </div>
+            </div>
+          </div>
+
+          {role === "Customer" && (
+          <div className="relative overflow-hidden rounded-2xl bg-[#1A1714] text-white p-6 md:p-8 border border-[#B8935A]/20 shadow-xl transition-all duration-300 hover:shadow-[#1A1714]/10 hover:shadow-2xl group">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#C9A227]/20 to-transparent blur-[60px] pointer-events-none rounded-full transition-transform duration-500 group-hover:scale-110" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#F0D68A] text-[10px] font-bold uppercase tracking-widest">
+                  <Sparkles className="w-3 h-3 text-[#C9A227]" />
+                  Karyera Imkani
+                </div>
+                <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#FAF6F0] leading-tight">
+                  Usta olmaq isteyirsiniz?
+                </h2>
+                <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light">
+                  SalonHub sebekesinde oz ferdi profilinizi yaradin, musterilerinizi qeydiyyata alin, cedvelinizi rahatliqla idare ederek gelirlerinizi qat-qat artirin!
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowApplicationModal(true)}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-sm rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#B8935A]/10 whitespace-nowrap group/btn"
+              >
+                Muraciet Et
+                <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+              </button>
+            </div>
+          </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {stats.map((stat) => {
+              const IconComponent = stat.icon;
+              return (
+                <div
+                  key={stat.id}
+                  className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{stat.name}</span>
+                    <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{stat.value}</h3>
+                    <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md inline-block">
+                      {stat.change}
+                    </span>
+                  </div>
+                  <div
+                    className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                    style={{ backgroundColor: `${stat.color}10`, color: stat.color }}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-xl font-serif font-bold text-[#1A1714]">Salonlar</h3>
+                <p className="text-xs text-gray-400 font-medium">Sebekemizdeki gozellik salonlari.</p>
+              </div>
+              <div className="text-gray-300">
+                <Scissors className="w-5 h-5 opacity-40 rotate-90" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {salonsLoading ? (
+                <p className="text-sm text-gray-400 col-span-full">Yuklenir...</p>
+              ) : salons.length === 0 ? (
+                <p className="text-sm text-gray-400 col-span-full">Hele salon elave edilmeyib.</p>
+              ) : (
+                salons.map((salon) => (
+                  <div
+                    key={salon.id}
+                    className="bg-white p-5 rounded-xl border border-gray-100/70 shadow-sm space-y-4 transition-all duration-300 hover:shadow-md hover:border-[#C9A227]/20 relative group"
+                  >
+                    {salon.isMonthlyTopSalon && (
+                      <div className="absolute top-4 right-4 text-[#C9A227]" title="Ayin en yaxsi salonu">
+                        <Crown className="w-5 h-5 fill-[#C9A227]" />
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <h4 className="font-serif font-bold text-base text-[#1A1714] group-hover:text-[#C9A227] transition-colors">
+                        {salon.name}
+                      </h4>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                        <MapPin className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                        <span>{salon.address}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                        <Phone className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                        <span className="font-mono">{salon.phoneNumber}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1 text-[#C9A227] font-bold">
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        <span>{salon.averageRating.toFixed(1)}</span>
+                        <span className="text-gray-400 font-normal">({salon.reviewCount} rey)</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#B8935A] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Profille Tanis Ol ?
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">Bugunki Gorusler</h3>
+                  <p className="text-xs text-gray-400">Son qeydiyyatdan kecen musterilerin siyahisi.</p>
+                </div>
+                <button className="text-xs font-semibold text-[#C9A227] hover:text-[#B8935A] inline-flex items-center gap-0.5 transition">
+                  Hamisina bax <ArrowUpRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
+                      <th className="py-3 font-medium">Musteri</th>
+                      <th className="py-3 font-medium">Xidmet</th>
+                      <th className="py-3 font-medium">Saat</th>
+                      <th className="py-3 font-medium">Qiymet</th>
+                      <th className="py-3 font-medium text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-[#1A1714]">
+                    {appointments.map((appt) => (
+                      <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-3.5 font-medium">{appt.client}</td>
+                        <td className="py-3.5 text-gray-500">
+                          <span className="inline-flex items-center gap-1">
+                            <Scissors className="w-3.5 h-3.5 text-gray-400" />
+                            {appt.service}
+                          </span>
+                        </td>
+                        <td className="py-3.5 font-mono text-gray-600">{appt.time}</td>
+                        <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price}</td>
+                        <td className="py-3.5 text-right">
+                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
+                            appt.status === "Tesdiqlenib"
+                              ? "bg-green-50 text-green-700 border border-green-200"
+                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                          }`}>
+                            {appt.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 space-y-4">
+              <div className="border-b border-gray-100 pb-3">
+                <h3 className="text-lg font-serif font-bold text-[#1A1714]">En Cox Satilanlar</h3>
+                <p className="text-xs text-gray-400">Bu ay en cox teleb olunan xidmetler.</p>
+              </div>
+
+              <div className="space-y-4 pt-1">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-[#1A1714]">Sac Boyama & Balayaj</span>
+                    <span className="text-gray-500">45%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#C9A227] rounded-full" style={{ width: "45%" }} />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-[#1A1714]">Keratin Baximi</span>
+                    <span className="text-gray-500">30%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#B8935A] rounded-full" style={{ width: "30%" }} />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-[#1A1714]">Manikur / Kosmetologiya</span>
+                    <span className="text-gray-500">25%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#1A1714] rounded-full" style={{ width: "25%" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <CraftsmanApplicationModal isOpen={showApplicationModal} onClose={() => setShowApplicationModal(false)} />
+    </Layout>
+  );
+}
+
+
+
+
+
+
+
+

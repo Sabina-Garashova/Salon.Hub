@@ -1,0 +1,157 @@
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SalonHub.Application.DTOs.Employees;
+using SalonHub.Application.DTOs.SpecialistApplications;
+using SalonHub.Application.Interfaces.Services;
+using SalonHub.Application.Services;
+using SalonHub.Persistence.Identity;
+
+namespace SalonHub.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class SpecialistApplicationController : ControllerBase
+    {
+        private readonly ISpecialistApplicationService _applicationService;
+        private readonly IEmployeeService _employeeService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
+
+        public SpecialistApplicationController(
+            ISpecialistApplicationService applicationService,
+            IEmployeeService employeeService,
+            UserManager<ApplicationUser> userManager,
+            INotificationService notificationService)
+        {
+            _applicationService = applicationService;
+            _employeeService = employeeService;
+            _userManager = userManager;
+            _notificationService = notificationService;
+        }
+
+        private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Create(SpecialistApplicationCreateDto dto)
+        {
+            var userId = GetRequesterId();
+            var user = await _userManager.FindByIdAsync(userId)
+                ?? throw new KeyNotFoundException("İstifadəçi tapılmadı.");
+
+            var result = await _applicationService.CreateAsync(userId, user.FullName, user.Email!, dto);
+
+            var superAdmins = await _userManager.GetUsersInRoleAsync(Roles.SuperAdmin);
+            foreach (var admin in superAdmins)
+            {
+                await _notificationService.NotifyReservationChangedAsync(
+                    admin.Id,
+                    $"Yeni usta müraciəti: {user.FullName} ({user.Email}) - {result.YearsOfExperience} il təcrübə, {result.ExpectedSalaryMin}-{result.ExpectedSalaryMax} AZN gözləntisi.");
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("pending")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> GetPending()
+        {
+            var pending = await _applicationService.GetPendingAsync(GetRequesterId(), IsSuperAdmin());
+
+            foreach (var app in pending)
+            {
+                var applicant = await _userManager.FindByIdAsync(app.ApplicantUserId);
+                if (applicant is not null)
+                {
+                    app.ApplicantFullName = applicant.FullName;
+                    app.ApplicantEmail = applicant.Email ?? string.Empty;
+                }
+            }
+
+            return Ok(pending);
+        }
+
+        [HttpPost("{id}/approve")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> Approve(int id, SpecialistApplicationApproveDto? dto)
+        {
+            var application = await _applicationService.GetEntityByIdAsync(id);
+
+            if (!IsSuperAdmin() && application.Salon?.OwnerId != GetRequesterId())
+                return Forbid();
+
+            if (application.Status != SalonHub.Domain.Entities.SpecialistApplicationStatus.Pending)
+                return BadRequest(new { message = "Bu müraciət artıq nəzərdən keçirilib." });
+
+            var applicant = await _userManager.FindByIdAsync(application.ApplicantUserId)
+                ?? throw new KeyNotFoundException("Müraciət edən istifadəçi tapılmadı.");
+
+            var combinedBio = string.IsNullOrWhiteSpace(application.Specialty)
+                ? application.Bio
+                : $"{application.Specialty} — {application.Bio}";
+
+            var employeeDto = new EmployeeCreateDto
+            {
+                FullName = applicant.FullName,
+                PhoneNumber = !string.IsNullOrWhiteSpace(application.PhoneNumber) ? application.PhoneNumber : (applicant.PhoneNumber ?? string.Empty),
+                Bio = combinedBio,
+                ProfileImageUrl = null,
+                ApplicationUserId = applicant.Id,
+                SalonId = application.SalonId,
+                BranchId = application.BranchId,
+                AssignedEquipmentId = null,
+                Salary = dto?.AgreedSalary
+            };
+
+            await _employeeService.CreateAsync(employeeDto, GetRequesterId(), isSuperAdmin: true);
+
+            if (!await _userManager.IsInRoleAsync(applicant, Roles.Employee))
+                await _userManager.AddToRoleAsync(applicant, Roles.Employee);
+
+            await _applicationService.MarkApprovedAsync(id, GetRequesterId());
+
+            var approvalMessage = dto?.AgreedSalary.HasValue == true
+                ? $"🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz. Razılaşdırılan aylıq maaşınız: {dto.AgreedSalary.Value} AZN."
+                : "🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz.";
+
+            await _notificationService.NotifyReservationChangedAsync(
+                applicant.Id,
+                approvalMessage);
+
+            return Ok(new { message = "Müraciət təsdiqləndi, işçi qeydi yaradıldı." });
+        }
+
+        [HttpPost("{id}/reject")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        public async Task<IActionResult> Reject(int id, SpecialistApplicationRejectDto dto)
+        {
+            var application = await _applicationService.GetEntityByIdAsync(id);
+
+            if (!IsSuperAdmin() && application.Salon?.OwnerId != GetRequesterId())
+                return Forbid();
+
+            if (application.Status != SalonHub.Domain.Entities.SpecialistApplicationStatus.Pending)
+                return BadRequest(new { message = "Bu müraciət artıq nəzərdən keçirilib." });
+
+            await _applicationService.MarkRejectedAsync(id, GetRequesterId(), dto.Reason);
+
+            var message = string.IsNullOrWhiteSpace(dto.Reason)
+                ? "Usta müraciətiniz təəssüf ki, rədd edildi."
+                : $"Usta müraciətiniz rədd edildi. Səbəb: {dto.Reason}";
+
+            await _notificationService.NotifyReservationChangedAsync(application.ApplicantUserId, message);
+
+            return Ok(new { message = "Müraciət rədd edildi." });
+        }
+    }
+}
+
+
+
+
+
+
+

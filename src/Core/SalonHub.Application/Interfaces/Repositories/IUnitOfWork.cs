@@ -19,7 +19,11 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<LoyaltyTransaction> LoyaltyTransactions { get; }
         IGenericRepository<TimeBlock> TimeBlocks { get; }
         IGenericRepository<NewsArticle> NewsArticles { get; }
+        IGenericRepository<SpecialistApplication> SpecialistApplications { get; }
+        IGenericRepository<Notification> Notifications { get; }
 
         Task<int> CompleteAsync();
     }
 }
+
+

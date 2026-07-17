@@ -183,6 +183,37 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     }
 }
 
+public class SpecialistApplicationConfiguration : IEntityTypeConfiguration<SpecialistApplication>
+{
+    public void Configure(EntityTypeBuilder<SpecialistApplication> builder)
+    {
+        builder.Property(x => x.ExpectedSalaryMin).HasColumnType("decimal(10,2)");
+        builder.Property(x => x.ExpectedSalaryMax).HasColumnType("decimal(10,2)");
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+
+        builder.HasOne(x => x.Salon)
+            .WithMany()
+            .HasForeignKey(x => x.SalonId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.SetNull);
+    }
+}
+
+public class SpecialistApplicationImageConfiguration : IEntityTypeConfiguration<SpecialistApplicationImage>
+{
+    public void Configure(EntityTypeBuilder<SpecialistApplicationImage> builder)
+    {
+        builder.HasOne(x => x.SpecialistApplication)
+            .WithMany(a => a.PortfolioImages)
+            .HasForeignKey(x => x.SpecialistApplicationId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 public class TimeBlockConfiguration : IEntityTypeConfiguration<TimeBlock>
 {
     public void Configure(EntityTypeBuilder<TimeBlock> builder)
@@ -198,4 +229,5 @@ public class TimeBlockConfiguration : IEntityTypeConfiguration<TimeBlock>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+
 
