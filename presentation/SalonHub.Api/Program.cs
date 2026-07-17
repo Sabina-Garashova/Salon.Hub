@@ -1,4 +1,4 @@
-﻿using System.Threading.RateLimiting;
+using System.Threading.RateLimiting;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -100,6 +100,17 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddScoped<SalonHub.Application.Interfaces.Services.IAnalyticsService, SalonHub.Application.Services.AnalyticsService>();
 
 var app = builder.Build();
@@ -149,6 +160,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowReactFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -156,5 +168,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
 
 
