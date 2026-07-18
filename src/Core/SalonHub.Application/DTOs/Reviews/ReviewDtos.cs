@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string CustomerId { get; set; } = string.Empty;
+        public string CustomerFullName { get; set; } = string.Empty;
         public int SalonId { get; set; }
         public int? EmployeeId { get; set; }
         public int Rating { get; set; }

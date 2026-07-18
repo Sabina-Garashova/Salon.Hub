@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reviews;
 using SalonHub.Application.Services;
@@ -12,14 +13,25 @@ namespace SalonHub.Api.Controllers
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReviewController(IReviewService reviewService)
+        public ReviewController(IReviewService reviewService, UserManager<ApplicationUser> userManager)
         {
             _reviewService = reviewService;
+            _userManager = userManager;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _reviewService.GetAllAsync());
+        public async Task<IActionResult> GetAll()
+        {
+            var reviews = await _reviewService.GetAllAsync();
+            foreach (var r in reviews)
+            {
+                var user = await _userManager.FindByIdAsync(r.CustomerId);
+                if (user is not null) r.CustomerFullName = user.FullName;
+            }
+            return Ok(reviews);
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

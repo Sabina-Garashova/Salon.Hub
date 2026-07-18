@@ -2,6 +2,7 @@
 public class EmployeeReadDto
 {
     public int Id { get; set; }
+    public string ApplicationUserId { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string? Bio { get; set; }
@@ -37,3 +38,4 @@ public class EmployeeUpdateDto
     public int? AssignedEquipmentId { get; set; }
     public decimal? Salary { get; set; }
 }
+

@@ -324,7 +324,15 @@ export default function AdminPanel() {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                       {applications.map((app) => (
                         <div key={app.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col justify-between space-y-4 shadow-sm">
-                          <div>
+                          <div className="flex items-start gap-3">
+                            {app.profileImageUrl ? (
+                              <img src={app.profileImageUrl} alt={app.applicantFullName} className="w-12 h-12 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold flex-shrink-0">
+                                {app.applicantFullName?.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1">
                             <h4 className="font-serif font-bold text-base text-[#1A1714]">{app.applicantFullName}</h4>
                             <p className="text-xs text-gray-400 font-mono mt-0.5">{app.applicantEmail}</p>
                             <p className="text-xs text-gray-400 font-mono">{app.phoneNumber}</p>
@@ -334,6 +342,7 @@ export default function AdminPanel() {
                               <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-100 font-medium">
                                 Gozlenilen: <b>{app.expectedSalaryMin}-{app.expectedSalaryMax} AZN</b>
                               </span>
+                            </div>
                             </div>
                           </div>
                           <p className="text-xs text-gray-600 leading-relaxed bg-[#FAF6F0] p-3 rounded-xl border border-gray-100 italic">"{app.bio}"</p>
@@ -573,6 +582,7 @@ export default function AdminPanel() {
     </div>
   );
 }
+
 
 
 

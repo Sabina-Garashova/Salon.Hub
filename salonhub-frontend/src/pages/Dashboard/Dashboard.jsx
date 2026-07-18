@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import {
   DollarSign,
   Calendar,
@@ -12,7 +12,10 @@ import {
   Phone,
   ArrowUpRight,
   Crown,
+  X,
+  Send,
 } from "lucide-react";
+import { ImageOff, Quote } from "lucide-react";
 import Layout from "../../components/Layout";
 import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
 import api from "../../services/api";
@@ -37,6 +40,31 @@ export default function Dashboard() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [salons, setSalons] = useState([]);
   const [salonsLoading, setSalonsLoading] = useState(true);
+  const [galleryBySalon, setGalleryBySalon] = useState({});
+  const [employees, setEmployees] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewModalSalon, setReviewModalSalon] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+    try {
+      await api.post("/Review", {
+        salonId: reviewModalSalon.id,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      alert("Reyiniz ucun tesekkur edirik!");
+      setReviewModalSalon(null);
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const token = localStorage.getItem("token");
   const decoded = token ? decodeToken(token) : null;
@@ -60,10 +88,21 @@ export default function Dashboard() {
   const dateStr = now.toLocaleDateString("az-AZ", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
 
   useEffect(() => {
-    api
-      .get("/salon")
-      .then((res) => setSalons(res.data))
-      .catch((err) => console.error("Salonlari yuklemek olmadi", err))
+    Promise.all([api.get("/salon"), api.get("/GalleryImage"), api.get("/Employee"), api.get("/Review")])
+      .then(([salonRes, galleryRes, empRes, reviewRes]) => {
+        setSalons(salonRes.data);
+        setEmployees(empRes.data);
+
+        const map = {};
+        (Array.isArray(galleryRes.data) ? galleryRes.data : [galleryRes.data]).forEach((img) => {
+          if (img?.salonId && !map[img.salonId]) map[img.salonId] = img.imageUrl;
+        });
+        setGalleryBySalon(map);
+
+        const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
+        setReviews(withComments.slice(0, 6));
+      })
+      .catch((err) => console.error("Melumat yuklenmedi", err))
       .finally(() => setSalonsLoading(false));
   }, []);
 
@@ -204,15 +243,24 @@ export default function Dashboard() {
                 salons.map((salon) => (
                   <div
                     key={salon.id}
-                    className="bg-white p-5 rounded-xl border border-gray-100/70 shadow-sm space-y-4 transition-all duration-300 hover:shadow-md hover:border-[#C9A227]/20 relative group"
+                    onClick={() => { setReviewModalSalon(salon); setReviewRating(5); setReviewComment(""); }}
+                    className="bg-white rounded-xl border border-gray-100/70 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-[#C9A227]/20 relative group cursor-pointer"
                   >
-                    {salon.isMonthlyTopSalon && (
-                      <div className="absolute top-4 right-4 text-[#C9A227]" title="Ayin en yaxsi salonu">
-                        <Crown className="w-5 h-5 fill-[#C9A227]" />
-                      </div>
-                    )}
-
-                    <div className="space-y-1">
+                    <div className="h-32 bg-gradient-to-br from-[#1A1714] to-[#3A2E22] relative overflow-hidden">
+                      <img
+                        src={galleryBySalon[salon.id] || "/craftsman-modal-bg.png"}
+                        alt={salon.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = "/craftsman-modal-bg.png"; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      {salon.isMonthlyTopSalon && (
+                        <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title="Ayin en yaxsi salonu">
+                          <Crown className="w-4 h-4 fill-[#C9A227]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5 space-y-3">
                       <h4 className="font-serif font-bold text-base text-[#1A1714] group-hover:text-[#C9A227] transition-colors">
                         {salon.name}
                       </h4>
@@ -224,17 +272,14 @@ export default function Dashboard() {
                         <Phone className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                         <span className="font-mono">{salon.phoneNumber}</span>
                       </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1 text-[#C9A227] font-bold">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                        <span>{salon.averageRating.toFixed(1)}</span>
-                        <span className="text-gray-400 font-normal">({salon.reviewCount} rey)</span>
+                      <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1 text-[#C9A227] font-bold">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span>{salon.averageRating.toFixed(1)}</span>
+                          <span className="text-gray-400 font-normal">({salon.reviewCount} rey)</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-[#B8935A] uppercase tracking-wider">Rey yaz</span>
                       </div>
-                      <span className="text-[10px] font-bold text-[#B8935A] uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        Profille Tanis Ol ?
-                      </span>
                     </div>
                   </div>
                 ))
@@ -242,6 +287,57 @@ export default function Dashboard() {
             </div>
           </div>
 
+
+          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
+            <h3 className="text-xl font-serif font-bold text-[#1A1714]">Ustalarimiz</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {employees.map((emp) => (
+                <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:shadow-md transition">
+                  {emp.profileImageUrl ? (
+                    <img
+                      src={emp.profileImageUrl}
+                      alt={emp.fullName}
+                      className="w-28 h-28 rounded-full object-cover mx-auto mb-2 border-2 border-[#C9A227]/30"
+                    />
+                  ) : (
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center mx-auto mb-2 text-[#1A1714] font-bold text-xl">
+                      {emp.fullName?.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <h5 className="font-serif font-bold text-sm text-[#1A1714] truncate">{emp.fullName}</h5>
+                  <div className="flex items-center justify-center gap-1 mt-1 text-xs text-[#C9A227]">
+                    <Star className="w-3 h-3 fill-[#C9A227]" />
+                    <span>{emp.averageRating.toFixed(1)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {reviews.length > 0 && (
+          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
+            <h3 className="text-xl font-serif font-bold text-[#1A1714]">Musteri Reyleri</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {reviews.map((rev) => {
+                const s = salons.find((sal) => sal.id === rev.salonId);
+                return (
+                  <div key={rev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
+                    <p className="text-sm text-gray-600 italic line-clamp-3">"{rev.comment}"</p>
+                    <p className="text-xs font-semibold text-[#1A1714]">{rev.customerFullName}</p>
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200"}`} />
+                        ))}
+                      </div>
+                      {s && <span className="text-xs text-gray-400 truncate max-w-[50%]">{s.name}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -335,9 +431,60 @@ export default function Dashboard() {
         </div>
       </div>
       <CraftsmanApplicationModal isOpen={showApplicationModal} onClose={() => setShowApplicationModal(false)} />
+
+      {reviewModalSalon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rey yaz</h3>
+              <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmitReview} className="p-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reytinq</label>
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button key={i} type="button" onClick={() => setReviewRating(i + 1)} className="p-1">
+                      <Star className={`w-7 h-7 ${i < reviewRating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reyiniz</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Tecrubenizi bizimle paylasin..."
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setReviewModalSalon(null)} className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600">
+                  Imtina
+                </button>
+                <button type="submit" disabled={submittingReview} className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50">
+                  <Send className="w-3.5 h-3.5" /> {submittingReview ? "Gonderilir..." : "Gonder"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
+
+
+
+
+
+
+
 
 
 

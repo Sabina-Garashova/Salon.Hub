@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Employees;
+using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
 
@@ -12,10 +14,14 @@ namespace SalonHub.Api.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
 
-        public EmployeeController(IEmployeeService employeeService)
+        public EmployeeController(IEmployeeService employeeService, UserManager<ApplicationUser> userManager, INotificationService notificationService)
         {
             _employeeService = employeeService;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -51,7 +57,27 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var employee = await _employeeService.GetByIdAsync(id);
+
             await _employeeService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
+
+            if (employee is not null && !string.IsNullOrEmpty(employee.ApplicationUserId))
+            {
+                var user = await _userManager.FindByIdAsync(employee.ApplicationUserId);
+                if (user is not null)
+                {
+                    if (await _userManager.IsInRoleAsync(user, Roles.Employee))
+                        await _userManager.RemoveFromRoleAsync(user, Roles.Employee);
+
+                    if (!await _userManager.IsInRoleAsync(user, Roles.Customer))
+                        await _userManager.AddToRoleAsync(user, Roles.Customer);
+
+                    await _notificationService.NotifyReservationChangedAsync(
+                        user.Id,
+                        "Salon ile iş münasibətiniz SalonHub sistemində dayandırılıb. Ətraflı məlumat üçün salon rəhbərliyi ilə əlaqə saxlayın.");
+                }
+            }
+
             return NoContent();
         }
 
@@ -72,3 +98,5 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+

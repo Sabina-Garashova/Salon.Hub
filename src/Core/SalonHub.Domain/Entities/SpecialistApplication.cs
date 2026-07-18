@@ -14,6 +14,7 @@ namespace SalonHub.Domain.Entities
         public string ApplicantUserId { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Specialty { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
 
         public int SalonId { get; set; }
         public Salon Salon { get; set; } = null!;
@@ -41,4 +42,5 @@ namespace SalonHub.Domain.Entities
         public string ImageUrl { get; set; } = string.Empty;
     }
 }
+
 

@@ -1,4 +1,5 @@
-import { useState } from "react";
+﻿import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, Calendar, Gift } from "lucide-react";
 import api from "../../services/api";
 
@@ -29,7 +30,8 @@ function LogoMark() {
 }
 
 export default function AuthPage() {
-  const [tab, setTab] = useState("login");
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab === "register" ? "register" : "login");
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -263,6 +265,7 @@ export default function AuthPage() {
     </div>
   );
 }
+
 
 
 

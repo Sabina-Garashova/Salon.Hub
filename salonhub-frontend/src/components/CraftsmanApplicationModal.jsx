@@ -33,6 +33,8 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
 
   const [portfolioUrls, setPortfolioUrls] = useState([]);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [uploadingProfile, setUploadingProfile] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,6 +53,26 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
   const filteredBranches = branches.filter(
     (b) => !salon || String(b.salonId) === String(salon)
   );
+
+  const handleProfileFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingProfile(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await api.post("/Upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setProfileImageUrl(res.data.url);
+    } catch (err) {
+      alert(err.response?.data?.message || "Sekil yuklenmedi.");
+    } finally {
+      setUploadingProfile(false);
+      e.target.value = "";
+    }
+  };
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -87,6 +109,7 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
     const payload = {
       phoneNumber: `+994${phoneNumber.replace(/\s/g, "")}`,
       specialty,
+      profileImageUrl: profileImageUrl || null,
       salonId: Number(salon),
       branchId: branch ? Number(branch) : null,
       yearsOfExperience: Number(experience),
@@ -103,6 +126,7 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
       setBranch("");
       setPhoneNumber("");
       setSpecialty("");
+      setProfileImageUrl("");
       setExperience(0);
       setMinSalary("");
       setMaxSalary("");
@@ -243,6 +267,30 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block">Ozunuzun sekli</label>
+              <div className="flex items-center gap-3">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden bg-white border-2 border-dashed border-gray-200 hover:border-[#C9A227] transition flex items-center justify-center flex-shrink-0">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  {uploadingProfile ? (
+                    <Loader2 className="w-5 h-5 text-[#C9A227] animate-spin" />
+                  ) : profileImageUrl ? (
+                    <img src={profileImageUrl} alt="Profil" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-gray-300" />
+                  )}
+                </div>
+                <p className="text-[10px] text-gray-400 flex-1">
+                  Sekli secmek ucun klikleyin. Bu, tesdiqlendikde profil sekliniz olacaq.
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider">Təcrübə ili *</label>
@@ -256,12 +304,12 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
                 <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider">Gözlənilən aylıq maaş aralığı *</label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
-                    <DollarSign className="absolute left-3 top-3.5 w-3.5 h-3.5 text-gray-400" />
+                    <span className="absolute left-3 top-2.5 text-gray-400 text-sm font-semibold">₼</span>
                     <input type="number" placeholder="Min" value={minSalary} onChange={(e) => setMinSalary(e.target.value)} required className="w-full pl-8 pr-3 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-xs transition" />
                   </div>
                   <span className="text-gray-400">—</span>
                   <div className="relative flex-1">
-                    <DollarSign className="absolute left-3 top-3.5 w-3.5 h-3.5 text-gray-400" />
+                    <span className="absolute left-3 top-2.5 text-gray-400 text-sm font-semibold">₼</span>
                     <input type="number" placeholder="Max" value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} required className="w-full pl-8 pr-3 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-xs transition" />
                   </div>
                 </div>
@@ -336,6 +384,9 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
     </div>
   );
 }
+
+
+
 
 
 

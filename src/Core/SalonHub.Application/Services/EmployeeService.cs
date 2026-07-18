@@ -196,6 +196,7 @@ namespace SalonHub.Application.Services
             return new EmployeeReadDto
             {
                 Id = employee.Id,
+                ApplicationUserId = employee.ApplicationUserId,
                 FullName = employee.FullName,
                 PhoneNumber = employee.PhoneNumber,
                 Bio = employee.Bio,
@@ -211,6 +212,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

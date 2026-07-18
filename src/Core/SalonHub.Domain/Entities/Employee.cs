@@ -28,5 +28,6 @@ namespace SalonHub.Domain.Entities
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
+
 }
 

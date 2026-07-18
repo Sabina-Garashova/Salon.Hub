@@ -4,6 +4,7 @@
     {
         public string PhoneNumber { get; set; } = string.Empty;
         public string Specialty { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public int SalonId { get; set; }
         public int? BranchId { get; set; }
         public int YearsOfExperience { get; set; }
@@ -19,6 +20,7 @@
         public string ApplicantUserId { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Specialty { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public string ApplicantFullName { get; set; } = string.Empty;
         public string ApplicantEmail { get; set; } = string.Empty;
         public int SalonId { get; set; }
@@ -45,5 +47,6 @@
         public decimal? AgreedSalary { get; set; }
     }
 }
+
 
 
