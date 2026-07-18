@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
+import BookingModal from "../components/BookingModal";
 import api from "../services/api";
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [bookingSalon, setBookingSalon] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,11 +35,22 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const openReviewModal = (salon) => {
+  const requireLogin = () => {
     if (!localStorage.getItem("token")) {
       navigate("/auth", { state: { tab: "login" } });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const openBookingModal = (e, salon) => {
+    e.stopPropagation();
+    if (!requireLogin()) return;
+    setBookingSalon(salon);
+  };
+
+  const openReviewModal = (salon) => {
+    if (!requireLogin()) return;
     setReviewModalSalon(salon);
     setReviewRating(5);
     setReviewComment("");
@@ -287,9 +300,21 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {bookingSalon && (
+        <BookingModal
+          isOpen={!!bookingSalon}
+          onClose={() => setBookingSalon(null)}
+          salonId={bookingSalon.id}
+          salonName={bookingSalon.name}
+        />
+      )}
     </div>
   );
 }
+
+
+
 
 
 

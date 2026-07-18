@@ -15,9 +15,10 @@ import {
   X,
   Send,
 } from "lucide-react";
-import { ImageOff, Quote } from "lucide-react";
+import { ImageOff, Quote, CalendarPlus } from "lucide-react";
 import Layout from "../../components/Layout";
 import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
+import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 
 function decodeToken(token) {
@@ -47,6 +48,7 @@ export default function Dashboard() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [bookingSalon, setBookingSalon] = useState(null);
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -278,7 +280,12 @@ export default function Dashboard() {
                           <span>{salon.averageRating.toFixed(1)}</span>
                           <span className="text-gray-400 font-normal">({salon.reviewCount} rey)</span>
                         </div>
-                        <span className="text-[10px] font-bold text-[#B8935A] uppercase tracking-wider">Rey yaz</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setBookingSalon(salon); }}
+                          className="flex items-center gap-1 text-[10px] font-bold text-white bg-[#C9A227] hover:bg-[#B8935A] px-2.5 py-1 rounded-lg transition"
+                        >
+                          <CalendarPlus className="w-3 h-3" /> Rezervasiya
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -475,9 +482,23 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {bookingSalon && (
+        <BookingModal
+          isOpen={!!bookingSalon}
+          onClose={() => setBookingSalon(null)}
+          salonId={bookingSalon.id}
+          salonName={bookingSalon.name}
+        />
+      )}
     </Layout>
   );
 }
+
+
+
+
+
 
 
 
