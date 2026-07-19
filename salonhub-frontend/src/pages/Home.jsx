@@ -151,7 +151,7 @@ export default function Home() {
             salons.map((salon) => (
               <div
                 key={salon.id}
-                onClick={() => openReviewModal(salon)}
+                onClick={() => navigate(`/salon/${salon.id}`)}
                 className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition relative cursor-pointer"
               >
                 <div className="h-40 bg-gradient-to-br from-[#1A1714] to-[#3A2E22] relative overflow-hidden">
@@ -312,6 +312,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 

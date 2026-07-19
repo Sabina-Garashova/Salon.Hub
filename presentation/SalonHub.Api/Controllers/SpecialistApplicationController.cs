@@ -16,17 +16,20 @@ namespace SalonHub.Api.Controllers
     {
         private readonly ISpecialistApplicationService _applicationService;
         private readonly IEmployeeService _employeeService;
+        private readonly IServiceCrudService _serviceCrudService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
 
         public SpecialistApplicationController(
             ISpecialistApplicationService applicationService,
             IEmployeeService employeeService,
+            IServiceCrudService serviceCrudService,
             UserManager<ApplicationUser> userManager,
             INotificationService notificationService)
         {
             _applicationService = applicationService;
             _employeeService = employeeService;
+            _serviceCrudService = serviceCrudService;
             _userManager = userManager;
             _notificationService = notificationService;
         }
@@ -106,7 +109,27 @@ namespace SalonHub.Api.Controllers
                 Salary = dto?.AgreedSalary
             };
 
-            await _employeeService.CreateAsync(employeeDto, GetRequesterId(), isSuperAdmin: true);
+            var createdEmployee = await _employeeService.CreateAsync(employeeDto, GetRequesterId(), isSuperAdmin: true);
+
+            if (!string.IsNullOrWhiteSpace(application.Specialty))
+            {
+                var salonServices = await _serviceCrudService.GetAllAsync(null);
+                var matchingServices = salonServices.Where(s =>
+                    s.SalonId == application.SalonId &&
+                    s.Name.Contains(application.Specialty, StringComparison.OrdinalIgnoreCase));
+
+                foreach (var svc in matchingServices)
+                {
+                    try
+                    {
+                        await _employeeService.AssignServiceAsync(createdEmployee.Id, svc.Id, GetRequesterId(), isSuperAdmin: true);
+                    }
+                    catch
+                    {
+                        // Uygunsuzluq olarsa sessizce kecirik
+                    }
+                }
+            }
 
             if (!await _userManager.IsInRoleAsync(applicant, Roles.Employee))
                 await _userManager.AddToRoleAsync(applicant, Roles.Employee);

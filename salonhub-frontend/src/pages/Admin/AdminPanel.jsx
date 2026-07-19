@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Store, Wrench, Clock,
   Calendar, Image, Star, BarChart3, Building2, UserCog, Award, Newspaper,
@@ -6,11 +7,18 @@ import {
   AlertCircle, TrendingUp, ChevronRight, User, Mail, DollarSign
 } from "lucide-react";
 import api from "../../services/api";
+import ServicesManagement from "../../components/admin/ServicesManagement";
 
 function decodeToken(token) {
   try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(payload));
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
   } catch {
     return null;
   }
@@ -25,7 +33,8 @@ export default function AdminPanel() {
     "Customer";
   const isSuperAdmin = role === "SuperAdmin";
 
-  const [activeTab, setActiveTab] = useState("Dashboard");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.tab || "Dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,15 +43,14 @@ export default function AdminPanel() {
   const [services, setServices] = useState([]);
   const [categories, setCategories] = useState([]);
   const [salons, setSalons] = useState([]);
+  const [allReservations, setAllReservations] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [editItem, setEditItem] = useState(null);
 
   const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "" });
-  const [serForm, setSerForm] = useState({ nameAz: "", price: "", durationMinutes: "", categoryId: "", salonId: "" });
 
   const salonAdminTabs = [
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
@@ -56,6 +64,7 @@ export default function AdminPanel() {
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
     { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
     { id: "AllSalons", name: "Butun Salonlar", icon: Building2 },
+    { id: "AllReservations", name: "Butun Rezervasiyalar", icon: Calendar },
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
@@ -88,6 +97,10 @@ export default function AdminPanel() {
         if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services") {
           const salonRes = await api.get("/salon");
           setSalons(salonRes.data);
+        }
+        if (activeTab === "AllReservations") {
+          const resvRes = await api.get("/Reservation");
+          setAllReservations(resvRes.data.sort((a, b) => new Date(b.reservationDate) - new Date(a.reservationDate)));
         }
       } catch (err) {
         console.error("Data yuklenmedi", err);
@@ -123,16 +136,47 @@ export default function AdminPanel() {
     setModalType(type);
     setEditItem(null);
     if (type === "employee") setEmpForm({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "" });
-    if (type === "service") setSerForm({ nameAz: "", price: "", durationMinutes: "", categoryId: "", salonId: "" });
     setIsModalOpen(true);
   };
 
   const openEditModal = (type, item) => {
     setModalType(type);
     setEditItem(item);
-    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: "", salonId: item.salonId, branchId: item.branchId || "" });
-    if (type === "service") setSerForm({ nameAz: item.name, price: item.price, durationMinutes: item.durationMinutes, categoryId: item.categoryId, salonId: item.salonId });
+    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: item.applicationUserId || "", salonId: item.salonId, branchId: item.branchId || "" });
     setIsModalOpen(true);
+  };
+
+  const handleCreateServicesForSalons = async ({ nameAz, price, durationMinutes, categoryId, salonIds }) => {
+    await Promise.all(
+      salonIds.map((salonId) =>
+        api.post("/Service", {
+          nameAz,
+          price,
+          durationMinutes,
+          categoryId,
+          salonId,
+        })
+      )
+    );
+    const res = await api.get("/Service");
+    setServices(res.data);
+  };
+
+  const handleEditService = async ({ id, nameAz, price, durationMinutes, categoryId, salonId }) => {
+    await api.put(`/Service/${id}`, {
+      nameAz,
+      price,
+      durationMinutes,
+      categoryId,
+      salonId,
+    });
+    const res = await api.get("/Service");
+    setServices(res.data);
+  };
+
+  const handleDeleteService = async (id) => {
+    await api.delete(`/Service/${id}`);
+    setServices(services.filter((s) => s.id !== id));
   };
 
   const handleSave = async (e) => {
@@ -156,21 +200,6 @@ export default function AdminPanel() {
         }
         const res = await api.get("/Employee");
         setEmployees(res.data);
-      } else if (modalType === "service") {
-        const payload = {
-          nameAz: serForm.nameAz,
-          price: Number(serForm.price),
-          durationMinutes: Number(serForm.durationMinutes),
-          categoryId: Number(serForm.categoryId),
-          salonId: Number(serForm.salonId),
-        };
-        if (editItem) {
-          await api.put(`/Service/${editItem.id}`, payload);
-        } else {
-          await api.post("/Service", payload);
-        }
-        const res = await api.get("/Service");
-        setServices(res.data);
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -184,10 +213,6 @@ export default function AdminPanel() {
       if (type === "employee") {
         await api.delete(`/Employee/${id}`);
         setEmployees(employees.filter((e) => e.id !== id));
-      }
-      if (type === "service") {
-        await api.delete(`/Service/${id}`);
-        setServices(services.filter((s) => s.id !== id));
       }
     } catch (err) {
       alert(err.response?.data?.message || "Xeta bas verdi");
@@ -429,39 +454,15 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "Services" && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-serif text-lg font-bold text-[#1A1714]">Xidmet Menyusu</h3>
-                    <button onClick={() => openAddModal("service")} className="bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                      <Plus className="w-4 h-4" /> Yeni Xidmet
-                    </button>
-                  </div>
-                  <div className="bg-white rounded-2xl border border-gray-200/70 overflow-hidden shadow-sm">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="bg-[#1A1714] text-[#FAF6F0] font-serif tracking-wider uppercase text-[10px]">
-                          <th className="p-4">Xidmet Adi</th>
-                          <th className="p-4">Muddet</th>
-                          <th className="p-4">Qiymet</th>
-                          <th className="p-4 text-right">Emeliyyatlar</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {services.map((ser) => (
-                          <tr key={ser.id} className="hover:bg-[#FAF6F0]/40 transition">
-                            <td className="p-4 font-semibold text-[#1A1714]">{ser.name}</td>
-                            <td className="p-4 font-medium text-gray-500">{ser.durationMinutes} deqiqe</td>
-                            <td className="p-4 font-bold text-[#1A1714]">{ser.price} AZN</td>
-                            <td className="p-4 text-right space-x-1 whitespace-nowrap">
-                              <button onClick={() => openEditModal("service", ser)} className="p-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-600 border border-gray-200 inline-block"><Edit2 className="w-3 h-3" /></button>
-                              <button onClick={() => handleDelete("service", ser.id)} className="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 border border-red-100 inline-block"><Trash2 className="w-3 h-3" /></button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <ServicesManagement
+                  services={services}
+                  salons={salons}
+                  categories={categories}
+                  loading={isLoading}
+                  onCreateForSalons={handleCreateServicesForSalons}
+                  onEdit={handleEditService}
+                  onDelete={handleDeleteService}
+                />
               )}
 
               {activeTab === "Categories" && (
@@ -491,6 +492,53 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "AllReservations" && isSuperAdmin && (
+                <div className="space-y-4">
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Butun Rezervasiyalar</h3>
+                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="bg-[#1A1714] text-[#FAF6F0] font-serif tracking-wider uppercase text-[10px]">
+                          <th className="p-4">Musteri</th>
+                          <th className="p-4">Usta</th>
+                          <th className="p-4">Xidmet</th>
+                          <th className="p-4">Tarix</th>
+                          <th className="p-4">Saat</th>
+                          <th className="p-4">Qiymet</th>
+                          <th className="p-4 text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-700">
+                        {allReservations.length === 0 ? (
+                          <tr><td colSpan="7" className="p-8 text-center text-gray-400">Hele rezervasiya yoxdur.</td></tr>
+                        ) : (
+                          allReservations.map((r) => (
+                            <tr key={r.id} className="hover:bg-[#FAF6F0]/40 transition">
+                              <td className="p-4 font-semibold text-[#1A1714]">{r.customerFullName || "Musteri"}</td>
+                              <td className="p-4">{r.employeeName}</td>
+                              <td className="p-4">{r.serviceName}</td>
+                              <td className="p-4 font-mono">{r.reservationDate?.split("T")[0]}</td>
+                              <td className="p-4 font-mono">{r.startTime?.slice(0, 5)}</td>
+                              <td className="p-4 font-bold text-[#1A1714]">{r.price} AZN</td>
+                              <td className="p-4 text-right">
+                                <span className={"px-2.5 py-1 rounded-full text-[10px] font-bold " + (
+                                  r.status === "Confirmed" ? "bg-green-50 text-green-700" :
+                                  r.status === "Completed" ? "bg-blue-50 text-blue-700" :
+                                  r.status === "Cancelled" ? "bg-red-50 text-red-700" :
+                                  "bg-amber-50 text-amber-700"
+                                )}>
+                                  {r.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
@@ -538,39 +586,6 @@ export default function AdminPanel() {
                 </>
               )}
 
-              {modalType === "service" && (
-                <>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Xidmet Adi</label>
-                    <input type="text" required value={serForm.nameAz} onChange={(e) => setSerForm({ ...serForm, nameAz: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <label className="font-bold text-gray-700">Qiymet (AZN)</label>
-                      <input type="number" required value={serForm.price} onChange={(e) => setSerForm({ ...serForm, price: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="font-bold text-gray-700">Muddet (deqiqe)</label>
-                      <input type="number" required value={serForm.durationMinutes} onChange={(e) => setSerForm({ ...serForm, durationMinutes: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Kateqoriya</label>
-                    <select required value={serForm.categoryId} onChange={(e) => setSerForm({ ...serForm, categoryId: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-                      <option value="">Kateqoriya secin</option>
-                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Salon</label>
-                    <select required value={serForm.salonId} onChange={(e) => setSerForm({ ...serForm, salonId: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-                      <option value="">Salon secin</option>
-                      {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                </>
-              )}
-
               <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold">Imtina</button>
                 <button type="submit" className="px-4 py-2 bg-[#1A1714] text-white hover:bg-[#C9A227] hover:text-[#1A1714] font-bold rounded-xl">Yadda Saxla</button>
@@ -582,6 +597,16 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -40,6 +40,15 @@ namespace SalonHub.Application.Services
             if (dto.Rating < 1 || dto.Rating > 5)
                 throw new ArgumentException("Reytinq 1 ilə 5 arasında olmalıdır.");
 
+
+            var hasCompletedReservation = await _unitOfWork.Reservations.FindAsync(r =>
+                r.CustomerId == customerId &&
+                r.SalonId == dto.SalonId &&
+                r.Status == SalonHub.Domain.Enums.ReservationStatus.Completed);
+
+            if (!hasCompletedReservation.Any())
+                throw new InvalidOperationException("Rey yazmaq ucun bu salonda tamamlanmis reservasiyaniz olmalidir.");
+
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
 
@@ -119,3 +128,4 @@ namespace SalonHub.Application.Services
         };
     }
 }
+

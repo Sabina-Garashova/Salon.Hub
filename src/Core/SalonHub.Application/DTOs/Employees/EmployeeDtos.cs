@@ -13,6 +13,7 @@ public class EmployeeReadDto
     public double AverageRating { get; set; }
     public int ReviewCount { get; set; }
     public bool IsMonthlyTopEmployee { get; set; }
+    public List<int> ServiceIds { get; set; } = new();
     public decimal? Salary { get; set; }
 }
 public class EmployeeCreateDto

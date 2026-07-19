@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DollarSign,
   Calendar,
@@ -23,9 +24,14 @@ import api from "../../services/api";
 
 function decodeToken(token) {
   try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(payload);
-    return JSON.parse(json);
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
   } catch {
     return null;
   }
@@ -37,6 +43,7 @@ function getFirstName(fullName) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [salons, setSalons] = useState([]);
@@ -118,11 +125,42 @@ export default function Dashboard() {
   ];
   const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
 
-  const appointments = [
-    { id: 1, client: "Gulnar Semedova", service: "Sac Kesimi & Fen", time: "12:00", price: "45 AZN", status: "Gozlenilir" },
-    { id: 2, client: "Leyla Memmedova", service: "Ombre / Balayaj", time: "14:30", price: "120 AZN", status: "Tesdiqlenib" },
-    { id: 3, client: "Aysel Eliyeva", service: "Manikur & Nail Art", time: "16:15", price: "35 AZN", status: "Gozlenilir" },
-  ];
+  const [allReservations, setAllReservations] = useState([]);
+
+  useEffect(() => {
+    const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
+    api
+      .get("/Reservation")
+      .then((res) => {
+        let list = res.data;
+        if (role === "Customer") {
+          list = list.filter((r) => r.customerId === userId);
+        } else if (role === "Employee") {
+          list = list.filter((r) => r.employeeId && employees.some((e) => e.id === r.employeeId && e.applicationUserId === userId));
+        }
+        setAllReservations(list);
+      })
+      .catch((err) => console.error("Rezervasiyalar yuklenmedi", err));
+  }, [role, employees]);
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
+
+  const statusLabel = (s) =>
+    s === "Confirmed" ? "Tesdiqlenib" : s === "Completed" ? "Tamamlanib" : s === "Cancelled" ? "Legv edilib" : "Gozlenilir";
+
+  const serviceStats = (() => {
+    const completed = allReservations.filter((r) => r.status === "Completed");
+    const counts = {};
+    completed.forEach((r) => {
+      counts[r.serviceName] = (counts[r.serviceName] || 0) + 1;
+    });
+    const total = completed.length || 1;
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, percentage: Math.round((count / total) * 100) }))
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, 3);
+  })();
 
   return (
     <Layout>
@@ -245,7 +283,7 @@ export default function Dashboard() {
                 salons.map((salon) => (
                   <div
                     key={salon.id}
-                    onClick={() => { setReviewModalSalon(salon); setReviewRating(5); setReviewComment(""); }}
+                    onClick={() => navigate(`/salon/${salon.id}`)}
                     className="bg-white rounded-xl border border-gray-100/70 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-[#C9A227]/20 relative group cursor-pointer"
                   >
                     <div className="h-32 bg-gradient-to-br from-[#1A1714] to-[#3A2E22] relative overflow-hidden">
@@ -334,7 +372,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={`w-3 h-3 ${i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200"}`} />
+                          <Star key={i} className={"w-3 h-3 " + (i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200")} />
                         ))}
                       </div>
                       {s && <span className="text-xs text-gray-400 truncate max-w-[50%]">{s.name}</span>}
@@ -369,28 +407,36 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-[#1A1714]">
-                    {appointments.map((appt) => (
+                    {todaysAppointments.length === 0 ? (
+                      <tr><td colSpan="5" className="py-8 text-center text-gray-400 text-sm">Bu gun ucun rezervasiya yoxdur.</td></tr>
+                    ) : (
+                    todaysAppointments.map((appt) => (
                       <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3.5 font-medium">{appt.client}</td>
+                        <td className="py-3.5 font-medium">{appt.customerFullName}</td>
                         <td className="py-3.5 text-gray-500">
                           <span className="inline-flex items-center gap-1">
                             <Scissors className="w-3.5 h-3.5 text-gray-400" />
-                            {appt.service}
+                            {appt.serviceName}
                           </span>
                         </td>
-                        <td className="py-3.5 font-mono text-gray-600">{appt.time}</td>
-                        <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price}</td>
+                        <td className="py-3.5 font-mono text-gray-600">{appt.startTime?.slice(0, 5)}</td>
+                        <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price} AZN</td>
                         <td className="py-3.5 text-right">
-                          <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
-                            appt.status === "Tesdiqlenib"
+                          <span className={"inline-block px-2.5 py-1 rounded-full text-xs font-medium " + (
+                            appt.status === "Confirmed"
                               ? "bg-green-50 text-green-700 border border-green-200"
+                              : appt.status === "Completed"
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : appt.status === "Cancelled"
+                              ? "bg-red-50 text-red-700 border border-red-200"
                               : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}>
-                            {appt.status}
+                          )}>
+                            {statusLabel(appt.status)}
                           </span>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -403,35 +449,21 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-4 pt-1">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1A1714]">Sac Boyama & Balayaj</span>
-                    <span className="text-gray-500">45%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#C9A227] rounded-full" style={{ width: "45%" }} />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1A1714]">Keratin Baximi</span>
-                    <span className="text-gray-500">30%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#B8935A] rounded-full" style={{ width: "30%" }} />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium">
-                    <span className="text-[#1A1714]">Manikur / Kosmetologiya</span>
-                    <span className="text-gray-500">25%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1A1714] rounded-full" style={{ width: "25%" }} />
-                  </div>
-                </div>
+                {serviceStats.length === 0 ? (
+                  <p className="text-xs text-gray-400">Hele tamamlanmis xidmet yoxdur.</p>
+                ) : (
+                  serviceStats.map((stat, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-[#1A1714]">{stat.name}</span>
+                        <span className="text-gray-500">{stat.percentage}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#C9A227] rounded-full" style={{ width: stat.percentage + "%" }} />
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -454,7 +486,7 @@ export default function Dashboard() {
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <button key={i} type="button" onClick={() => setReviewRating(i + 1)} className="p-1">
-                      <Star className={`w-7 h-7 ${i < reviewRating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200"}`} />
+                      <Star className={"w-7 h-7 " + (i < reviewRating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200")} />
                     </button>
                   ))}
                 </div>
@@ -494,6 +526,13 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+Ôªøimport { useState, useEffect } from "react";
 import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles } from "lucide-react";
 import api from "../services/api";
 
@@ -47,7 +47,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
       setIsLoadingSlots(true);
       setSlotsError("");
       
-      // F12-SIZ YOXLAMAQ ‹«‹N BILDIRIS EKRANI
+      // F12-SIZ YOXLAMAQ √ú√á√úN BILDIRIS EKRANI
       alert(`Backend-e geden tarix: ${selectedDate}\nUsta ID: ${selectedEmployee.id}`);
 
       try {
@@ -224,11 +224,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
               {step === 2 && (
                 <div className="space-y-4">
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Usta secin</h3>
-                  {employees.length === 0 ? (
+                  {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).length === 0 ? (
                     <p className="text-sm text-gray-400">Bu salonda hele usta elave edilmeyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {employees.map((employee) => (
+                      {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).map((employee) => (
                         <div
                           key={employee.id}
                           onClick={() => setSelectedEmployee(employee)}
@@ -388,3 +388,4 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     </div>
   );
 }
+

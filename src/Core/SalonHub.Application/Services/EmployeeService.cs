@@ -207,11 +207,13 @@ namespace SalonHub.Application.Services
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
                 ReviewCount = reviewList.Count,
                 IsMonthlyTopEmployee = employee.IsMonthlyTopEmployee,
+                ServiceIds = (await _unitOfWork.Employees.SingleOrDefaultAsync(e => e.Id == employee.Id, e => e.EmployeeServices))?.EmployeeServices.Select(es => es.ServiceId).ToList() ?? new List<int>(),
                 Salary = employee.Salary
             };
         }
     }
 }
+
 
 
 

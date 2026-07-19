@@ -176,6 +176,28 @@ namespace SalonHub.Api.Controllers
             return Ok(new { message = "Tələbiniz SuperAdmin-ə göndərildi." });
         }
 
+        [HttpPost("fix-fullname")]
+        [Authorize(Roles = Roles.SuperAdmin)]
+        public async Task<IActionResult> FixFullName([FromBody] FixFullNameDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email)
+                ?? throw new KeyNotFoundException("Istifadeci tapilmadi.");
+            user.FullName = dto.NewFullName;
+            await _userManager.UpdateAsync(user);
+            return Ok(new { message = "Ad yenilendi." });
+        }
+
+        [HttpGet("search-users")]
+        [Authorize(Roles = Roles.SuperAdmin)]
+        public IActionResult SearchUsers([FromQuery] string name)
+        {
+            var matches = _userManager.Users
+                .Where(u => u.FullName.Contains(name))
+                .Select(u => new { u.Id, u.FullName, u.Email })
+                .ToList();
+            return Ok(matches);
+        }
+
         private static string GenerateReferralCode()
         {
             var random = new Random();

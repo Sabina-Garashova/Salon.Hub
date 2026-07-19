@@ -13,6 +13,10 @@
 
     public class ReservationReadDto
     {
+        public string CustomerId { get; set; } = string.Empty;
+        public int EmployeeId { get; set; }
+        public decimal Price { get; set; }
+        public string CustomerFullName { get; set; } = string.Empty;
         public int Id { get; set; }
         public string ServiceName { get; set; } = string.Empty;
         public string EmployeeName { get; set; } = string.Empty;

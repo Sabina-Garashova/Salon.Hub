@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reservations;
@@ -19,6 +21,14 @@ namespace SalonHub.Api.Controllers
             _reservationService = reservationService;
         }
 
+        [HttpGet("employee")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetEmployeeReservations([FromQuery] int employeeId)
+        {
+            var result = await _reservationService.GetEmployeeReservationsAsync(employeeId);
+            return Ok(result);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _reservationService.GetAllAsync());
 
@@ -32,6 +42,10 @@ namespace SalonHub.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(ReservationCreateDto dto)
         {
+            // Giriş edən müştərinin ID və Ad-Soyadını birbaşa Token-dən (Claims) avtomatik oxuyuruq
+            dto.CustomerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            dto.CustomerFullName = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("name") ?? "Müştəri";
+            
             var result = await _reservationService.CreateAsync(dto);
             return Ok(result);
         }
@@ -39,6 +53,10 @@ namespace SalonHub.Api.Controllers
         [HttpPost("batch")]
         public async Task<IActionResult> CreateMultiple(MultiServiceReservationCreateDto dto)
         {
+            // Giriş edən müştərinin ID və Ad-Soyadını birbaşa Token-dən (Claims) avtomatik oxuyuruq
+            dto.CustomerId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            dto.CustomerFullName = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("name") ?? "Müştəri";
+            
             var result = await _reservationService.CreateMultipleAsync(dto);
             return Ok(result);
         }
@@ -101,4 +119,3 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
-

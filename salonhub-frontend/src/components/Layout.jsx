@@ -5,9 +5,14 @@ import api from "../services/api";
 
 function decodeToken(token) {
   try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const json = atob(payload);
-    return JSON.parse(json);
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
   } catch {
     return null;
   }
@@ -107,10 +112,15 @@ export default function Layout({ children }) {
 
   const navItems = [
     { label: "Ana Sehife", icon: LayoutDashboard, path: "/dashboard" },
-    { label: "Rezervasiyalar", icon: Calendar, path: "/reservations", disabled: true },
     { label: "Loyalty", icon: Gift, path: "/loyalty", disabled: true },
     ...(role === "SalonAdmin" || role === "SuperAdmin"
       ? [{ label: "Admin Panel", icon: ShieldCheck, path: "/admin" }]
+      : []),
+    ...(role === "SuperAdmin"
+      ? [{ label: "Butun Rezervasiyalar", icon: Calendar, path: "/admin", state: { tab: "AllReservations" } }]
+      : []),
+    ...(role === "Employee"
+      ? [{ label: "Rezervasiyalarim", icon: Calendar, path: "/employee-dashboard" }]
       : []),
   ];
 
@@ -132,7 +142,7 @@ export default function Layout({ children }) {
                   <button
                     key={item.path}
                     disabled={item.disabled}
-                    onClick={() => !item.disabled && navigate(item.path)}
+                    onClick={() => !item.disabled && navigate(item.path, item.state ? { state: item.state } : undefined)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
                       active
                         ? "bg-[#C9A227]/15 text-[#F0D68A]"
@@ -243,6 +253,12 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
+
+
+
+
+
 
 
 
