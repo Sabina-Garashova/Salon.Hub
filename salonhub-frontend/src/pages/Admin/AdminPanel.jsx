@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import api from "../../services/api";
 import ServicesManagement from "../../components/admin/ServicesManagement";
+import DashboardOverview from "../../components/admin/DashboardOverview";
+import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
 function decodeToken(token) {
   try {
@@ -85,20 +87,20 @@ export default function AdminPanel() {
           const res = await api.get("/SpecialistApplication/pending");
           setApplications(res.data);
         }
-        if (activeTab === "Employees") {
+        if (activeTab === "Employees" || activeTab === "Dashboard") {
           const res = await api.get("/Employee");
           setEmployees(res.data);
         }
-        if (activeTab === "Services" || activeTab === "Categories") {
+        if (activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
           const [servRes, catRes] = await Promise.all([api.get("/Service"), api.get("/Category")]);
           setServices(servRes.data);
           setCategories(catRes.data);
         }
-        if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services") {
+        if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
           const salonRes = await api.get("/salon");
           setSalons(salonRes.data);
         }
-        if (activeTab === "AllReservations") {
+        if (activeTab === "AllReservations" || activeTab === "Dashboard") {
           const resvRes = await api.get("/Reservation");
           setAllReservations(resvRes.data.sort((a, b) => new Date(b.reservationDate) - new Date(a.reservationDate)));
         }
@@ -146,14 +148,14 @@ export default function AdminPanel() {
     setIsModalOpen(true);
   };
 
-  const handleCreateServicesForSalons = async ({ nameAz, price, durationMinutes, categoryId, salonIds }) => {
+  const handleCreateServicesForSalons = async (payload, salonIds) => {
     await Promise.all(
       salonIds.map((salonId) =>
         api.post("/Service", {
-          nameAz,
-          price,
-          durationMinutes,
-          categoryId,
+          nameAz: payload.name,
+          price: payload.price,
+          durationMinutes: payload.durationMinutes,
+          categoryId: payload.categoryId,
           salonId,
         })
       )
@@ -162,13 +164,14 @@ export default function AdminPanel() {
     setServices(res.data);
   };
 
-  const handleEditService = async ({ id, nameAz, price, durationMinutes, categoryId, salonId }) => {
+  const handleEditService = async (id, payload) => {
+    const existing = services.find((s) => s.id === id);
     await api.put(`/Service/${id}`, {
-      nameAz,
-      price,
-      durationMinutes,
-      categoryId,
-      salonId,
+      nameAz: payload.name,
+      price: payload.price,
+      durationMinutes: payload.durationMinutes,
+      categoryId: payload.categoryId,
+      salonId: existing?.salonId,
     });
     const res = await api.get("/Service");
     setServices(res.data);
@@ -177,6 +180,58 @@ export default function AdminPanel() {
   const handleDeleteService = async (id) => {
     await api.delete(`/Service/${id}`);
     setServices(services.filter((s) => s.id !== id));
+  };
+
+  const handleCreateCategory = async (payload) => {
+    await api.post("/Category", { nameAz: payload.name, descriptionAz: payload.description });
+    const res = await api.get("/Category");
+    setCategories(res.data);
+  };
+
+  const handleEditCategory = async (id, payload) => {
+    await api.put(`/Category/${id}`, { nameAz: payload.name, descriptionAz: payload.description });
+    const res = await api.get("/Category");
+    setCategories(res.data);
+  };
+
+  const handleDeleteCategory = async (id) => {
+    await api.delete(`/Category/${id}`);
+    setCategories(categories.filter((c) => c.id !== id));
+  };
+
+  const handleMoveServiceCategory = async (serviceIds, newCategoryId) => {
+    const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds];
+    await Promise.all(
+      ids.map((serviceId) => {
+        const existing = services.find((s) => s.id === serviceId);
+        if (!existing) return Promise.resolve();
+        return api.put(`/Service/${serviceId}`, {
+          nameAz: existing.name,
+          price: existing.price,
+          durationMinutes: existing.durationMinutes,
+          categoryId: newCategoryId,
+          salonId: existing.salonId,
+        });
+      })
+    );
+    const res = await api.get("/Service");
+    setServices(res.data);
+  };
+
+  const handleCreateServiceForCategory = async (payload, salonIds) => {
+    await Promise.all(
+      salonIds.map((salonId) =>
+        api.post("/Service", {
+          nameAz: payload.name,
+          price: payload.price,
+          durationMinutes: payload.durationMinutes,
+          categoryId: payload.categoryId,
+          salonId,
+        })
+      )
+    );
+    const res = await api.get("/Service");
+    setServices(res.data);
   };
 
   const handleSave = async (e) => {
@@ -311,32 +366,36 @@ export default function AdminPanel() {
             </div>
           ) : (
             <>
-              {activeTab === "Dashboard" && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                      { title: "Gozleyen Muracietler", value: applications.length.toString(), icon: Inbox },
-                      { title: "Isci Sayi", value: employees.length.toString(), icon: Users },
-                      { title: "Xidmet Sayi", value: services.length.toString(), icon: Scissors },
-                    ].map((card, i) => {
-                      const CardIcon = card.icon;
-                      return (
-                        <div key={i} className="bg-white p-5 rounded-2xl border border-gray-200/70 shadow-sm">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{card.title}</p>
-                              <h3 className="text-2xl font-serif font-bold text-[#1A1714] mt-2">{card.value}</h3>
-                            </div>
-                            <div className="p-3 bg-[#FAF6F0] rounded-xl border border-gray-100 text-[#B8935A]">
-                              <CardIcon className="w-4 h-4" />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              {activeTab === "Dashboard" && (() => {
+                const uniqueServiceCount = new Set(services.map((s) => s.name)).size;
+                const recentApplications = applications.slice(0, 5).map((a) => ({
+                  id: a.id,
+                  name: a.applicantFullName,
+                  role: a.specialty,
+                  date: a.createdAt ? a.createdAt.split("T")[0] : "",
+                }));
+                const completedRes = allReservations.filter((r) => r.status === "Completed");
+                const serviceCounts = {};
+                completedRes.forEach((r) => {
+                  if (!serviceCounts[r.serviceName]) serviceCounts[r.serviceName] = { name: r.serviceName, count: 0, price: r.price };
+                  serviceCounts[r.serviceName].count++;
+                });
+                const topServices = Object.values(serviceCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+                const adminName = decoded?.name || decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Admin";
+                const salonName = isSuperAdmin ? "Butun Salonlar" : (salons[0]?.name || "Salon");
+                return (
+                  <DashboardOverview
+                    adminName={adminName}
+                    salonName={salonName}
+                    pendingApplicationsCount={applications.length}
+                    employeeCount={employees.length}
+                    uniqueServiceCount={uniqueServiceCount}
+                    salonCount={salons.length}
+                    recentApplications={recentApplications}
+                    topServices={topServices}
+                  />
+                );
+              })()}
 
               {activeTab === "Applications" && (
                 <div className="space-y-3">
@@ -466,16 +525,16 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "Categories" && (
-                <div className="space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Kateqoriyalar</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {categories.map((cat) => (
-                      <div key={cat.id} className="bg-white rounded-xl border border-gray-200 p-4 text-center text-sm font-medium text-[#1A1714]">
-                        {cat.name}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <CategoriesManagement
+                  categories={categories}
+                  services={services}
+                  salons={salons}
+                  onCreate={handleCreateCategory}
+                  onEdit={handleEditCategory}
+                  onDelete={handleDeleteCategory}
+                  onMoveService={handleMoveServiceCategory}
+                  onCreateServiceForCategory={handleCreateServiceForCategory}
+                />
               )}
 
               {activeTab === "AllSalons" && isSuperAdmin && (
@@ -597,6 +656,11 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

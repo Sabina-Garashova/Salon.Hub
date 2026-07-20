@@ -85,6 +85,10 @@ namespace SalonHub.Application.Services
             var category = await _unitOfWork.Categories.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Kateqoriya tapılmadı: {id}");
 
+            var relatedServices = await _unitOfWork.Services.FindAsync(s => s.CategoryId == id);
+            if (relatedServices.Any())
+                throw new InvalidOperationException("Bu kateqoriyaya bagli xidmetler var. Evvelce onlari silin ve ya baska kateqoriyaya kocurun.");
+
             _unitOfWork.Categories.Remove(category);
             await _unitOfWork.CompleteAsync();
         }
