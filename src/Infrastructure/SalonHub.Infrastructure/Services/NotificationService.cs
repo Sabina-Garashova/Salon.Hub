@@ -77,6 +77,13 @@ public class NotificationService : INotificationService
                 return;
             }
 
+            await _unitOfWork.Notifications.AddAsync(new SalonHub.Domain.Entities.Notification
+            {
+                UserId = employee.ApplicationUserId,
+                Message = message
+            });
+            await _unitOfWork.CompleteAsync();
+
             var user = await _userManager.FindByIdAsync(employee.ApplicationUserId);
             if (user is null)
             {
