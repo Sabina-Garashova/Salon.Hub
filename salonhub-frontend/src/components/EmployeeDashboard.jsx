@@ -95,7 +95,12 @@ export default function EmployeeDashboard() {
       const response = await fetch(url, options);
 
       if (!response.ok) {
-        throw new Error(`Xəta kodu: ${response.status}`);
+        let serverMessage = `Xeta kodu: ${response.status}`;
+        try {
+          const errData = await response.json();
+          serverMessage = errData.message || errData.title || serverMessage;
+        } catch {}
+        throw new Error(serverMessage);
       }
 
       // Ekranda statusu anlıq dəyişmək üçün state-i yeniləyirik
@@ -284,4 +289,6 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
+
 

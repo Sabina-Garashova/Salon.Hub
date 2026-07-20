@@ -83,7 +83,8 @@ export default function Layout({ children }) {
   };
 
   const formatTime = (dateStr) => {
-    const date = new Date(dateStr);
+    const utcStr = dateStr.endsWith("Z") ? dateStr : dateStr + "Z";
+    const date = new Date(utcStr);
     const now = new Date();
     const diffMs = now - date;
     const diffMin = Math.floor(diffMs / 60000);
@@ -253,6 +254,7 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
 
 
 

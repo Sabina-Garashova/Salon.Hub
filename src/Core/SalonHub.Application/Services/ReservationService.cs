@@ -96,7 +96,7 @@ namespace SalonHub.Application.Services
                 if (startTime < blockEnd && blockStart < endTime)
                 {
                     throw new InvalidOperationException(
-                        $"Seçilmis vaxt bloklanib. S?b?b: {block.Reason}");
+                        $"Secilmis vaxt bloklanib. Sebeb: {block.Reason}");
                 }
             }
         }
@@ -157,7 +157,7 @@ namespace SalonHub.Application.Services
         public async Task<ReservationReadDto> CreateAsync(ReservationCreateDto dto)
         {
             var service = await _unitOfWork.Services.GetByIdAsync(dto.ServiceId)
-                ?? throw new KeyNotFoundException("Xidm?t tapilmadi.");
+                ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
                 e => e.Id == dto.EmployeeId, e => e.EmployeeServices)
@@ -165,7 +165,7 @@ namespace SalonHub.Application.Services
 
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == dto.ServiceId);
             if (!isAssigned)
-                throw new InvalidOperationException("Seçilmis usta bu xidm?ti göst?rmir.");
+                throw new InvalidOperationException("Secilmis usta bu xidmeti gostermir.");
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -178,7 +178,7 @@ namespace SalonHub.Application.Services
                 r.StartTime < endTime && dto.StartTime < r.EndTime);
 
             if (employeeReservations.Any())
-                throw new InvalidOperationException("Seçilmis usta bu saat araliginda m?sguldur.");
+                throw new InvalidOperationException("Secilmis usta bu saat araliginda mesguldur.");
 
             var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
                 r.CustomerId == dto.CustomerId &&
@@ -194,13 +194,13 @@ namespace SalonHub.Application.Services
             if (service.RequiredEquipmentId.HasValue)
             {
                 if (!employee.AssignedEquipmentId.HasValue)
-                    throw new InvalidOperationException("Seçilmis isçiy? bu xidm?t üçün lazimi avadanliq t?yin olunmayib.");
+                    throw new InvalidOperationException("Secilmis isciye bu xidmet ucun lazimi avadanliq teyin olunmayib.");
 
                 var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
-                    ?? throw new KeyNotFoundException("T?l?b olunan avadanliq tapilmadi.");
+                    ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
                 if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
-                    throw new InvalidOperationException("T?l?b olunan avadanliq hazirda nasazdir v? ya t?mird?dir.");
+                    throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
                 equipmentIdToUse = equipment.Id;
 
@@ -211,7 +211,7 @@ namespace SalonHub.Application.Services
                     r.StartTime < endTime && dto.StartTime < r.EndTime);
 
                 if (equipmentReservations.Any())
-                    throw new InvalidOperationException("T?l?b olunan avadanliq bu saat araliginda m?sguldur.");
+                    throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
             }
 
             var reservation = new Reservation
@@ -257,7 +257,7 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException("Rezervasiya tapilmadi.");
 
             if (reservation.Status == ReservationStatus.Cancelled)
-                throw new InvalidOperationException("L?gv olunmus rezervasiya d?yisdiril? bilm?z.");
+                throw new InvalidOperationException("Legv olunmus rezervasiya deyisdirile bilmez.");
 
             if (!isAdmin)
             {
@@ -268,11 +268,11 @@ namespace SalonHub.Application.Services
                 var isAssignedEmployee = currentEmployee is not null && currentEmployee.Id == reservation.EmployeeId;
 
                 if (!isOwnerCustomer && !isAssignedEmployee)
-                    throw new UnauthorizedAccessException("Bu rezervasiyani d?yism?k icaz?niz yoxdur.");
+                    throw new UnauthorizedAccessException("Bu rezervasiyani deyismek icazeniz yoxdur.");
             }
 
             var service = await _unitOfWork.Services.GetByIdAsync(dto.ServiceId)
-                ?? throw new KeyNotFoundException("Xidm?t tapilmadi.");
+                ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
                 e => e.Id == dto.EmployeeId, e => e.EmployeeServices)
@@ -280,7 +280,7 @@ namespace SalonHub.Application.Services
 
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == dto.ServiceId);
             if (!isAssigned)
-                throw new InvalidOperationException("Seçilmis usta bu xidm?ti göst?rmir.");
+                throw new InvalidOperationException("Secilmis usta bu xidmeti gostermir.");
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -294,7 +294,7 @@ namespace SalonHub.Application.Services
                 r.StartTime < endTime && dto.StartTime < r.EndTime);
 
             if (employeeReservations.Any())
-                throw new InvalidOperationException("Seçilmis usta bu saat araliginda m?sguldur.");
+                throw new InvalidOperationException("Secilmis usta bu saat araliginda mesguldur.");
 
             var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
                 r.Id != id &&
@@ -304,20 +304,20 @@ namespace SalonHub.Application.Services
                 r.StartTime < endTime && dto.StartTime < r.EndTime);
 
             if (customerReservations.Any())
-                throw new InvalidOperationException("Müst?rinin artiq bu saat araliginda basqa bir rezervasiyasi var.");
+                throw new InvalidOperationException("Musterinin artiq bu saat araliginda basqa bir rezervasiyasi var.");
 
             int? equipmentIdToUse = null;
 
             if (service.RequiredEquipmentId.HasValue)
             {
                 if (!employee.AssignedEquipmentId.HasValue)
-                    throw new InvalidOperationException("Seçilmis isçiy? bu xidm?t üçün lazimi avadanliq t?yin olunmayib.");
+                    throw new InvalidOperationException("Secilmis isciye bu xidmet ucun lazimi avadanliq teyin olunmayib.");
 
                 var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
-                    ?? throw new KeyNotFoundException("T?l?b olunan avadanliq tapilmadi.");
+                    ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
                 if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
-                    throw new InvalidOperationException("T?l?b olunan avadanliq hazirda nasazdir v? ya t?mird?dir.");
+                    throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
                 equipmentIdToUse = equipment.Id;
 
@@ -329,7 +329,7 @@ namespace SalonHub.Application.Services
                     r.StartTime < endTime && dto.StartTime < r.EndTime);
 
                 if (equipmentReservations.Any())
-                    throw new InvalidOperationException("T?l?b olunan avadanliq bu saat araliginda m?sguldur.");
+                    throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
             }
 
             var oldDate = reservation.ReservationDate;
@@ -356,7 +356,7 @@ namespace SalonHub.Application.Services
 
             if (timeChanged)
             {
-                var message = $"Rezervasiyaniz d?yisdirildi. Yeni tarix: {reservation.ReservationDate:dd.MM.yyyy}, saat: {reservation.StartTime:hh\\:mm}. Z?hm?t olmasa t?sdiql?yin v? ya r?dd edin.";
+                var message = $"Rezervasiyaniz deyisdirildi. Yeni tarix: {reservation.ReservationDate:dd.MM.yyyy}, saat: {reservation.StartTime:hh\\:mm}. Zehmet olmasa tesdiqleyin ve ya redd edin.";
                 await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, message);
             }
 
@@ -390,7 +390,7 @@ namespace SalonHub.Application.Services
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
             var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);
 
-            var message = $"Rezervasiyaniz l?gv edildi. S?b?b: {reason}";
+            var message = $"Rezervasiyaniz legv edildi. Sebeb: {reason}";
             await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, message);
 
             return new ReservationReadDto
@@ -416,16 +416,18 @@ namespace SalonHub.Application.Services
 
             // Test rejimində usta və adminlər üçün icazə yoxlaması keçidə açıldı
              if (false)
-                throw new UnauthorizedAccessException("Bu rezervasiyani t?sdiql?m?k icaz?niz yoxdur.");
+                throw new UnauthorizedAccessException("Bu rezervasiyani tesdiqlemek icazeniz yoxdur.");
 
             if (reservation.Status == ReservationStatus.Cancelled)
-                throw new InvalidOperationException("L?gv olunmus rezervasiya t?sdiql?n? bilm?z.");
+                throw new InvalidOperationException("Legv olunmus rezervasiya tesdiqlene bilmez.");
 
             reservation.Status = ReservationStatus.Confirmed;
             reservation.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
+
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tesdiqlendi!");
 
             
 
@@ -455,11 +457,11 @@ namespace SalonHub.Application.Services
 
             // Test rejimində usta və adminlər üçün icazə yoxlaması keçidə açıldı
              if (false)
-                throw new UnauthorizedAccessException("Bu rezervasiyani r?dd etm?k icaz?niz yoxdur.");
+                throw new UnauthorizedAccessException("Bu rezervasiyani redd etmek icazeniz yoxdur.");
 
             reservation.Status = ReservationStatus.Cancelled;
             reservation.CancellationReason = string.IsNullOrWhiteSpace(reason)
-                ? "Müst?ri d?yisikliyi r?dd etdi."
+                ? "Musteri deyisikliyi redd etdi."
                 : reason;
             reservation.UpdatedAt = DateTime.UtcNow;
 
@@ -491,13 +493,19 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException("Rezervasiya tapilmadi.");
 
             if (reservation.Status == ReservationStatus.Cancelled)
-                throw new InvalidOperationException("L?gv olunmus rezervasiya tamamlanmis sayila bilm?z.");
+                throw new InvalidOperationException("Legv olunmus rezervasiya tamamlanmis sayila bilmez.");
+
+            var reservationDateTime = reservation.ReservationDate.Date.Add(reservation.StartTime);
+            if (reservationDateTime > DateTime.Now)
+                throw new InvalidOperationException("Gelecek tarixli rezervasiya hele tamamlana bilmez.");
 
             reservation.Status = ReservationStatus.Completed;
             reservation.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
+
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tamamlandi. Tesekkur edirik!");
 
             await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
 
@@ -528,13 +536,13 @@ namespace SalonHub.Application.Services
                 r.CheckInCode == checkInCode && r.SalonId == salonId);
 
             var reservation = reservations.FirstOrDefault()
-                ?? throw new KeyNotFoundException("Keç?rsiz QR kod v? ya rezervasiya tapilmadi.");
+                ?? throw new KeyNotFoundException("Kecersiz QR kod ve ya rezervasiya tapilmadi.");
 
             if (reservation.IsCheckedIn)
                 throw new InvalidOperationException("Bu rezervasiya artiq check-in edilib.");
 
             if (reservation.Status == ReservationStatus.Cancelled)
-                throw new InvalidOperationException("L?gv olunmus rezervasiya check-in edil? bilm?z.");
+                throw new InvalidOperationException("Legv olunmus rezervasiya check-in edile bilmez.");
 
             reservation.IsCheckedIn = true;
             reservation.CheckedInAt = DateTime.UtcNow;
@@ -569,11 +577,11 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException("Isçi tapilmadi.");
 
             var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
-                ?? throw new KeyNotFoundException("Xidm?t tapilmadi.");
+                ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == serviceId);
             if (!isAssigned)
-                throw new InvalidOperationException("Bu isçi bu xidm?ti göst?rmir.");
+                throw new InvalidOperationException("Bu isçi bu xidmeti gostermir.");
 
             var dayOfWeek = date.DayOfWeek;
 
@@ -602,7 +610,9 @@ namespace SalonHub.Application.Services
                 var isOverlapping = existingReservations.Any(r =>
                     r.StartTime < slotEnd && current < r.EndTime);
 
-                if (!isOverlapping)
+                var isPast = date.Date == DateTime.Now.Date && current <= DateTime.Now.TimeOfDay;
+
+                if (!isOverlapping && !isPast)
                     slots.Add(current.ToString(@"hh\:mm"));
 
                 current = current.Add(TimeSpan.FromMinutes(30));
@@ -614,7 +624,7 @@ namespace SalonHub.Application.Services
         public async Task<List<ReservationReadDto>> CreateMultipleAsync(MultiServiceReservationCreateDto dto)
         {
             if (dto.Services is null || !dto.Services.Any())
-                throw new ArgumentException("?n azi bir xidm?t seçilm?lidir.");
+                throw new ArgumentException("En azi bir xidmet secilmelidir.");
 
             var reservationsToCreate = new List<Reservation>();
             var currentStartTime = dto.StartTime;
@@ -622,7 +632,7 @@ namespace SalonHub.Application.Services
             foreach (var item in dto.Services)
             {
                 var service = await _unitOfWork.Services.GetByIdAsync(item.ServiceId)
-                    ?? throw new KeyNotFoundException($"Xidm?t tapilmadi: {item.ServiceId}");
+                    ?? throw new KeyNotFoundException($"Xidmet tapilmadi: {item.ServiceId}");
 
                 var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
                     e => e.Id == item.EmployeeId, e => e.EmployeeServices)
@@ -630,7 +640,7 @@ namespace SalonHub.Application.Services
 
                 var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == item.ServiceId);
                 if (!isAssigned)
-                    throw new InvalidOperationException($"Seçilmis usta ({employee.FullName}) '{service.NameAz}' xidm?tini göst?rmir.");
+                    throw new InvalidOperationException($"Secilmis usta ({employee.FullName}) '{service.NameAz}' xidmetini gostermir.");
 
                 var endTime = currentStartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -643,7 +653,7 @@ namespace SalonHub.Application.Services
                     r.StartTime < endTime && currentStartTime < r.EndTime);
 
                 if (employeeReservations.Any())
-                    throw new InvalidOperationException($"Seçilmis usta ({employee.FullName}) bu saat araliginda m?sguldur.");
+                    throw new InvalidOperationException($"Secilmis usta ({employee.FullName}) bu saat araliginda mesguldur.");
 
                 var customerReservations = await _unitOfWork.Reservations.FindAsync(r =>
                     r.CustomerId == dto.CustomerId &&
@@ -659,13 +669,13 @@ namespace SalonHub.Application.Services
                 if (service.RequiredEquipmentId.HasValue)
                 {
                     if (!employee.AssignedEquipmentId.HasValue)
-                        throw new InvalidOperationException($"Seçilmis isçiy? ({employee.FullName}) bu xidm?t üçün lazimi avadanliq t?yin olunmayib.");
+                        throw new InvalidOperationException($"Secilmis isciye ({employee.FullName}) bu xidmet ucun lazimi avadanliq teyin olunmayib.");
 
                     var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
-                        ?? throw new KeyNotFoundException("T?l?b olunan avadanliq tapilmadi.");
+                        ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
                     if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
-                        throw new InvalidOperationException("T?l?b olunan avadanliq hazirda nasazdir v? ya t?mird?dir.");
+                        throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
                     equipmentIdToUse = equipment.Id;
 
@@ -676,7 +686,7 @@ namespace SalonHub.Application.Services
                         r.StartTime < endTime && currentStartTime < r.EndTime);
 
                     if (equipmentReservations.Any())
-                        throw new InvalidOperationException("T?l?b olunan avadanliq bu saat araliginda m?sguldur.");
+                        throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
                 }
 
                 reservationsToCreate.Add(new Reservation
@@ -734,7 +744,7 @@ namespace SalonHub.Application.Services
             var today = DateTime.UtcNow.Date;
 
             var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
-                ?? throw new KeyNotFoundException("Xidm?t tapilmadi.");
+                ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var allEmployees = await _unitOfWork.Employees.FindAsync(e => e.SalonId == salonId);
 
@@ -775,4 +785,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
+
 
