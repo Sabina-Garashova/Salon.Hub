@@ -20,6 +20,7 @@ public class RedeemPointsDto
 {
     public int SalonId { get; set; }
     public decimal DiscountAmount { get; set; }
+    public int? ReservationId { get; set; }
 }
 
 public class RedeemPointsResultDto
@@ -27,3 +28,4 @@ public class RedeemPointsResultDto
     public int RemainingPoints { get; set; }
     public decimal DiscountAmount { get; set; }
 }
+

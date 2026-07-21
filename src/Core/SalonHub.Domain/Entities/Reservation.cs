@@ -40,5 +40,8 @@ namespace SalonHub.Domain.Entities
         public bool IsCheckedIn { get; set; } = false;
         public DateTime? CheckedInAt { get; set; }
         public int SalonId { get; set; }
+        public string PaymentMethod { get; set; } = "Card";
+        public decimal? LoyaltyDiscountApplied { get; set; }
     }
 }
+

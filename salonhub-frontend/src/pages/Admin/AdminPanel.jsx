@@ -9,6 +9,7 @@ import {
 import api from "../../services/api";
 import ServicesManagement from "../../components/admin/ServicesManagement";
 import DashboardOverview from "../../components/admin/DashboardOverview";
+import AllReservations from "../../components/admin/AllReservations";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
 function decodeToken(token) {
@@ -556,50 +557,7 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "AllReservations" && isSuperAdmin && (
-                <div className="space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Butun Rezervasiyalar</h3>
-                  <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="bg-[#1A1714] text-[#FAF6F0] font-serif tracking-wider uppercase text-[10px]">
-                          <th className="p-4">Musteri</th>
-                          <th className="p-4">Usta</th>
-                          <th className="p-4">Xidmet</th>
-                          <th className="p-4">Tarix</th>
-                          <th className="p-4">Saat</th>
-                          <th className="p-4">Qiymet</th>
-                          <th className="p-4 text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100 text-gray-700">
-                        {allReservations.length === 0 ? (
-                          <tr><td colSpan="7" className="p-8 text-center text-gray-400">Hele rezervasiya yoxdur.</td></tr>
-                        ) : (
-                          allReservations.map((r) => (
-                            <tr key={r.id} className="hover:bg-[#FAF6F0]/40 transition">
-                              <td className="p-4 font-semibold text-[#1A1714]">{r.customerFullName || "Musteri"}</td>
-                              <td className="p-4">{r.employeeName}</td>
-                              <td className="p-4">{r.serviceName}</td>
-                              <td className="p-4 font-mono">{r.reservationDate?.split("T")[0]}</td>
-                              <td className="p-4 font-mono">{r.startTime?.slice(0, 5)}</td>
-                              <td className="p-4 font-bold text-[#1A1714]">{r.price} AZN</td>
-                              <td className="p-4 text-right">
-                                <span className={"px-2.5 py-1 rounded-full text-[10px] font-bold " + (
-                                  r.status === "Confirmed" ? "bg-green-50 text-green-700" :
-                                  r.status === "Completed" ? "bg-blue-50 text-blue-700" :
-                                  r.status === "Cancelled" ? "bg-red-50 text-red-700" :
-                                  "bg-amber-50 text-amber-700"
-                                )}>
-                                  {r.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <AllReservations reservations={allReservations} />
               )}
             </>
           )}
@@ -656,6 +614,7 @@ export default function AdminPanel() {
     </div>
   );
 }
+
 
 
 

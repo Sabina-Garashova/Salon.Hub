@@ -13,6 +13,8 @@
 
     public class ReservationReadDto
     {
+        public int SalonId { get; set; }
+        public string PaymentMethod { get; set; } = "Card";
         public string CustomerId { get; set; } = string.Empty;
         public int EmployeeId { get; set; }
         public decimal Price { get; set; }

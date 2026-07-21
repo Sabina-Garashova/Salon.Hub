@@ -16,6 +16,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [slotsError, setSlotsError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [loyaltyBalance, setLoyaltyBalance] = useState({ points: 0, equivalentDiscount: 0 });
 
   useEffect(() => {
     if (!isOpen || !salonId) return;
@@ -27,10 +29,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     setAvailableSlots([]);
     setLoadingOptions(true);
 
-    Promise.all([api.get("/Service"), api.get("/Employee")])
-      .then(([servRes, empRes]) => {
+    Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
+      .then(([servRes, empRes, balRes]) => {
         setServices(servRes.data.filter((s) => s.salonId === salonId));
         setEmployees(empRes.data.filter((e) => e.salonId === salonId && e.branchId));
+        setLoyaltyBalance(balRes.data);
       })
       .catch((err) => console.error("Melumat yuklenmedi", err))
       .finally(() => setLoadingOptions(false));
@@ -94,13 +97,26 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     setSubmitting(true);
     try {
       const startTime = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
-      await api.post("/Reservation", {
+      const res = await api.post("/Reservation", {
         serviceId: selectedService.id,
         employeeId: selectedEmployee.id,
         branchId: selectedEmployee.branchId,
         reservationDate: selectedDate,
         startTime,
       });
+
+      if (paymentMethod === "LoyaltyPoints" && loyaltyBalance.points > 0) {
+        const discountAmount = Math.min(selectedService.price, loyaltyBalance.equivalentDiscount);
+        try {
+          await api.post("/Loyalty/redeem", {
+            salonId,
+            discountAmount,
+            reservationId: res.data.id,
+          });
+        } catch (redeemErr) {
+          console.error("Bal istifade edilerken xeta", redeemErr);
+        }
+      }
       alert("Rezervasiya ugurla tamamlandi!");
       onClose();
     } catch (err) {
@@ -343,6 +359,27 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                           </h4>
                         </div>
                       </div>
+                      <div className="border-t border-dashed border-gray-200 my-2"></div>
+                      <div>
+                        <span className="text-xs text-gray-400 block font-sans mb-2">ODENIS USULU</span>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod("Card")}
+                            className={"p-3 rounded-xl border-2 text-sm font-semibold transition " + (paymentMethod === "Card" ? "border-[#C9A227] bg-[#B8935A]/10 text-[#1A1714]" : "border-gray-200 text-gray-500")}
+                          >
+                            Kartla / Naqd
+                          </button>
+                          <button
+                            type="button"
+                            disabled={loyaltyBalance.points <= 0}
+                            onClick={() => setPaymentMethod("LoyaltyPoints")}
+                            className={"p-3 rounded-xl border-2 text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed " + (paymentMethod === "LoyaltyPoints" ? "border-[#C9A227] bg-[#B8935A]/10 text-[#1A1714]" : "border-gray-200 text-gray-500")}
+                          >
+                            Bal ile ({loyaltyBalance.equivalentDiscount} AZN movcud)
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     <div className="bg-[#1A1714] p-5 flex justify-between items-center">
                       <span className="text-sm font-sans tracking-wide text-gray-300">YEKUN ODENIS</span>
@@ -388,4 +425,6 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     </div>
   );
 }
+
+
 

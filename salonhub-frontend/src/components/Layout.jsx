@@ -113,7 +113,7 @@ export default function Layout({ children }) {
 
   const navItems = [
     { label: "Ana Sehife", icon: LayoutDashboard, path: "/dashboard" },
-    { label: "Loyalty", icon: Gift, path: "/loyalty", disabled: true },
+    { label: "Loyalty", icon: Gift, path: "/loyalty" },
     ...(role === "SalonAdmin" || role === "SuperAdmin"
       ? [{ label: "Admin Panel", icon: ShieldCheck, path: "/admin" }]
       : []),
@@ -254,6 +254,7 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
 
 
 

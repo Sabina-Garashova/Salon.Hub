@@ -1,4 +1,5 @@
 ﻿using SalonHub.Application.DTOs.Loyalty;
+using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
@@ -18,15 +19,17 @@ namespace SalonHub.Application.Services
     public class LoyaltyService : ILoyaltyService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
 
         private const int PointsPerCurrencyUnit = 1;
         private const int PointsRequiredPerDiscountUnit = 10;
         private const string BirthdayBonusDescription = "Ad günü hədiyyəsi 🎉";
         private const string ReferralBonusDescription = "Dəvət bonusu 🎁";
 
-        public LoyaltyService(IUnitOfWork unitOfWork)
+        public LoyaltyService(IUnitOfWork unitOfWork, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
         }
 
         public async Task<LoyaltyBalanceDto> GetBalanceAsync(string customerId, int salonId)
@@ -119,6 +122,21 @@ namespace SalonHub.Application.Services
 
             await _unitOfWork.LoyaltyTransactions.AddAsync(transaction);
             await _unitOfWork.CompleteAsync();
+
+            if (dto.ReservationId.HasValue)
+            {
+                var linkedReservation = await _unitOfWork.Reservations.GetByIdAsync(dto.ReservationId.Value);
+                if (linkedReservation != null && linkedReservation.CustomerId == customerId)
+                {
+                    linkedReservation.PaymentMethod = "LoyaltyPoints";
+                    linkedReservation.LoyaltyDiscountApplied = dto.DiscountAmount;
+                    _unitOfWork.Reservations.Update(linkedReservation);
+                    await _unitOfWork.CompleteAsync();
+
+                    await _notificationService.NotifyReservationChangedAsync(customerId, $"{dto.DiscountAmount} AZN meblegi bal ile odendi. Qalan bal: {account.Points}.");
+                    await _notificationService.NotifyEmployeeAsync(linkedReservation.EmployeeId, $"Musteri rezervasiyanin {dto.DiscountAmount} AZN hissesini bal ile odedi.");
+                }
+            }
 
             return new RedeemPointsResultDto
             {
@@ -220,4 +238,6 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 

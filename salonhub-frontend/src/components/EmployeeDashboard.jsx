@@ -131,6 +131,10 @@ export default function EmployeeDashboard() {
 
   const activeBookings = appointments.filter(app => app?.status === "Pending" || app?.status === "Confirmed").length;
 
+  const completedApps = appointments.filter((app) => app?.status === "Completed");
+  const cardRevenue = completedApps.filter((app) => app?.paymentMethod !== "LoyaltyPoints").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
+  const loyaltyRevenue = completedApps.filter((app) => app?.paymentMethod === "LoyaltyPoints").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
+
   return (
     <Layout>
     <div className="min-h-screen bg-[#FAF6F0] p-4 md:p-8 text-[#1A1714] font-sans -m-6">
@@ -162,6 +166,10 @@ export default function EmployeeDashboard() {
             <span className="text-xs text-gray-400 block font-semibold tracking-wider">ÜMUMİ GƏLİR</span>
             <span className="text-2xl font-serif font-bold text-emerald-600">{totalRevenue} AZN</span>
           </div>
+            <div className="flex items-center gap-2 mt-1.5 text-[10px]">
+              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Kartla: {cardRevenue} AZN</span>
+              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Bal ile: {loyaltyRevenue} AZN</span>
+            </div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -231,6 +239,9 @@ export default function EmployeeDashboard() {
                     <div className="text-left lg:text-right min-w-[100px]">
                       <span className="text-xs text-gray-400 block font-semibold tracking-wider">XİDMƏT HAQQI</span>
                       <span className="text-lg font-serif font-bold text-[#C9A227]">{app?.price || 0} AZN</span>
+                      <span className={"mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full " + (app?.paymentMethod === "LoyaltyPoints" ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-600")}>
+                        {app?.paymentMethod === "LoyaltyPoints" ? "Bal ile" : "Kartla"}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2">

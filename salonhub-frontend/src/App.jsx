@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import AdminPanel from "./pages/Admin/AdminPanel.jsx";
 import EmployeeDashboard from "./components/EmployeeDashboard.jsx";
 import SalonDetail from "./pages/SalonDetail.jsx";
+import LoyaltyPage from "./pages/LoyaltyPage.jsx";
 
 function App() {
   return (
@@ -19,12 +20,14 @@ function App() {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
         <Route path="/salon/:id" element={<SalonDetail />} />
+        <Route path="/loyalty" element={<LoyaltyPage />} />
               </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
 
 
 

@@ -22,6 +22,7 @@ namespace SalonHub.Application.Services
         public decimal Price { get; set; }
         public int DurationMinutes { get; set; }
         public string CustomerName { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = "Card";
     }
 
     public interface IReservationService
@@ -73,7 +74,8 @@ namespace SalonHub.Application.Services
                     ServiceName = service?.NameAz ?? "Xidmət",
                     Price = service?.Price ?? 0,
                     DurationMinutes = service?.DurationMinutes ?? 0,
-                    CustomerName = !string.IsNullOrEmpty(r.CustomerFullName) ? r.CustomerFullName : "Müştəri"
+                    CustomerName = !string.IsNullOrEmpty(r.CustomerFullName) ? r.CustomerFullName : "Musteri",
+                    PaymentMethod = r.PaymentMethod,
                 });
             }
 
@@ -116,6 +118,8 @@ namespace SalonHub.Application.Services
                     Id = r.Id,
                     CustomerFullName = r.CustomerFullName ?? string.Empty,
                     CustomerId = r.CustomerId,
+                    SalonId = r.SalonId,
+                    PaymentMethod = r.PaymentMethod,
                     EmployeeId = r.EmployeeId,
                     Price = service?.Price ?? 0,
                     ServiceName = service?.NameAz ?? string.Empty,
@@ -143,6 +147,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -240,6 +246,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service.NameAz,
@@ -365,6 +373,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service.NameAz,
@@ -398,6 +408,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -439,6 +451,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -476,6 +490,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -519,6 +535,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -559,6 +577,8 @@ namespace SalonHub.Application.Services
                 Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                 ServiceName = service?.NameAz ?? string.Empty,
@@ -725,6 +745,8 @@ namespace SalonHub.Application.Services
                     Id = reservation.Id,
                     CustomerFullName = reservation.CustomerFullName ?? string.Empty,
                     CustomerId = reservation.CustomerId,
+                    SalonId = reservation.SalonId,
+                    PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
                     Price = service?.Price ?? 0,
                     ServiceName = service?.NameAz ?? string.Empty,
