@@ -9,6 +9,7 @@
         public int BranchId { get; set; }
         public DateTime ReservationDate { get; set; }
         public TimeSpan StartTime { get; set; }
+        public string? PaymentMethod { get; set; }
     }
 
     public class ReservationReadDto

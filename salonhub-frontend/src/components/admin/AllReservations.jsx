@@ -289,9 +289,19 @@ export default function AllReservations({ reservations = [] }) {
                       {renderStatusBadge(res.status)}
                     </td>
                     <td className="py-4 px-6">
-                      <span className={"px-2.5 py-1 rounded-full text-[10px] font-bold " + (res.paymentMethod === "LoyaltyPoints" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-gray-100 text-gray-600 border border-gray-200")}>
-                        {res.paymentMethod === "LoyaltyPoints" ? "Bal ile" : "Kartla"}
-                      </span>
+                      {res.paymentMethod === "Cash" || res.paymentMethod === "Nağd" ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-300 shadow-sm flex items-center gap-1 w-fit">
+                          💵 Nağd
+                        </span>
+                      ) : res.paymentMethod === "LoyaltyPoints" ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1 w-fit">
+                          ⭐ Bal ilə
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1 w-fit">
+                          💳 Kartla
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -353,6 +363,7 @@ export default function AllReservations({ reservations = [] }) {
     </div>
   );
 }
+
 
 
 

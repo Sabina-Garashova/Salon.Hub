@@ -224,6 +224,7 @@ namespace SalonHub.Application.Services
             {
                 CustomerId = dto.CustomerId,
                 CustomerFullName = dto.CustomerFullName ?? string.Empty,
+                PaymentMethod = dto.PaymentMethod ?? "Card",
                 ServiceId = dto.ServiceId,
                 EmployeeId = dto.EmployeeId,
                 BranchId = dto.BranchId,
