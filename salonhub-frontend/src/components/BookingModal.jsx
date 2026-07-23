@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
-import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles } from "lucide-react";
+import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift } from "lucide-react";
 import api from "../services/api";
+import PaymentMethodSelector from "./PaymentMethodSelector";
 
 export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
   const [step, setStep] = useState(1);
@@ -18,6 +19,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("Card");
   const [loyaltyBalance, setLoyaltyBalance] = useState({ points: 0, equivalentDiscount: 0 });
+  const [remainderMethod, setRemainderMethod] = useState("Card");
 
   useEffect(() => {
     if (!isOpen || !salonId) return;
@@ -103,6 +105,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
         branchId: selectedEmployee.branchId,
         reservationDate: selectedDate,
         startTime,
+        paymentMethod: paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod,
       });
 
       if (paymentMethod === "LoyaltyPoints" && loyaltyBalance.points > 0) {
@@ -360,26 +363,14 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                         </div>
                       </div>
                       <div className="border-t border-dashed border-gray-200 my-2"></div>
-                      <div>
-                        <span className="text-xs text-gray-400 block font-sans mb-2">ODENIS USULU</span>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setPaymentMethod("Card")}
-                            className={"p-3 rounded-xl border-2 text-sm font-semibold transition " + (paymentMethod === "Card" ? "border-[#C9A227] bg-[#B8935A]/10 text-[#1A1714]" : "border-gray-200 text-gray-500")}
-                          >
-                            Kartla / Naqd
-                          </button>
-                          <button
-                            type="button"
-                            disabled={loyaltyBalance.points <= 0}
-                            onClick={() => setPaymentMethod("LoyaltyPoints")}
-                            className={"p-3 rounded-xl border-2 text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed " + (paymentMethod === "LoyaltyPoints" ? "border-[#C9A227] bg-[#B8935A]/10 text-[#1A1714]" : "border-gray-200 text-gray-500")}
-                          >
-                            Bal ile ({loyaltyBalance.equivalentDiscount} AZN movcud)
-                          </button>
-                        </div>
-                      </div>
+                      <PaymentMethodSelector
+                        paymentMethod={paymentMethod}
+                        setPaymentMethod={setPaymentMethod}
+                        loyaltyBalance={loyaltyBalance}
+                        selectedService={selectedService}
+                        remainderMethod={remainderMethod}
+                        setRemainderMethod={setRemainderMethod}
+                      />
                     </div>
                     <div className="bg-[#1A1714] p-5 flex justify-between items-center">
                       <span className="text-sm font-sans tracking-wide text-gray-300">YEKUN ODENIS</span>
@@ -425,6 +416,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     </div>
   );
 }
+
+
+
 
 
 

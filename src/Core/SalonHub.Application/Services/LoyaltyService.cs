@@ -128,7 +128,11 @@ namespace SalonHub.Application.Services
                 var linkedReservation = await _unitOfWork.Reservations.GetByIdAsync(dto.ReservationId.Value);
                 if (linkedReservation != null && linkedReservation.CustomerId == customerId)
                 {
-                    linkedReservation.PaymentMethod = "LoyaltyPoints";
+                    var linkedService = await _unitOfWork.Services.GetByIdAsync(linkedReservation.ServiceId);
+                    if (linkedService != null && dto.DiscountAmount >= linkedService.Price)
+                    {
+                        linkedReservation.PaymentMethod = "LoyaltyPoints";
+                    }
                     linkedReservation.LoyaltyDiscountApplied = dto.DiscountAmount;
                     _unitOfWork.Reservations.Update(linkedReservation);
                     await _unitOfWork.CompleteAsync();

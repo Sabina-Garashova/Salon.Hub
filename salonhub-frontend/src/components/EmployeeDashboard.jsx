@@ -240,7 +240,7 @@ export default function EmployeeDashboard() {
                       <span className="text-xs text-gray-400 block font-semibold tracking-wider">XİDMƏT HAQQI</span>
                       <span className="text-lg font-serif font-bold text-[#C9A227]">{app?.price || 0} AZN</span>
                       <span className={"mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full " + (app?.paymentMethod === "LoyaltyPoints" ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-600")}>
-                        {app?.paymentMethod === "LoyaltyPoints" ? "Bal ile" : "Kartla"}
+                        {app?.paymentMethod === "LoyaltyPoints" ? "Bal ile" : app?.paymentMethod === "Cash" ? "Naqd" : "Kartla"}
                       </span>
                     </div>
 

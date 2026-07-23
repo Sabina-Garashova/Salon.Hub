@@ -143,7 +143,8 @@ export default function Dashboard() {
       .catch((err) => console.error("Rezervasiyalar yuklenmedi", err));
   }, [role, employees]);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const nowForToday = new Date();
+  const todayStr = nowForToday.getFullYear() + "-" + String(nowForToday.getMonth() + 1).padStart(2, "0") + "-" + String(nowForToday.getDate()).padStart(2, "0");
   const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
 
   const statusLabel = (s) =>
@@ -399,7 +400,7 @@ export default function Dashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
-                      <th className="py-3 font-medium">Musteri</th>
+                      <th className="py-3 font-medium">{role === "Customer" ? "Usta" : "Musteri"}</th>
                       <th className="py-3 font-medium">Xidmet</th>
                       <th className="py-3 font-medium">Saat</th>
                       <th className="py-3 font-medium">Qiymet</th>
@@ -412,7 +413,7 @@ export default function Dashboard() {
                     ) : (
                     todaysAppointments.map((appt) => (
                       <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3.5 font-medium">{appt.customerFullName}</td>
+                        <td className="py-3.5 font-medium">{role === "Customer" ? appt.employeeName : appt.customerFullName}</td>
                         <td className="py-3.5 text-gray-500">
                           <span className="inline-flex items-center gap-1">
                             <Scissors className="w-3.5 h-3.5 text-gray-400" />
@@ -526,6 +527,9 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+
+
 
 
 
