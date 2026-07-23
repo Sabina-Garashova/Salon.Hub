@@ -134,7 +134,7 @@ export default function LoyaltyProgram({
                       <div className="p-1.5 bg-[#FAF6F0]/10 rounded-lg backdrop-blur-sm border border-[#F0D68A]/20">
                         <Award className="w-5 h-5 text-[#F0D68A]" />
                       </div>
-                      <span className="text-xs tracking-wider font-medium text-[#F0D68A] uppercase">VIP Club Card</span>
+                      <span className="text-xs tracking-wider font-medium text-[#F0D68A] uppercase">SalonHub Membership</span>
                     </div>
                     <div className="w-8 h-6 bg-gradient-to-r from-[#F0D68A]/30 to-[#B8935A]/40 rounded-md border border-[#F0D68A]/30 flex items-center justify-between px-1 opacity-80">
                       <CreditCard className="w-4 h-4 text-[#F0D68A]/40 mx-auto" />
@@ -351,4 +351,5 @@ export default function LoyaltyProgram({
     </div>
   );
 }
+
 

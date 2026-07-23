@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from "react";
 import Layout from "./Layout";
+import jsQR from "jsqr";
 
 function decodeToken(token) {
   try {
@@ -26,11 +27,12 @@ export default function EmployeeDashboard() {
   const [mySalonId, setMySalonId] = useState(null);
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [checkInResult, setCheckInResult] = useState(null);
 
-  const handleScanSubmit = async (e) => {
-    e.preventDefault();
+  const performCheckIn = async (code) => {
     if (!mySalonId) return;
     setScanning(true);
+    setCheckInResult(null);
     try {
       const token3 = localStorage.getItem("token");
       const res = await fetch("https://localhost:7289/api/CheckIn/scan", {
@@ -39,11 +41,11 @@ export default function EmployeeDashboard() {
           "Content-Type": "application/json",
           Authorization: token3 ? `Bearer ${token3}` : "",
         },
-        body: JSON.stringify({ checkInCode: qrCode, salonId: mySalonId }),
+        body: JSON.stringify({ checkInCode: code, salonId: mySalonId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.title || "Xeta kodu: " + res.status);
-      alert(data.message || "Muvaffaqiyyetli check-in!");
+      setCheckInResult(data.reservation || null);
       setQrCode("");
       fetchEmployeeAppointments();
     } catch (err) {
@@ -51,6 +53,37 @@ export default function EmployeeDashboard() {
     } finally {
       setScanning(false);
     }
+  };
+
+  const handleScanSubmit = async (e) => {
+    e.preventDefault();
+    await performCheckIn(qrCode);
+  };
+
+  const handleQrImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const result = jsQR(imageData.data, imageData.width, imageData.height);
+        if (result?.data) {
+          performCheckIn(result.data);
+        } else {
+          alert("QR kod tapilmadi, sekli aydin cekib yenidan yukleyin.");
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
   const resolveMyEmployeeId = async () => {
     const token = localStorage.getItem("token");
@@ -206,7 +239,18 @@ export default function EmployeeDashboard() {
           >
             {scanning ? "Yoxlanilir..." : "Check-in Et"}
           </button>
+        <label className="mt-3 inline-flex px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer items-center gap-1.5">
+          Sekil Yukle
+          <input type="file" accept="image/*" capture="environment" onChange={handleQrImageUpload} className="hidden" />
+        </label>
         </form>
+        {checkInResult && (
+          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Check-in ugurlu</p>
+            <p className="text-sm font-semibold text-[#1A1714]">{checkInResult.customerFullName || "Musteri"}</p>
+            <p className="text-xs text-gray-600 mt-0.5">{checkInResult.serviceName} - {checkInResult.reservationDate?.split("T")[0]} {checkInResult.startTime?.slice(0,5)}</p>
+          </div>
+        )}
       </div>
 
       <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -358,6 +402,7 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
 
 
 

@@ -22,6 +22,8 @@ function decodeToken(token) {
 export default function LoyaltyPage() {
   const navigate = useNavigate();
   const [balances, setBalances] = useState([]);
+  const [referralCode, setReferralCode] = useState("");
+  const [copied, setCopied] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedSalonId, setExpandedSalonId] = useState(null);
@@ -38,6 +40,11 @@ export default function LoyaltyPage() {
         );
         const results = await Promise.all(balancePromises);
         setBalances(results.map((r) => r.data));
+
+        try {
+          const refRes = await api.get("/Auth/my-referral-code");
+          setReferralCode(refRes.data.referralCode);
+        } catch {}
 
         const token = localStorage.getItem("token");
         const decoded = token ? decodeToken(token) : null;
@@ -92,6 +99,28 @@ export default function LoyaltyPage() {
           onBookNow={() => navigate("/dashboard")}
           reservations={reservations}
         />
+
+        {referralCode && (
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
+            <div className="bg-gradient-to-r from-[#1A1714] to-[#2D2622] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#B8935A]/20">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-[#B8935A] font-semibold mb-1">Sexsi Devet Kodunuz</p>
+                <p className="text-2xl font-serif font-bold text-[#F0D68A] tracking-wider">{referralCode}</p>
+                <p className="text-xs text-gray-400 mt-1">Bu kodu dostlariniza paylasin, her ikiniz bonus bal qazanin!</p>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(referralCode);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="px-5 py-2.5 bg-[#C9A227] text-[#1A1714] rounded-xl text-sm font-bold hover:bg-[#F0D68A] transition whitespace-nowrap"
+              >
+                {copied ? "Kopyalandi!" : "Kopyala"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

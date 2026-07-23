@@ -60,22 +60,28 @@ export default function Dashboard() {
   const [qrModalAppt, setQrModalAppt] = useState(null);
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [checkInResult, setCheckInResult] = useState(null);
 
-  const handleScanSubmit = async (e) => {
-    e.preventDefault();
+  const performCheckIn = async (code) => {
     const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
     const myEmployee = employees.find((emp) => emp.applicationUserId === userId);
     if (!myEmployee?.salonId) return;
     setScanning(true);
+    setCheckInResult(null);
     try {
-      const resp = await api.post("/CheckIn/scan", { checkInCode: qrCode, salonId: myEmployee.salonId });
-      alert(resp.data.message || "Muvaffaqiyyetli check-in!");
+      const resp = await api.post("/CheckIn/scan", { checkInCode: code, salonId: myEmployee.salonId });
+      setCheckInResult(resp.data.reservation || null);
       setQrCode("");
     } catch (err) {
       alert(err.response?.data?.message || "Xeta bas verdi");
     } finally {
       setScanning(false);
     }
+  };
+
+  const handleScanSubmit = async (e) => {
+    e.preventDefault();
+    await performCheckIn(qrCode);
   };
 
   const handleQrImageUpload = (e) => {
@@ -93,7 +99,7 @@ export default function Dashboard() {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const result = jsQR(imageData.data, imageData.width, imageData.height);
         if (result?.data) {
-          setQrCode(result.data);
+          performCheckIn(result.data);
         } else {
           alert("QR kod tapilmadi, sekli aydin cekib yenidan yukleyin.");
         }
@@ -334,9 +340,16 @@ export default function Dashboard() {
                 </button>
                 <label className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer flex items-center gap-1.5">
                   Sekil Yukle
-                  <input type="file" accept="image/*" onChange={handleQrImageUpload} className="hidden" />
+                  <input type="file" accept="image/*" capture="environment" onChange={handleQrImageUpload} className="hidden" />
                 </label>
               </form>
+              {checkInResult && (
+                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Check-in ugurlu</p>
+                  <p className="text-sm font-semibold text-[#1A1714]">{checkInResult.customerFullName || "Musteri"}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{checkInResult.serviceName} - {checkInResult.reservationDate?.split("T")[0]} {checkInResult.startTime?.slice(0,5)}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -634,6 +647,7 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
 
 
 
