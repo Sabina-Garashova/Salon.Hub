@@ -23,6 +23,35 @@ export default function EmployeeDashboard() {
   const [actionLoading, setActionLoading] = useState(null);
   const [myEmployeeId, setMyEmployeeId] = useState(null);
 
+  const [mySalonId, setMySalonId] = useState(null);
+  const [qrCode, setQrCode] = useState("");
+  const [scanning, setScanning] = useState(false);
+
+  const handleScanSubmit = async (e) => {
+    e.preventDefault();
+    if (!mySalonId) return;
+    setScanning(true);
+    try {
+      const token3 = localStorage.getItem("token");
+      const res = await fetch("https://localhost:7289/api/CheckIn/scan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token3 ? `Bearer ${token3}` : "",
+        },
+        body: JSON.stringify({ checkInCode: qrCode, salonId: mySalonId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.title || "Xeta kodu: " + res.status);
+      alert(data.message || "Muvaffaqiyyetli check-in!");
+      setQrCode("");
+      fetchEmployeeAppointments();
+    } catch (err) {
+      alert(err.message || "Xeta bas verdi");
+    } finally {
+      setScanning(false);
+    }
+  };
   const resolveMyEmployeeId = async () => {
     const token = localStorage.getItem("token");
     const decoded = token ? decodeToken(token) : null;
@@ -47,6 +76,14 @@ export default function EmployeeDashboard() {
         return;
       }
       setMyEmployeeId(employeeId);
+
+      const token2 = localStorage.getItem("token");
+      const empRes2 = await fetch("https://localhost:7289/api/Employee", {
+        headers: { Authorization: token2 ? `Bearer ${token2}` : "" },
+      });
+      const allEmps = await empRes2.json();
+      const meFull = allEmps.find((e) => e.id === employeeId);
+      if (meFull?.salonId) setMySalonId(meFull.salonId);
 
       const token = localStorage.getItem("token");
       const response = await fetch(`https://localhost:7289/api/Reservation/employee?employeeId=${employeeId}`, {
@@ -149,6 +186,27 @@ export default function EmployeeDashboard() {
         >
           🔄 Yenilə
         </button>
+      </div>
+
+      <div className="max-w-5xl mx-auto mb-8 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">QR Check-in</h3>
+        <form onSubmit={handleScanSubmit} className="flex gap-3">
+          <input
+            type="text"
+            required
+            value={qrCode}
+            onChange={(e) => setQrCode(e.target.value)}
+            placeholder="Musterinin QR kodunu daxil edin ve ya yapisdirin"
+            className="flex-1 p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+          />
+          <button
+            type="submit"
+            disabled={scanning}
+            className="px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+          >
+            {scanning ? "Yoxlanilir..." : "Check-in Et"}
+          </button>
+        </form>
       </div>
 
       <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -300,6 +358,7 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
 
 
 

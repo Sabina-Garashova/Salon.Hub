@@ -14,6 +14,8 @@
 
     public class ReservationReadDto
     {
+        public string CheckInCode { get; set; } = string.Empty;
+        public bool IsCheckedIn { get; set; }
         public int SalonId { get; set; }
         public string PaymentMethod { get; set; } = "Card";
         public string CustomerId { get; set; } = string.Empty;

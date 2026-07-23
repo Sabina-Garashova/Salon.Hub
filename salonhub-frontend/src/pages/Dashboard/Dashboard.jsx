@@ -21,6 +21,7 @@ import Layout from "../../components/Layout";
 import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
 import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
+import jsQR from "jsqr";
 
 function decodeToken(token) {
   try {
@@ -56,6 +57,52 @@ export default function Dashboard() {
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [bookingSalon, setBookingSalon] = useState(null);
+  const [qrModalAppt, setQrModalAppt] = useState(null);
+  const [qrCode, setQrCode] = useState("");
+  const [scanning, setScanning] = useState(false);
+
+  const handleScanSubmit = async (e) => {
+    e.preventDefault();
+    const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
+    const myEmployee = employees.find((emp) => emp.applicationUserId === userId);
+    if (!myEmployee?.salonId) return;
+    setScanning(true);
+    try {
+      const resp = await api.post("/CheckIn/scan", { checkInCode: qrCode, salonId: myEmployee.salonId });
+      alert(resp.data.message || "Muvaffaqiyyetli check-in!");
+      setQrCode("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleQrImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const result = jsQR(imageData.data, imageData.width, imageData.height);
+        if (result?.data) {
+          setQrCode(result.data);
+        } else {
+          alert("QR kod tapilmadi, sekli aydin cekib yenidan yukleyin.");
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
   const handleSubmitReview = async (e) => {
     e.preventDefault();
@@ -126,6 +173,7 @@ export default function Dashboard() {
   const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
 
   const [allReservations, setAllReservations] = useState([]);
+  const [globalReservations, setGlobalReservations] = useState([]);
 
   useEffect(() => {
     const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
@@ -139,6 +187,7 @@ export default function Dashboard() {
           list = list.filter((r) => r.employeeId && employees.some((e) => e.id === r.employeeId && e.applicationUserId === userId));
         }
         setAllReservations(list);
+        setGlobalReservations(res.data);
       })
       .catch((err) => console.error("Rezervasiyalar yuklenmedi", err));
   }, [role, employees]);
@@ -151,7 +200,7 @@ export default function Dashboard() {
     s === "Confirmed" ? "Tesdiqlenib" : s === "Completed" ? "Tamamlanib" : s === "Cancelled" ? "Legv edilib" : "Gozlenilir";
 
   const serviceStats = (() => {
-    const completed = allReservations.filter((r) => r.status === "Completed");
+    const completed = globalReservations.filter((r) => r.status === "Completed");
     const counts = {};
     completed.forEach((r) => {
       counts[r.serviceName] = (counts[r.serviceName] || 0) + 1;
@@ -263,6 +312,33 @@ export default function Dashboard() {
               );
             })}
           </div>
+
+          {role === "Employee" && (
+            <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">QR Check-in</h3>
+              <form onSubmit={handleScanSubmit} className="flex gap-3">
+                <input
+                  type="text"
+                  required
+                  value={qrCode}
+                  onChange={(e) => setQrCode(e.target.value)}
+                  placeholder="Musterinin QR kodunu daxil edin"
+                  className="flex-1 p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                />
+                <button
+                  type="submit"
+                  disabled={scanning}
+                  className="px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                >
+                  {scanning ? "Yoxlanilir..." : "Check-in Et"}
+                </button>
+                <label className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer flex items-center gap-1.5">
+                  Sekil Yukle
+                  <input type="file" accept="image/*" onChange={handleQrImageUpload} className="hidden" />
+                </label>
+              </form>
+            </div>
+          )}
 
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -400,11 +476,13 @@ export default function Dashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
-                      <th className="py-3 font-medium">{role === "Customer" ? "Usta" : "Musteri"}</th>
+                      {role !== "Customer" && <th className="py-3 font-medium">Musteri</th>}
+                      {role !== "Employee" && <th className="py-3 font-medium">Usta</th>}
                       <th className="py-3 font-medium">Xidmet</th>
                       <th className="py-3 font-medium">Saat</th>
                       <th className="py-3 font-medium">Qiymet</th>
                       <th className="py-3 font-medium text-right">Status</th>
+                      {role === "Customer" && <th className="py-3 font-medium text-right">QR</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-[#1A1714]">
@@ -413,7 +491,8 @@ export default function Dashboard() {
                     ) : (
                     todaysAppointments.map((appt) => (
                       <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3.5 font-medium">{role === "Customer" ? appt.employeeName : appt.customerFullName}</td>
+                        {role !== "Customer" && <td className="py-3.5 font-medium">{appt.customerFullName || "Musteri"}</td>}
+                        {role !== "Employee" && <td className="py-3.5 text-gray-600">{appt.employeeName}</td>}
                         <td className="py-3.5 text-gray-500">
                           <span className="inline-flex items-center gap-1">
                             <Scissors className="w-3.5 h-3.5 text-gray-400" />
@@ -435,6 +514,16 @@ export default function Dashboard() {
                             {statusLabel(appt.status)}
                           </span>
                         </td>
+                        {role === "Customer" && (
+                          <td className="py-3.5 text-right">
+                            <button
+                              onClick={() => setQrModalAppt(appt)}
+                              className="text-[10px] font-bold text-[#C9A227] hover:text-[#B8935A] border border-[#C9A227]/30 rounded-lg px-2 py-1"
+                            >
+                              QR
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                     )}
@@ -446,7 +535,7 @@ export default function Dashboard() {
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 space-y-4">
               <div className="border-b border-gray-100 pb-3">
                 <h3 className="text-lg font-serif font-bold text-[#1A1714]">En Cox Satilanlar</h3>
-                <p className="text-xs text-gray-400">Bu ay en cox teleb olunan xidmetler.</p>
+                <p className="text-xs text-gray-400">Umumi neticelere gore en cox teleb olunan xidmetler.</p>
               </div>
 
               <div className="space-y-4 pt-1">
@@ -524,9 +613,32 @@ export default function Dashboard() {
           salonName={bookingSalon.name}
         />
       )}
+
+      {qrModalAppt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 text-center">
+            <img
+              src={"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrModalAppt.checkInCode)}
+              alt="QR Kod"
+              className="mx-auto rounded-xl border border-gray-100"
+            />
+            <button
+              onClick={() => setQrModalAppt(null)}
+              className="mt-4 w-full py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600"
+            >
+              Bagla
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
+
+
+
+
+
 
 
 

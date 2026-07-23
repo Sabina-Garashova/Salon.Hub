@@ -18,7 +18,8 @@ const DashboardOverview = ({
   uniqueServiceCount = 0,
   salonCount = 0,
   recentApplications = [],
-  topServices = []
+  topServices = [],
+  todaysAppointments = []
 }) => {
 
   const currentDate = useMemo(() => {
@@ -125,6 +126,44 @@ const DashboardOverview = ({
         </div>
       </section>
 
+      <section className="mb-8 bg-white p-7 rounded-3xl shadow-xl shadow-[#1A1714]/5 border border-gray-100">
+        <h2 className="font-serif text-2xl font-bold text-[#1A1714] mb-5">Bugunku Gorusler</h2>
+        {todaysAppointments.length === 0 ? (
+          <div className="text-center py-10 bg-[#FAF6F0] rounded-xl border border-dashed border-[#B8935A]/30">
+            <p className="text-[#1A1714]/60 text-sm font-medium">Bu gun ucun rezervasiya yoxdur.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100">
+                  <th className="py-3 font-medium">Musteri</th>
+                  <th className="py-3 font-medium">Usta</th>
+                  <th className="py-3 font-medium">Xidmet</th>
+                  <th className="py-3 font-medium">Saat</th>
+                  <th className="py-3 font-medium">Qiymet</th>
+                  <th className="py-3 font-medium text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {todaysAppointments.map((appt) => (
+                  <tr key={appt.id} className="hover:bg-[#FAF6F0]/40 transition">
+                    <td className="py-3.5 font-medium text-[#1A1714]">{appt.customerFullName || "Musteri"}</td>
+                    <td className="py-3.5 text-gray-600">{appt.employeeName}</td>
+                    <td className="py-3.5 text-gray-600">{appt.serviceName}</td>
+                    <td className="py-3.5 font-mono text-gray-500">{appt.startTime?.slice(0,5)}</td>
+                    <td className="py-3.5 font-bold text-[#1A1714]">{appt.price} AZN</td>
+                    <td className="py-3.5 text-right">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#FAF6F0] text-[#B8935A]">{appt.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <section className="lg:col-span-2 bg-white p-7 rounded-3xl shadow-xl shadow-[#1A1714]/5 border border-gray-100">
@@ -135,7 +174,7 @@ const DashboardOverview = ({
               </div>
               <h2 className="font-serif text-2xl font-bold text-[#1A1714]">Top Xidmetler</h2>
             </div>
-            <span className="text-xs font-medium text-[#FAF6F0] bg-[#3D3831] px-3 py-1 rounded-full uppercase tracking-wider">Bu Ay</span>
+            <span className="text-xs font-medium text-[#FAF6F0] bg-[#3D3831] px-3 py-1 rounded-full uppercase tracking-wider">Umumi</span>
           </div>
           
           {topServices && topServices.length > 0 ? (
@@ -209,3 +248,5 @@ const DashboardOverview = ({
 };
 
 export default DashboardOverview;
+
+

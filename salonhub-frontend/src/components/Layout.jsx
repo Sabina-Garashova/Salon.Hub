@@ -141,7 +141,7 @@ export default function Layout({ children }) {
                 const active = location.pathname === item.path;
                 return (
                   <button
-                    key={item.path}
+                    key={item.label}
                     disabled={item.disabled}
                     onClick={() => !item.disabled && navigate(item.path, item.state ? { state: item.state } : undefined)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
@@ -254,6 +254,7 @@ export default function Layout({ children }) {
     </div>
   );
 }
+
 
 
 

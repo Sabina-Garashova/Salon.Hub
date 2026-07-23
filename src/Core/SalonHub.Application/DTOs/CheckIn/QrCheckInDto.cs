@@ -1,4 +1,4 @@
-﻿namespace SalonHub.Application.DTOs.Loyalty
+﻿namespace SalonHub.Application.DTOs.CheckIn
 {
     public class QrCheckInDto
     {

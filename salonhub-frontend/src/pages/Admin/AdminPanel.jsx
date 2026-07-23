@@ -382,6 +382,9 @@ export default function AdminPanel() {
                   serviceCounts[r.serviceName].count++;
                 });
                 const topServices = Object.values(serviceCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+                const nowForToday = new Date();
+                const todayStr = nowForToday.getFullYear() + "-" + String(nowForToday.getMonth() + 1).padStart(2, "0") + "-" + String(nowForToday.getDate()).padStart(2, "0");
+                const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
                 const adminName = decoded?.name || decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Admin";
                 const salonName = isSuperAdmin ? "Butun Salonlar" : (salons[0]?.name || "Salon");
                 return (
@@ -394,6 +397,7 @@ export default function AdminPanel() {
                     salonCount={salons.length}
                     recentApplications={recentApplications}
                     topServices={topServices}
+                    todaysAppointments={todaysAppointments}
                   />
                 );
               })()}
@@ -614,6 +618,7 @@ export default function AdminPanel() {
     </div>
   );
 }
+
 
 
 

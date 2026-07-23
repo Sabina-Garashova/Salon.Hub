@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SalonHub.Application.DTOs.Loyalty;
+using SalonHub.Application.DTOs.CheckIn;
 using SalonHub.Application.Services;
 
 namespace SalonHub.Api.Controllers
@@ -25,3 +25,4 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
