@@ -70,7 +70,7 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpPost("{id}/respond")]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Respond(int id, ReviewResponseDto dto)
         {
             var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -80,3 +80,8 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+
+
+
+

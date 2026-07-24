@@ -32,6 +32,7 @@ export default function SalonDetail() {
   const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canReview, setCanReview] = useState(false);
+  const [reviewableEmployees, setReviewableEmployees] = useState([]);
   const [showBooking, setShowBooking] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
 
@@ -63,10 +64,13 @@ export default function SalonDetail() {
             const userId =
               decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
               decoded?.sub;
-            const hasCompleted = resvRes.data.some(
-              (r) => r.customerId === userId && r.status === "Completed"
+            const myCompleted = resvRes.data.filter(
+              (r) => r.customerId === userId && r.status === "Completed" && r.salonId === salonId
             );
-            setCanReview(hasCompleted);
+            setCanReview(myCompleted.length > 0);
+            const uniqueEmployeeIds = [...new Set(myCompleted.map((r) => r.employeeId))];
+            const myEmployees = empRes.data.filter((e) => uniqueEmployeeIds.includes(e.id));
+            setReviewableEmployees(myEmployees);
           });
         }
       })
@@ -133,3 +137,10 @@ export default function SalonDetail() {
 
   return token ? <Layout>{content}</Layout> : content;
 }
+
+
+
+
+
+
+

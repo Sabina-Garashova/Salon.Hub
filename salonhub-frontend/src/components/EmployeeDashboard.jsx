@@ -1,6 +1,8 @@
 ﻿import { useState, useEffect } from "react";
 import Layout from "./Layout";
 import jsQR from "jsqr";
+import ReviewsManagement from "./admin/ReviewsManagement";
+import api from "../services/api";
 
 function decodeToken(token) {
   try {
@@ -28,6 +30,12 @@ export default function EmployeeDashboard() {
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [checkInResult, setCheckInResult] = useState(null);
+  const [reviews, setReviews] = useState([]);
+
+  const handleRespondReview = async (id, response) => {
+    await api.post(`/Review/${id}/respond`, { response });
+    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response } : r)));
+  };
 
   const performCheckIn = async (code) => {
     if (!mySalonId) return;
@@ -117,6 +125,11 @@ export default function EmployeeDashboard() {
       const allEmps = await empRes2.json();
       const meFull = allEmps.find((e) => e.id === employeeId);
       if (meFull?.salonId) setMySalonId(meFull.salonId);
+
+      try {
+        const revRes = await api.get("/Review");
+        setReviews(revRes.data.filter((r) => r.employeeId === employeeId));
+      } catch {}
 
       const token = localStorage.getItem("token");
       const response = await fetch(`https://localhost:7289/api/Reservation/employee?employeeId=${employeeId}`, {
@@ -251,6 +264,10 @@ export default function EmployeeDashboard() {
             <p className="text-xs text-gray-600 mt-0.5">{checkInResult.serviceName} - {checkInResult.reservationDate?.split("T")[0]} {checkInResult.startTime?.slice(0,5)}</p>
           </div>
         )}
+      </div>
+
+      <div className="max-w-5xl mx-auto mb-8">
+        <ReviewsManagement reviews={reviews} onRespond={handleRespondReview} />
       </div>
 
       <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
@@ -402,6 +419,7 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
 
 
 

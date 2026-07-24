@@ -91,14 +91,16 @@ export default function SalonProfile({
   onBack,
   onBook,
   onSubmitReview,
+  reviewableEmployees = [],
 }) {
   const [reviewRating, setReviewRating] = useState(5);
+  const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewComment, setReviewComment] = useState("");
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
     if (!reviewComment.trim()) return;
-    onSubmitReview?.({ rating: reviewRating, comment: reviewComment.trim() });
+    onSubmitReview?.({ rating: reviewRating, comment: reviewComment.trim(), employeeId: reviewEmployeeId ? Number(reviewEmployeeId) : null });
   };
 
   const bannerUrl = salon?.bannerImageUrl || salon?.imageUrl || "/craftsman-modal-bg.png";
@@ -296,6 +298,7 @@ export default function SalonProfile({
                             </span>
                             <StarRating rating={review.rating} size="sm" />
                           </div>
+                          {review.employeeFullName && (<p className="text-xs text-[#B8935A] font-medium mb-1">Usta: {review.employeeFullName}</p>)}
                           <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
                           {review.response && (
                             <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
@@ -329,6 +332,21 @@ export default function SalonProfile({
                           onChange={setReviewRating}
                         />
                       </div>
+                      {reviewableEmployees.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Hansi usta ile isledin? (Konullu)</p>
+                          <select
+                            value={reviewEmployeeId}
+                            onChange={(e) => setReviewEmployeeId(e.target.value)}
+                            className="w-full p-3 bg-[#FAF6F0] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 transition"
+                          >
+                            <option value="">Sadece salona rey ver</option>
+                            {reviewableEmployees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>{emp.fullName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <textarea
                         rows={4}
                         required
@@ -360,5 +378,9 @@ export default function SalonProfile({
     </div>
   );
 }
+
+
+
+
 
 

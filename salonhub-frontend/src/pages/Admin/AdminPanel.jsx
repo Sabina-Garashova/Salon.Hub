@@ -10,6 +10,8 @@ import api from "../../services/api";
 import ServicesManagement from "../../components/admin/ServicesManagement";
 import DashboardOverview from "../../components/admin/DashboardOverview";
 import AllReservations from "../../components/admin/AllReservations";
+import ReviewsManagement from "../../components/admin/ReviewsManagement";
+import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
 function decodeToken(token) {
@@ -47,6 +49,7 @@ export default function AdminPanel() {
   const [categories, setCategories] = useState([]);
   const [salons, setSalons] = useState([]);
   const [allReservations, setAllReservations] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,6 +64,8 @@ export default function AdminPanel() {
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Reviews", name: "Reyler", icon: Star },
+    { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
   ];
 
   const superAdminTabs = [
@@ -71,6 +76,8 @@ export default function AdminPanel() {
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Reviews", name: "Reyler", icon: Star },
+    { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -100,6 +107,10 @@ export default function AdminPanel() {
         if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
           const salonRes = await api.get("/salon");
           setSalons(salonRes.data);
+        }
+        if (activeTab === "Reviews") {
+          const revRes = await api.get("/Review");
+          setReviews(revRes.data);
         }
         if (activeTab === "AllReservations" || activeTab === "Dashboard") {
           const resvRes = await api.get("/Reservation");
@@ -200,6 +211,11 @@ export default function AdminPanel() {
     setCategories(categories.filter((c) => c.id !== id));
   };
 
+
+  const handleRespondReview = async (id, response) => {
+    await api.post(`/Review/${id}/respond`, { response });
+    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response, respondedAt: new Date().toISOString() } : r)));
+  };
   const handleMoveServiceCategory = async (serviceIds, newCategoryId) => {
     const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds];
     await Promise.all(
@@ -542,6 +558,18 @@ export default function AdminPanel() {
                 />
               )}
 
+              {activeTab === "Reviews" && (
+                <ReviewsManagement
+                  reviews={reviews}
+                  onRespond={handleRespondReview}
+                  showSalonName={isSuperAdmin}
+                />
+              )}
+
+              {activeTab === "SystemJobs" && isSuperAdmin && (
+                <SystemJobsPanel />
+              )}
+
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
@@ -618,6 +646,8 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
 
 
 

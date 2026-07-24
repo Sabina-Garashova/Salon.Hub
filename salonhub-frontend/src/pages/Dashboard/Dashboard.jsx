@@ -585,6 +585,19 @@ export default function Dashboard() {
             </div>
             <form onSubmit={handleSubmitReview} className="p-6 space-y-4">
               <div>
+              <div>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Hansi usta ile isledin? (Konullu)</label>
+                <select
+                  value={reviewEmployeeId}
+                  onChange={(e) => setReviewEmployeeId(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                >
+                  <option value="">Sadece salona rey ver</option>
+                  {employees.filter((e) => e.salonId === reviewModalSalon?.id).map((e) => (
+                    <option key={e.id} value={e.id}>{e.fullName}</option>
+                  ))}
+                </select>
+              </div>
                 <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reytinq</label>
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -647,6 +660,7 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
 
 
 
