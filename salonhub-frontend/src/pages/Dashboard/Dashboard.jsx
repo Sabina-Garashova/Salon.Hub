@@ -170,16 +170,22 @@ export default function Dashboard() {
 
 
 
-  const allStats = [
-    { id: 1, name: "UMUMI QAZANC", value: "1,450.00 AZN", change: "+12.5%", icon: DollarSign, color: "#C9A227", adminOnly: true },
-    { id: 2, name: "AKTIV GORUSLER", value: "24 Seans", change: "+4.3%", icon: Calendar, color: "#B8935A" },
-    { id: 3, name: "MUSTERILER", value: "182 Nefer", change: "+18.2%", icon: Users, color: "#1A1714" },
-    { id: 4, name: "SALON REYTINQI", value: "4.9 / 5.0", change: "Mukemmel", icon: Star, color: "#C9A227" },
-  ];
-  const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
 
   const [allReservations, setAllReservations] = useState([]);
   const [globalReservations, setGlobalReservations] = useState([]);
+  const activeSessionsCount = globalReservations.filter((r) => r.status === "Pending" || r.status === "Confirmed").length;
+  const uniqueCustomersCount = new Set(globalReservations.map((r) => r.customerId)).size;
+  const avgSalonRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
+  const totalRevenue = globalReservations.filter((r) => r.status === "Completed").reduce((sum, r) => sum + (r.price || 0), 0);
+
+  const allStats = [
+    { id: 1, name: "UMUMI QAZANC", value: totalRevenue.toFixed(2) + " AZN", change: "Tamamlanmis", icon: DollarSign, color: "#C9A227", adminOnly: true },
+    { id: 2, name: "AKTIV GORUSLER", value: activeSessionsCount + " Seans", change: "Indiki veziyyet", icon: Calendar, color: "#B8935A" },
+    { id: 3, name: "MUSTERILER", value: uniqueCustomersCount + " Nefer", change: "Umumi", icon: Users, color: "#1A1714" },
+    { id: 4, name: "SALON REYTINQI", value: avgSalonRating + " / 5.0", change: reviews.length + " rey", icon: Star, color: "#C9A227" },
+    { id: 5, name: "USTALAR", value: employees.length + " Nefer", change: "Umumi", icon: Scissors, color: "#B8935A" },
+  ];
+  const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
 
   useEffect(() => {
     const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
@@ -660,6 +666,8 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+
 
 
 

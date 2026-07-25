@@ -11,6 +11,7 @@ import ServicesManagement from "../../components/admin/ServicesManagement";
 import DashboardOverview from "../../components/admin/DashboardOverview";
 import AllReservations from "../../components/admin/AllReservations";
 import ReviewsManagement from "../../components/admin/ReviewsManagement";
+import AnalyticsPage from "../../components/admin/AnalyticsPage";
 import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
@@ -66,6 +67,7 @@ export default function AdminPanel() {
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
+    { id: "Analytics", name: "Analitika", icon: TrendingUp },
   ];
 
   const superAdminTabs = [
@@ -78,6 +80,7 @@ export default function AdminPanel() {
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
+    { id: "Analytics", name: "Analitika", icon: TrendingUp },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -108,7 +111,7 @@ export default function AdminPanel() {
           const salonRes = await api.get("/salon");
           setSalons(salonRes.data);
         }
-        if (activeTab === "Reviews") {
+        if (activeTab === "Reviews" || activeTab === "Dashboard") {
           const revRes = await api.get("/Review");
           setReviews(revRes.data);
         }
@@ -385,6 +388,7 @@ export default function AdminPanel() {
             <>
               {activeTab === "Dashboard" && (() => {
                 const uniqueServiceCount = new Set(services.map((s) => s.name)).size;
+                const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
                 const recentApplications = applications.slice(0, 5).map((a) => ({
                   id: a.id,
                   name: a.applicantFullName,
@@ -410,6 +414,7 @@ export default function AdminPanel() {
                     pendingApplicationsCount={applications.length}
                     employeeCount={employees.length}
                     uniqueServiceCount={uniqueServiceCount}
+                    avgRating={avgRating}
                     salonCount={salons.length}
                     recentApplications={recentApplications}
                     topServices={topServices}
@@ -570,6 +575,10 @@ export default function AdminPanel() {
                 <SystemJobsPanel />
               )}
 
+              {activeTab === "Analytics" && isSuperAdmin && (
+                <AnalyticsPage />
+              )}
+
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
@@ -646,6 +655,7 @@ export default function AdminPanel() {
     </div>
   );
 }
+
 
 
 

@@ -14,12 +14,12 @@ namespace SalonHub.Application.Services
     public class AnalyticsService : IAnalyticsService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IUserLookupService _userLookupService;
 
-        public AnalyticsService(IUnitOfWork unitOfWork, IServiceProvider serviceProvider)
+        public AnalyticsService(IUnitOfWork unitOfWork, IUserLookupService userLookupService)
         {
             _unitOfWork = unitOfWork;
-            _serviceProvider = serviceProvider;
+            _userLookupService = userLookupService;
         }
 
         public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(string? salonId = null)
@@ -82,29 +82,7 @@ namespace SalonHub.Application.Services
             decimal growth = 0;
             if (previousMonthRevenue > 0) growth = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
 
-            int newCustomersThisMonth = 0;
-            try
-            {
-                dynamic? provider = _serviceProvider;
-                var userManagerType = Type.GetType("Microsoft.AspNetCore.Identity.UserManager`1, Microsoft.AspNetCore.Identity");
-                var userType = Type.GetType("SalonHub.Persistence.Identity.ApplicationUser, SalonHub.Persistence") 
-                               ?? Type.GetType("SalonHub.Persistence.Identity.ApplicationUser, SalonHub.Infrastructure");
-                
-                if (userManagerType != null && userType != null)
-                {
-                    var genericManagerType = userManagerType.MakeGenericType(userType);
-                    dynamic? mgr = provider?.GetService(genericManagerType);
-                    if (mgr != null)
-                    {
-                        var users = await mgr.GetUsersInRoleAsync("Customer");
-                        foreach (dynamic u in users)
-                        {
-                            if (u.CreatedAt.Month == now.Month && u.CreatedAt.Year == now.Year) newCustomersThisMonth++;
-                        }
-                    }
-                }
-            }
-            catch { }
+            int newCustomersThisMonth = await _userLookupService.GetNewCustomersCountInMonthAsync(now.Month, now.Year);
 
             return new DashboardSummaryDto
             {
@@ -209,7 +187,7 @@ namespace SalonHub.Application.Services
                 Rejected = filtered.Count(x => x.Status == ReservationStatus.Rejected || x.Status.ToString().Equals("Rejected", StringComparison.OrdinalIgnoreCase)),
                 CompletionRatePercent = total > 0 ? Math.Round((double)completed / total * 100, 2) : 0,
                 CancellationRatePercent = total > 0 ? Math.Round((double)cancelled / total * 100, 2) : 0,
-                PeakHours = filtered.GroupBy(x => x.ReservationDate.Hour).Select(g => new HourlyLoadDto { Hour = g.Key, ReservationCount = g.Count() }).OrderBy(x => x.Hour).ToList(),
+                PeakHours = filtered.GroupBy(x => x.StartTime.Hours).Select(g => new HourlyLoadDto { Hour = g.Key, ReservationCount = g.Count() }).OrderBy(x => x.Hour).ToList(),
                 LoadByWeekday = filtered.GroupBy(x => x.ReservationDate.DayOfWeek).Select(g => new WeekdayLoadDto { Weekday = g.Key, ReservationCount = g.Count() }).OrderBy(x => (int)x.Weekday).ToList()
             };
         }
@@ -263,32 +241,13 @@ namespace SalonHub.Application.Services
             var customerIdsInRange = inRange.Select(x => x.CustomerId.ToString()).Distinct().ToList();
 
             var topCustomers = new List<TopCustomerDto>();
-            dynamic? mgr = null;
-            try
-            {
-                dynamic? provider = _serviceProvider;
-                var userManagerType = Type.GetType("Microsoft.AspNetCore.Identity.UserManager`1, Microsoft.AspNetCore.Identity");
-                var userType = Type.GetType("SalonHub.Persistence.Identity.ApplicationUser, SalonHub.Persistence") ?? Type.GetType("SalonHub.Persistence.Identity.ApplicationUser, SalonHub.Infrastructure");
-                if (userManagerType != null && userType != null) mgr = provider?.GetService(userManagerType.MakeGenericType(userType));
-            }
-            catch { }
-
             foreach (var customerId in customerIdsInRange)
             {
                 var customerReservations = inRange.Where(x => x.CustomerId.ToString().Equals(customerId, StringComparison.OrdinalIgnoreCase)).ToList();
                 var totalSpent = customerReservations.Where(x => x.Status == ReservationStatus.Completed || x.Status.ToString().Equals("Completed", StringComparison.OrdinalIgnoreCase))
                     .Sum(x => services.FirstOrDefault(s => s.Id.ToString().Equals(x.ServiceId.ToString(), StringComparison.OrdinalIgnoreCase))?.Price ?? 0);
 
-                string fullName = "Naməlum müştəri";
-                if (mgr != null)
-                {
-                    try
-                    {
-                        var user = await mgr.FindByIdAsync(customerId);
-                        if (user != null) fullName = $"{user.FirstName} {user.LastName}".Trim();
-                    }
-                    catch { }
-                }
+                string fullName = await _userLookupService.GetFullNameAsync(customerId) ?? "Naməlum müştəri";
                 topCustomers.Add(new TopCustomerDto { FullName = fullName, ReservationCount = customerReservations.Count, TotalSpent = totalSpent });
             }
 
@@ -334,6 +293,9 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
+
 
 
 

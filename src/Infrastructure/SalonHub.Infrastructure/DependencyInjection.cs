@@ -11,6 +11,7 @@ namespace SalonHub.Infrastructure
         {
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IUserLookupService, UserLookupService>();
             services.AddScoped<IEmailService, MockNotificationService>();
             services.AddScoped<ISmsService, AwsSnsSmsService>();
             services.AddHttpClient<IStyleRecommendationService, StyleRecommendationService>();

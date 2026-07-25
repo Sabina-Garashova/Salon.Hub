@@ -16,6 +16,7 @@ export default function Home() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [bookingSalon, setBookingSalon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [uniqueCustomersCount, setUniqueCustomersCount] = useState(0);
 
   useEffect(() => {
     Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review")])
@@ -119,25 +120,50 @@ export default function Home() {
       </section>
 
       <div className="max-w-6xl mx-auto px-6 -mt-10 relative z-10">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <Building2 className="w-6 h-6 text-[#C9A227] mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[#1A1714]">{salons.length}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Salon</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Salonlar</span>
+              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{salons.length}</h3>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Sebekemizde</span>
+            </div>
+            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
+              <Building2 className="w-5 h-5" />
+            </div>
           </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <Users className="w-6 h-6 text-[#C9A227] mx-auto mb-2" />
-            <p className="text-2xl font-bold text-[#1A1714]">{employees.length}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Usta</p>
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Ustalar</span>
+              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{employees.length}</h3>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Peseler usta</span>
+            </div>
+            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#B8935A10", color: "#B8935A" }}>
+              <Users className="w-5 h-5" />
+            </div>
           </div>
-          <div className="col-span-2 sm:col-span-1 bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center">
-            <Star className="w-6 h-6 text-[#C9A227] mx-auto mb-2 fill-[#C9A227]" />
-            <p className="text-2xl font-bold text-[#1A1714]">
-              {salons.length > 0
-                ? (salons.reduce((sum, s) => sum + s.averageRating, 0) / salons.length).toFixed(1)
-                : "0.0"}
-            </p>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Orta Reytinq</p>
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Orta Reytinq</span>
+              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">
+                {reviews.length > 0
+                  ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+                  : "0.0"}
+              </h3>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">5 uzerinden</span>
+            </div>
+            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#1A171410", color: "#1A1714" }}>
+              <Star className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Musteriler</span>
+              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{uniqueCustomersCount}</h3>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Bize etibar edir</span>
+            </div>
+            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
+              <Users className="w-5 h-5" />
+            </div>
           </div>
         </div>
 
@@ -312,6 +338,9 @@ export default function Home() {
     </div>
   );
 }
+
+
+
 
 
 

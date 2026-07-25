@@ -112,6 +112,7 @@ export default function SalonDetail() {
   const content = (
     <>
       <SalonProfile
+        key={reviewableEmployees.length}
         salon={salonWithBanner}
         services={services}
         employees={employees}
