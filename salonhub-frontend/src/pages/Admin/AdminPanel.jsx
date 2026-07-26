@@ -13,6 +13,7 @@ import AllReservations from "../../components/admin/AllReservations";
 import ReviewsManagement from "../../components/admin/ReviewsManagement";
 import AnalyticsPage from "../../components/admin/AnalyticsPage";
 import EquipmentManagement from "../../components/admin/EquipmentManagement";
+import EmployeeModal from "../../components/admin/EmployeeModal";
 import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
@@ -60,7 +61,7 @@ export default function AdminPanel() {
   const [modalType, setModalType] = useState("");
   const [editItem, setEditItem] = useState(null);
 
-  const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "" });
+  const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [] });
 
   const salonAdminTabs = [
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
@@ -163,14 +164,14 @@ export default function AdminPanel() {
   const openAddModal = (type) => {
     setModalType(type);
     setEditItem(null);
-    if (type === "employee") setEmpForm({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "" });
+    if (type === "employee") setEmpForm({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [] });
     setIsModalOpen(true);
   };
 
   const openEditModal = (type, item) => {
     setModalType(type);
     setEditItem(item);
-    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: item.applicationUserId || "", salonId: item.salonId, branchId: item.branchId || "" });
+    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: item.applicationUserId || "", salonId: item.salonId, branchId: item.branchId || "", assignedEquipmentId: item.assignedEquipmentId || "", serviceIds: item.serviceIds || [] });
     setIsModalOpen(true);
   };
 
@@ -231,7 +232,20 @@ export default function AdminPanel() {
     setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response, respondedAt: new Date().toISOString() } : r)));
   };
   const handleCreateEquipment = async (data) => {
-    const res = await api.post("/Equipment", data);
+    const { salonId, ...rest } = data;
+    let branch = branches.find((b) => b.salonId === salonId);
+    if (!branch) {
+      const salon = salons.find((s) => s.id === salonId);
+      const branchRes = await api.post("/Branch", {
+        name: `${salon?.name || "Salon"} - Esas Filial`,
+        address: salon?.address || "",
+        phoneNumber: salon?.phoneNumber || "",
+        salonId: salonId
+      });
+      branch = branchRes.data;
+      setBranches((prev) => [...prev, branch]);
+    }
+    const res = await api.post("/Equipment", { ...rest, branchId: branch.id });
     setEquipment((prev) => [...prev, res.data]);
   };
   const handleUpdateEquipment = async (id, data) => {
@@ -285,17 +299,27 @@ export default function AdminPanel() {
           fullName: empForm.fullName,
           phoneNumber: empForm.phoneNumber,
           bio: empForm.bio,
-          profileImageUrl: null,
+          profileImageUrl: editItem?.profileImageUrl || null,
           applicationUserId: empForm.applicationUserId,
           salonId: Number(empForm.salonId),
           branchId: empForm.branchId ? Number(empForm.branchId) : null,
-          assignedEquipmentId: null,
+          assignedEquipmentId: empForm.assignedEquipmentId ? Number(empForm.assignedEquipmentId) : null,
         };
+        let empId = editItem?.id;
         if (editItem) {
           await api.put(`/Employee/${editItem.id}`, payload);
         } else {
-          await api.post("/Employee", payload);
+          const createRes = await api.post("/Employee", payload);
+          empId = createRes.data.id;
         }
+        const oldServiceIds = editItem?.serviceIds || [];
+        const newServiceIds = empForm.serviceIds || [];
+        const toAdd = newServiceIds.filter((sid) => !oldServiceIds.includes(sid));
+        const toRemove = oldServiceIds.filter((sid) => !newServiceIds.includes(sid));
+        await Promise.all([
+          ...toAdd.map((sid) => api.post(`/Employee/${empId}/services/${sid}`)),
+          ...toRemove.map((sid) => api.delete(`/Employee/${empId}/services/${sid}`)),
+        ]);
         const res = await api.get("/Employee");
         setEmployees(res.data);
       }
@@ -539,10 +563,19 @@ export default function AdminPanel() {
                     {employees.map((emp) => (
                       <div key={emp.id} className="bg-white rounded-2xl border border-gray-200/70 p-5 flex flex-col justify-between shadow-sm">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-serif font-bold text-base text-[#1A1714]">{emp.fullName}</h4>
-                            <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                              <Star className="w-3 h-3 fill-amber-500" /> {emp.averageRating}
+                          <div className="flex items-center gap-3">
+                            {emp.profileImageUrl ? (
+                              <img src={emp.profileImageUrl} alt={emp.fullName} className="w-12 h-12 rounded-full object-cover border-2 border-[#C9A227]/30 shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center text-[#1A1714] font-bold text-sm shrink-0">
+                                {emp.fullName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between flex-1 min-w-0">
+                              <h4 className="font-serif font-bold text-base text-[#1A1714] truncate">{emp.fullName}</h4>
+                              <div className="flex items-center gap-1 text-amber-500 font-bold text-xs bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0 ml-2">
+                                <Star className="w-3 h-3 fill-amber-500" /> {emp.averageRating}
+                              </div>
                             </div>
                           </div>
                           <p className="text-xs text-gray-400 font-mono">{emp.phoneNumber}</p>
@@ -641,55 +674,25 @@ export default function AdminPanel() {
       </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl border border-gray-100 shadow-2xl overflow-hidden p-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h3 className="font-serif text-base font-bold text-[#1A1714]">
-                {editItem ? "Redakte Et" : "Yeni Elave Et"}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded-full hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
-            </div>
-
-            <form onSubmit={handleSave} className="space-y-4 text-xs">
-              {modalType === "employee" && (
-                <>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Ad Soyad</label>
-                    <input type="text" required value={empForm.fullName} onChange={(e) => setEmpForm({ ...empForm, fullName: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Telefon</label>
-                    <input type="text" required value={empForm.phoneNumber} onChange={(e) => setEmpForm({ ...empForm, phoneNumber: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Istifadeci ID (ApplicationUserId)</label>
-                    <input type="text" required value={empForm.applicationUserId} onChange={(e) => setEmpForm({ ...empForm, applicationUserId: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Qeydiyyatdan kecmis istifadecinin ID-si" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Salon</label>
-                    <select required value={empForm.salonId} onChange={(e) => setEmpForm({ ...empForm, salonId: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-                      <option value="">Salon secin</option>
-                      {salons.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold text-gray-700">Qisa Bio</label>
-                    <textarea rows={2} value={empForm.bio} onChange={(e) => setEmpForm({ ...empForm, bio: e.target.value })} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl resize-none" />
-                  </div>
-                </>
-              )}
-
-              <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl font-semibold">Imtina</button>
-                <button type="submit" className="px-4 py-2 bg-[#1A1714] text-white hover:bg-[#C9A227] hover:text-[#1A1714] font-bold rounded-xl">Yadda Saxla</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EmployeeModal
+          formData={empForm}
+          salons={salons}
+          equipment={equipment}
+          branches={branches}
+          services={services}
+          isEditMode={!!editItem}
+          onChange={(field, value) => setEmpForm({ ...empForm, [field]: value })}
+          onSubmit={() => handleSave({ preventDefault: () => {} })}
+          onClose={() => setIsModalOpen(false)}
+        />
       )}
     </div>
   );
 }
+
+
+
+
 
 
 

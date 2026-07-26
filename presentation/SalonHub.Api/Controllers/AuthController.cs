@@ -101,7 +101,8 @@ namespace SalonHub.Api.Controllers
                 return Unauthorized(new { message = "Email və ya şifrə yanlışdır." });
 
             var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault() ?? Roles.Customer;
+            var rolePriority = new[] { Roles.SuperAdmin, Roles.SalonAdmin, Roles.Employee, Roles.Customer };
+            var role = rolePriority.FirstOrDefault(r => roles.Contains(r)) ?? Roles.Customer;
 
             var response = _tokenService.GenerateToken(user.Id, user.Email!, user.FullName, role);
             return Ok(response);

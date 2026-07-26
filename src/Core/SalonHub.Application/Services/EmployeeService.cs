@@ -1,5 +1,6 @@
 ﻿using SalonHub.Application.DTOs.Employees;
 using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
 
 namespace SalonHub.Application.Services
@@ -18,10 +19,12 @@ namespace SalonHub.Application.Services
     public class EmployeeService : IEmployeeService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserLookupService _userLookupService;
 
-        public EmployeeService(IUnitOfWork unitOfWork)
+        public EmployeeService(IUnitOfWork unitOfWork, IUserLookupService userLookupService)
         {
             _unitOfWork = unitOfWork;
+            _userLookupService = userLookupService;
         }
 
         public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync()
@@ -141,9 +144,16 @@ namespace SalonHub.Application.Services
             var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
             if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Bu işçini silmək icazəniz yoxdur.");
-
             employee.IsDeleted = true;
             _unitOfWork.Employees.Update(employee);
+            await _unitOfWork.CompleteAsync();
+
+            if (!string.IsNullOrEmpty(employee.ApplicationUserId))
+            {
+                var otherActiveRecords = await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == employee.ApplicationUserId && e.Id != employee.Id && !e.IsDeleted);
+                if (!otherActiveRecords.Any())
+                    await _userLookupService.DemoteFromEmployeeAsync(employee.ApplicationUserId);
+            }
             await _unitOfWork.CompleteAsync();
         }
 
@@ -213,6 +223,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

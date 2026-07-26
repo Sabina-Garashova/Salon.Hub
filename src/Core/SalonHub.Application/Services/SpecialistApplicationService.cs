@@ -1,5 +1,6 @@
 ﻿using SalonHub.Application.DTOs.SpecialistApplications;
 using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
 
 namespace SalonHub.Application.Services
@@ -16,10 +17,12 @@ namespace SalonHub.Application.Services
     public class SpecialistApplicationService : ISpecialistApplicationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserLookupService _userLookupService;
 
-        public SpecialistApplicationService(IUnitOfWork unitOfWork)
+        public SpecialistApplicationService(IUnitOfWork unitOfWork, IUserLookupService userLookupService)
         {
             _unitOfWork = unitOfWork;
+            _userLookupService = userLookupService;
         }
 
         public async Task<SpecialistApplicationReadDto> CreateAsync(
@@ -104,6 +107,21 @@ namespace SalonHub.Application.Services
             application.ReviewedAt = DateTime.UtcNow;
             application.ReviewedByUserId = reviewerId;
 
+            var fullName = await _userLookupService.GetFullNameAsync(application.ApplicantUserId) ?? application.Specialty;
+            var employee = new SalonHub.Domain.Entities.Employee
+            {
+                FullName = fullName,
+                PhoneNumber = application.PhoneNumber,
+                Bio = application.Bio ?? string.Empty,
+                ProfileImageUrl = application.ProfileImageUrl,
+                ApplicationUserId = application.ApplicantUserId,
+                SalonId = application.SalonId,
+                BranchId = application.BranchId,
+            };
+            await _unitOfWork.Employees.AddAsync(employee);
+
+            await _userLookupService.PromoteToEmployeeAsync(application.ApplicantUserId);
+
             _unitOfWork.SpecialistApplications.Update(application);
             await _unitOfWork.CompleteAsync();
         }
@@ -152,6 +170,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

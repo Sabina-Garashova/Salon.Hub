@@ -19,6 +19,7 @@ import api from "../services/api";
 export default function CraftsmanApplicationModal({ isOpen, onClose }) {
   const [salons, setSalons] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [services, setServices] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,10 +40,11 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
     setLoadingOptions(true);
-    Promise.all([api.get("/salon"), api.get("/branch")])
-      .then(([salonRes, branchRes]) => {
+    Promise.all([api.get("/salon"), api.get("/branch"), api.get("/Service")])
+      .then(([salonRes, branchRes, serviceRes]) => {
         setSalons(salonRes.data);
         setBranches(branchRes.data);
+        setServices(serviceRes.data);
       })
       .catch((err) => console.error("Salon/filial siyahısı yüklənmədi", err))
       .finally(() => setLoadingOptions(false));
@@ -252,17 +254,21 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider">İxtisas *</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider">Xidmet *</label>
                 <div className="relative">
                   <Sparkles className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Mes: Sac ustasi, Vizajist..."
+                  <select
                     value={specialty}
                     onChange={(e) => setSpecialty(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] transition text-xs"
-                  />
+                    disabled={!salon}
+                    className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] transition text-xs appearance-none disabled:bg-gray-50 disabled:text-gray-400"
+                  >
+                    <option value="" disabled>{salon ? "Ixtisas secin..." : "Evvelce salon secin"}</option>
+                    {services.filter((s) => s.salonId === Number(salon)).map((s) => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -384,6 +390,10 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
     </div>
   );
 }
+
+
+
+
 
 
 

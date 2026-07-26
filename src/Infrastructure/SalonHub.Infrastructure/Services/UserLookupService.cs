@@ -19,4 +19,18 @@ public class UserLookupService : IUserLookupService
         var users = await _userManager.GetUsersInRoleAsync("Customer");
         return users.Count(u => u.CreatedAt.Month == month && u.CreatedAt.Year == year);
     }
+    public async Task PromoteToEmployeeAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return;
+        if (!await _userManager.IsInRoleAsync(user, "Employee"))
+            await _userManager.AddToRoleAsync(user, "Employee");
+    }
+    public async Task DemoteFromEmployeeAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return;
+        if (await _userManager.IsInRoleAsync(user, "Employee"))
+            await _userManager.RemoveFromRoleAsync(user, "Employee");
+    }
 }
