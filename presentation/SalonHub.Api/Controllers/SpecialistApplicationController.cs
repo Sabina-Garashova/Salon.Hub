@@ -101,7 +101,7 @@ namespace SalonHub.Api.Controllers
                 FullName = applicant.FullName,
                 PhoneNumber = !string.IsNullOrWhiteSpace(application.PhoneNumber) ? application.PhoneNumber : (applicant.PhoneNumber ?? string.Empty),
                 Bio = combinedBio,
-                ProfileImageUrl = null,
+                ProfileImageUrl = application.ProfileImageUrl,
                 ApplicationUserId = applicant.Id,
                 SalonId = application.SalonId,
                 BranchId = application.BranchId,
@@ -171,6 +171,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

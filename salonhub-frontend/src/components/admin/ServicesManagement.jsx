@@ -9,6 +9,8 @@ export default function ServicesManagement({
   services = [],
   salons = [],
   categories = [],
+  equipment = [],
+  branches = [],
   onCreateForSalons,
   onEdit,
   onDelete
@@ -24,12 +26,14 @@ export default function ServicesManagement({
   const [newPrice, setNewPrice] = useState('');
   const [newDuration, setNewDuration] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
+  const [newRequiredEquipmentId, setNewRequiredEquipmentId] = useState('');
   const [selectedSalonIds, setSelectedSalonIds] = useState([]);
   
   const [editPrice, setEditPrice] = useState('');
   const [editDuration, setEditDuration] = useState('');
   const [editName, setEditName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
+  const [editRequiredEquipmentId, setEditRequiredEquipmentId] = useState('');
 
   const groupedServices = useMemo(() => {
     const groups = {};
@@ -91,6 +95,7 @@ export default function ServicesManagement({
     setEditPrice(service.price.toString());
     setEditDuration(service.durationMinutes.toString());
     setEditCategoryId(service.categoryId);
+    setEditRequiredEquipmentId(service.requiredEquipmentId || '');
     setIsEditModalOpen(true);
   };
 
@@ -100,7 +105,8 @@ export default function ServicesManagement({
       name: editName,
       price: parseFloat(editPrice),
       durationMinutes: parseInt(editDuration),
-      categoryId: editCategoryId
+      categoryId: editCategoryId,
+      requiredEquipmentId: editRequiredEquipmentId ? Number(editRequiredEquipmentId) : null
     };
     onEdit(selectedService.id, payload);
     setIsEditModalOpen(false);
@@ -282,6 +288,16 @@ export default function ServicesManagement({
                       {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
+                    <select
+                      value={newRequiredEquipmentId} onChange={e => setNewRequiredEquipmentId(e.target.value)}
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    >
+                      <option value="">Avadanliq lazim deyil</option>
+                      {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && selectedSalonIds.map(Number).includes(b.salonId); }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -418,6 +434,16 @@ export default function ServicesManagement({
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
+                <select
+                  value={editRequiredEquipmentId} onChange={e => setEditRequiredEquipmentId(e.target.value)}
+                  className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-white"
+                >
+                  <option value="">Avadanliq lazim deyil</option>
+                  {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && b.salonId === selectedService?.salonId; }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
+                </select>
+              </div>
 
               <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
                 <button 
@@ -471,4 +497,9 @@ export default function ServicesManagement({
     </div>
   );
 }
+
+
+
+
+
 

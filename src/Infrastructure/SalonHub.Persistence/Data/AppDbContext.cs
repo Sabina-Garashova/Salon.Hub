@@ -42,7 +42,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Employee>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<SpecialistApplication>().HasQueryFilter(x => !x.IsDeleted);
         builder.Entity<Reservation>().HasQueryFilter(x => !x.IsDeleted);
+        builder.Entity<Equipment>().HasQueryFilter(x => !x.IsDeleted);
     }
 }
+
 
 

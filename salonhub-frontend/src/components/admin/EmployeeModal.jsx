@@ -167,7 +167,11 @@ export default function EmployeeModal({
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <select
                   value={formData.salonId}
-                  onChange={(e) => onChange('salonId', e.target.value)}
+                  onChange={(e) => {
+                    onChange('salonId', e.target.value);
+                    onChange('assignedEquipmentId', '');
+                    onChange('serviceIds', []);
+                  }}
                   className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl appearance-none focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition-all cursor-pointer"
                   required
                 >
@@ -284,6 +288,8 @@ export default function EmployeeModal({
     </div>
   );
 }
+
+
 
 
 

@@ -121,7 +121,7 @@ export default function AdminPanel() {
           const revRes = await api.get("/Review");
           setReviews(revRes.data);
         }
-        if (activeTab === "Equipment") {
+        if (activeTab === "Equipment" || activeTab === "Employees" || activeTab === "Services") {
           const [eqRes, branchRes, salonRes] = await Promise.all([api.get("/Equipment"), api.get("/Branch"), api.get("/salon")]);
           setEquipment(eqRes.data);
           setBranches(branchRes.data);
@@ -199,6 +199,7 @@ export default function AdminPanel() {
       durationMinutes: payload.durationMinutes,
       categoryId: payload.categoryId,
       salonId: existing?.salonId,
+      requiredEquipmentId: payload.requiredEquipmentId ?? null,
     });
     const res = await api.get("/Service");
     setServices(res.data);
@@ -599,6 +600,8 @@ export default function AdminPanel() {
                   services={services}
                   salons={salons}
                   categories={categories}
+                  equipment={equipment}
+                  branches={branches}
                   loading={isLoading}
                   onCreateForSalons={handleCreateServicesForSalons}
                   onEdit={handleEditService}
@@ -689,6 +692,11 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
 
 
 
