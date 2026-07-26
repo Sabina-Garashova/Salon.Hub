@@ -121,7 +121,7 @@ export default function Layout({ children }) {
       ? [{ label: "Butun Rezervasiyalar", icon: Calendar, path: "/admin", state: { tab: "AllReservations" } }]
       : []),
     ...(role === "Employee"
-      ? [{ label: "Rezervasiyalarim", icon: Calendar, path: "/employee-dashboard" }]
+      ? [{ label: "Usta Kabineti", icon: Calendar, path: "/employee-dashboard" }]
       : []),
   ];
 

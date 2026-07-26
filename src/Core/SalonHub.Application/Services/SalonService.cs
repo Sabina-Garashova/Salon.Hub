@@ -56,6 +56,16 @@ namespace SalonHub.Application.Services
             await _unitOfWork.Salons.AddAsync(salon);
             await _unitOfWork.CompleteAsync();
 
+            var defaultBranch = new SalonHub.Domain.Entities.Branch
+            {
+                Name = $"{salon.NameAz} - Esas Filial",
+                Address = salon.Address,
+                PhoneNumber = salon.PhoneNumber,
+                SalonId = salon.Id
+            };
+            await _unitOfWork.Branches.AddAsync(defaultBranch);
+            await _unitOfWork.CompleteAsync();
+
             return await MapToReadDtoAsync(salon, null);
         }
 
@@ -117,4 +127,5 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 

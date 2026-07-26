@@ -325,40 +325,6 @@ export default function Dashboard() {
             })}
           </div>
 
-          {role === "Employee" && (
-            <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">QR Check-in</h3>
-              <form onSubmit={handleScanSubmit} className="flex gap-3">
-                <input
-                  type="text"
-                  required
-                  value={qrCode}
-                  onChange={(e) => setQrCode(e.target.value)}
-                  placeholder="Musterinin QR kodunu daxil edin"
-                  className="flex-1 p-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-                />
-                <button
-                  type="submit"
-                  disabled={scanning}
-                  className="px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50"
-                >
-                  {scanning ? "Yoxlanilir..." : "Check-in Et"}
-                </button>
-                <label className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer flex items-center gap-1.5">
-                  Sekil Yukle
-                  <input type="file" accept="image/*" capture="environment" onChange={handleQrImageUpload} className="hidden" />
-                </label>
-              </form>
-              {checkInResult && (
-                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                  <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Check-in ugurlu</p>
-                  <p className="text-sm font-semibold text-[#1A1714]">{checkInResult.customerFullName || "Musteri"}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">{checkInResult.serviceName} - {checkInResult.reservationDate?.split("T")[0]} {checkInResult.startTime?.slice(0,5)}</p>
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>

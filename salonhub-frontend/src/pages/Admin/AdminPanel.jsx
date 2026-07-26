@@ -12,6 +12,7 @@ import DashboardOverview from "../../components/admin/DashboardOverview";
 import AllReservations from "../../components/admin/AllReservations";
 import ReviewsManagement from "../../components/admin/ReviewsManagement";
 import AnalyticsPage from "../../components/admin/AnalyticsPage";
+import EquipmentManagement from "../../components/admin/EquipmentManagement";
 import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 
@@ -51,6 +52,8 @@ export default function AdminPanel() {
   const [salons, setSalons] = useState([]);
   const [allReservations, setAllReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [equipment, setEquipment] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,6 +71,7 @@ export default function AdminPanel() {
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
+    { id: "Equipment", name: "Avadanliq", icon: Wrench },
   ];
 
   const superAdminTabs = [
@@ -81,6 +85,7 @@ export default function AdminPanel() {
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
+    { id: "Equipment", name: "Avadanliq", icon: Wrench },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -98,7 +103,7 @@ export default function AdminPanel() {
           const res = await api.get("/SpecialistApplication/pending");
           setApplications(res.data);
         }
-        if (activeTab === "Employees" || activeTab === "Dashboard") {
+        if (activeTab === "Employees" || activeTab === "Dashboard" || activeTab === "Equipment") {
           const res = await api.get("/Employee");
           setEmployees(res.data);
         }
@@ -114,6 +119,12 @@ export default function AdminPanel() {
         if (activeTab === "Reviews" || activeTab === "Dashboard") {
           const revRes = await api.get("/Review");
           setReviews(revRes.data);
+        }
+        if (activeTab === "Equipment") {
+          const [eqRes, branchRes, salonRes] = await Promise.all([api.get("/Equipment"), api.get("/Branch"), api.get("/salon")]);
+          setEquipment(eqRes.data);
+          setBranches(branchRes.data);
+          setSalons(salonRes.data);
         }
         if (activeTab === "AllReservations" || activeTab === "Dashboard") {
           const resvRes = await api.get("/Reservation");
@@ -218,6 +229,18 @@ export default function AdminPanel() {
   const handleRespondReview = async (id, response) => {
     await api.post(`/Review/${id}/respond`, { response });
     setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response, respondedAt: new Date().toISOString() } : r)));
+  };
+  const handleCreateEquipment = async (data) => {
+    const res = await api.post("/Equipment", data);
+    setEquipment((prev) => [...prev, res.data]);
+  };
+  const handleUpdateEquipment = async (id, data) => {
+    await api.put(`/Equipment/${id}`, data);
+    setEquipment((prev) => prev.map((eq) => (eq.id === id ? { ...eq, ...data } : eq)));
+  };
+  const handleDeleteEquipment = async (id) => {
+    await api.delete(`/Equipment/${id}`);
+    setEquipment((prev) => prev.filter((eq) => eq.id !== id));
   };
   const handleMoveServiceCategory = async (serviceIds, newCategoryId) => {
     const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds];
@@ -579,6 +602,18 @@ export default function AdminPanel() {
                 <AnalyticsPage />
               )}
 
+              {activeTab === "Equipment" && (
+                <EquipmentManagement
+                  equipment={equipment}
+                  branches={branches}
+                  salons={salons}
+                  employees={employees}
+                  onCreate={handleCreateEquipment}
+                  onUpdate={handleUpdateEquipment}
+                  onDelete={handleDeleteEquipment}
+                />
+              )}
+
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
@@ -655,6 +690,14 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 
