@@ -8,6 +8,7 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<Branch> Branches { get; }
         IGenericRepository<Category> Categories { get; }
         IGenericRepository<Service> Services { get; }
+        IGenericRepository<ServiceTag> ServiceTags { get; }
         IGenericRepository<Tag> Tags { get; }
         IGenericRepository<Employee> Employees { get; }
         IGenericRepository<Equipment> Equipments { get; }
@@ -25,5 +26,6 @@ namespace SalonHub.Application.Interfaces.Repositories
         Task<int> CompleteAsync();
     }
 }
+
 
 

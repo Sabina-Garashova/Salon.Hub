@@ -30,6 +30,7 @@ export default function SalonDetail() {
   const [services, setServices] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [gallery, setGallery] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canReview, setCanReview] = useState(false);
   const [reviewableEmployees, setReviewableEmployees] = useState([]);
@@ -46,8 +47,9 @@ export default function SalonDetail() {
       api.get("/Service"),
       api.get("/Review"),
       api.get("/GalleryImage"),
+      api.get("/Tag"),
     ])
-      .then(([salonRes, empRes, servRes, revRes, galRes]) => {
+      .then(([salonRes, empRes, servRes, revRes, galRes, tagRes]) => {
         setSalon(salonRes.data);
         setEmployees(empRes.data.filter((e) => e.salonId === salonId));
         setServices(servRes.data.filter((s) => s.salonId === salonId));
@@ -115,6 +117,7 @@ export default function SalonDetail() {
         key={reviewableEmployees.length}
         salon={salonWithBanner}
         services={services}
+        tags={tags}
         employees={employees}
         reviews={reviews}
         canReview={canReview}
@@ -138,6 +141,8 @@ export default function SalonDetail() {
 
   return token ? <Layout>{content}</Layout> : content;
 }
+
+
 
 
 

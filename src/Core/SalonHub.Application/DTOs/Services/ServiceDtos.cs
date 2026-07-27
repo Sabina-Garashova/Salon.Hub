@@ -10,6 +10,7 @@
         public int CategoryId { get; set; }
         public int SalonId { get; set; }
         public int? RequiredEquipmentId { get; set; }
+        public List<int> TagIds { get; set; } = new();
     }
 
     public class ServiceCreateDto
@@ -41,3 +42,4 @@
         public int? RequiredEquipmentId { get; set; }
     }
 }
+

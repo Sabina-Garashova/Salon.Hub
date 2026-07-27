@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, ChevronDown, ChevronUp, 
   Clock, DollarSign, MapPin, Layers, Scissors, 
@@ -11,6 +11,7 @@ export default function ServicesManagement({
   categories = [],
   equipment = [],
   branches = [],
+  tags = [],
   onCreateForSalons,
   onEdit,
   onDelete
@@ -27,6 +28,7 @@ export default function ServicesManagement({
   const [newDuration, setNewDuration] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newRequiredEquipmentId, setNewRequiredEquipmentId] = useState('');
+  const [newTagIds, setNewTagIds] = useState([]);
   const [selectedSalonIds, setSelectedSalonIds] = useState([]);
   
   const [editPrice, setEditPrice] = useState('');
@@ -34,6 +36,7 @@ export default function ServicesManagement({
   const [editName, setEditName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
   const [editRequiredEquipmentId, setEditRequiredEquipmentId] = useState('');
+  const [editTagIds, setEditTagIds] = useState([]);
 
   const groupedServices = useMemo(() => {
     const groups = {};
@@ -96,6 +99,7 @@ export default function ServicesManagement({
     setEditDuration(service.durationMinutes.toString());
     setEditCategoryId(service.categoryId);
     setEditRequiredEquipmentId(service.requiredEquipmentId || '');
+    setEditTagIds(service.tagIds || []);
     setIsEditModalOpen(true);
   };
 
@@ -104,9 +108,10 @@ export default function ServicesManagement({
     const payload = {
       name: editName,
       price: parseFloat(editPrice),
-      durationMinutes: parseInt(editDuration),
       categoryId: editCategoryId,
-      requiredEquipmentId: editRequiredEquipmentId ? Number(editRequiredEquipmentId) : null
+      durationMinutes: parseInt(editDuration),
+      requiredEquipmentId: editRequiredEquipmentId ? Number(editRequiredEquipmentId) : null,
+      tagIds: editTagIds
     };
     onEdit(selectedService.id, payload);
     setIsEditModalOpen(false);
@@ -297,6 +302,20 @@ export default function ServicesManagement({
                       <option value="">Avadanliq lazim deyil</option>
                       {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && selectedSalonIds.map(Number).includes(b.salonId); }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
                     </select>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => {
+                        const isChecked = newTagIds.includes(tag.id);
+                        return (
+                          <label key={tag.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer ${isChecked ? "bg-[#C9A227]/10 border-[#C9A227] text-[#1A1714] font-medium" : "bg-white border-gray-200 text-gray-500"}`}>
+                            <input type="checkbox" checked={isChecked} onChange={(e) => setNewTagIds((prev) => e.target.checked ? [...prev, tag.id] : prev.filter((id) => id !== tag.id))} className="hidden" />
+                            {tag.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -443,6 +462,20 @@ export default function ServicesManagement({
                   <option value="">Avadanliq lazim deyil</option>
                   {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && b.salonId === selectedService?.salonId; }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
                 </select>
+              <div>
+                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => {
+                    const isChecked = editTagIds.includes(tag.id);
+                    return (
+                      <label key={tag.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer ${isChecked ? "bg-[#C9A227]/10 border-[#C9A227] text-[#1A1714] font-medium" : "bg-white border-gray-200 text-gray-500"}`}>
+                        <input type="checkbox" checked={isChecked} onChange={(e) => setEditTagIds((prev) => e.target.checked ? [...prev, tag.id] : prev.filter((id) => id !== tag.id))} className="hidden" />
+                        {tag.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
               </div>
 
               <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">

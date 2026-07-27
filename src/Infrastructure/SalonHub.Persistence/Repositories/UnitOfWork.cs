@@ -14,6 +14,7 @@ namespace SalonHub.Persistence.Repositories
             Branches = new GenericRepository<Branch>(_context);
             Categories = new GenericRepository<Category>(_context);
             Services = new GenericRepository<Service>(_context);
+            ServiceTags = new GenericRepository<ServiceTag>(_context);
             Tags = new GenericRepository<Tag>(_context);
             Employees = new GenericRepository<Employee>(_context);
             Equipments = new GenericRepository<Equipment>(_context);
@@ -34,6 +35,7 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<Category> Categories { get; }
         public IGenericRepository<GalleryImage> GalleryImages { get; }
         public IGenericRepository<Service> Services { get; }
+        public IGenericRepository<ServiceTag> ServiceTags { get; }
         public IGenericRepository<Tag> Tags { get; }
         public IGenericRepository<Employee> Employees { get; }
         public IGenericRepository<Equipment> Equipments { get; }
@@ -52,5 +54,7 @@ namespace SalonHub.Persistence.Repositories
         public void Dispose() => _context.Dispose();
     }
 }
+
+
 
 

@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Inbox, Users, Scissors, Tag, Store, Wrench, Clock,
+  LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
   Calendar, Image, Star, BarChart3, Building2, UserCog, Award, Newspaper,
   FileClock, Settings, Menu, X, Plus, Search, Edit2, Trash2, Check,
   AlertCircle, TrendingUp, ChevronRight, User, Mail, DollarSign
@@ -17,6 +17,7 @@ import EmployeeModal from "../../components/admin/EmployeeModal";
 import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 import AuditLogsPanel from "../../components/admin/AuditLogsPanel";
+import TagsManagement from "../../components/admin/TagsManagement";
 
 function decodeToken(token) {
   try {
@@ -56,6 +57,7 @@ export default function AdminPanel() {
   const [reviews, setReviews] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [tags, setTags] = useState([]);
   const [branches, setBranches] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
@@ -71,6 +73,7 @@ export default function AdminPanel() {
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Tags", name: "Tag-lar", icon: Hash },
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
@@ -85,6 +88,7 @@ export default function AdminPanel() {
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Tags", name: "Tag-lar", icon: Hash },
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
@@ -137,6 +141,10 @@ export default function AdminPanel() {
         if (activeTab === "AuditLogs") {
           const auditRes = await api.get("/AuditLogs");
           setAuditLogs(auditRes.data);
+        }
+        if (activeTab === "Tags" || activeTab === "Categories" || activeTab === "Services") {
+          const tagRes = await api.get("/Tag");
+          setTags(tagRes.data);
         }
       } catch (err) {
         console.error("Data yuklenmedi", err);
@@ -208,8 +216,33 @@ export default function AdminPanel() {
       salonId: existing?.salonId,
       requiredEquipmentId: payload.requiredEquipmentId ?? null,
     });
+    const oldTagIds = existing?.tagIds || [];
+    const newTagIds = payload.tagIds || [];
+    const tagsToAdd = newTagIds.filter((tid) => !oldTagIds.includes(tid));
+    const tagsToRemove = oldTagIds.filter((tid) => !newTagIds.includes(tid));
+    await Promise.all([
+      ...tagsToAdd.map((tid) => api.post("/Service/" + id + "/tags/" + tid).catch(() => {})),
+      ...tagsToRemove.map((tid) => api.delete("/Service/" + id + "/tags/" + tid).catch(() => {})),
+    ]);
     const res = await api.get("/Service");
     setServices(res.data);
+  };
+
+  const handleCreateTag = async (payload) => {
+    await api.post("/Tag", { nameAz: payload.name });
+    const res = await api.get("/Tag");
+    setTags(res.data);
+  };
+
+  const handleEditTag = async (id, payload) => {
+    await api.put(`/Tag/${id}`, { nameAz: payload.name });
+    const res = await api.get("/Tag");
+    setTags(res.data);
+  };
+
+  const handleDeleteTag = async (id) => {
+    await api.delete(`/Tag/${id}`);
+    setTags(tags.filter((t) => t.id !== id));
   };
 
   const handleDeleteService = async (id) => {
@@ -303,11 +336,12 @@ export default function AdminPanel() {
     e.preventDefault();
     try {
       if (modalType === "employee") {
+        console.log("DEBUG handleSave calisdi, modalType:", modalType, "editItem:", editItem);
         const payload = {
           fullName: empForm.fullName,
           phoneNumber: empForm.phoneNumber,
           bio: empForm.bio,
-          profileImageUrl: editItem?.profileImageUrl || null,
+          profileImageUrl: empForm.profileImageUrl || editItem?.profileImageUrl || null,
           applicationUserId: empForm.applicationUserId,
           salonId: Number(empForm.salonId),
           branchId: empForm.branchId ? Number(empForm.branchId) : null,
@@ -608,6 +642,7 @@ export default function AdminPanel() {
                   salons={salons}
                   categories={categories}
                   equipment={equipment}
+                  tags={tags}
                   branches={branches}
                   loading={isLoading}
                   onCreateForSalons={handleCreateServicesForSalons}
@@ -626,6 +661,15 @@ export default function AdminPanel() {
                   onDelete={handleDeleteCategory}
                   onMoveService={handleMoveServiceCategory}
                   onCreateServiceForCategory={handleCreateServiceForCategory}
+                />
+              )}
+
+              {activeTab === "Tags" && (
+                <TagsManagement
+                  tags={tags}
+                  onCreate={handleCreateTag}
+                  onEdit={handleEditTag}
+                  onDelete={handleDeleteTag}
                 />
               )}
 
@@ -695,7 +739,7 @@ export default function AdminPanel() {
           branches={branches}
           services={services}
           isEditMode={!!editItem}
-          onChange={(field, value) => setEmpForm({ ...empForm, [field]: value })}
+          onChange={(field, value) => setEmpForm((prev) => ({ ...prev, [field]: value }))}
           onSubmit={() => handleSave({ preventDefault: () => {} })}
           onClose={() => setIsModalOpen(false)}
         />
@@ -703,6 +747,14 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

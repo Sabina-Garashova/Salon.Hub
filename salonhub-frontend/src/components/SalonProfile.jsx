@@ -83,6 +83,7 @@ function LoadingSkeleton() {
 export default function SalonProfile({
   salon,
   services = [],
+  tags = [],
   employees = [],
   reviews = [],
   canReview = false,
@@ -234,6 +235,19 @@ export default function SalonProfile({
                               </span>
                             )}
                           </div>
+                          {service.tagIds && service.tagIds.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              {service.tagIds.map((tid) => {
+                                const tag = tags.find((t) => t.id === tid);
+                                if (!tag) return null;
+                                return (
+                                  <span key={tid} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#C9A227]/10 text-[#B8935A] border border-[#C9A227]/20">
+                                    {tag.name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -378,6 +392,8 @@ export default function SalonProfile({
     </div>
   );
 }
+
+
 
 
 

@@ -28,12 +28,14 @@ namespace SalonHub.Application.Services
         public async Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null)
         {
             var services = await _unitOfWork.Services.GetAllAsync();
-            return services.Select(s => MapToReadDto(s, language)).ToList();
+            var allServiceTags = await _unitOfWork.ServiceTags.GetAllAsync();
+            var tagsByService = allServiceTags.GroupBy(st => st.ServiceId).ToDictionary(g => g.Key, g => g.Select(st => st.TagId).ToList());
+            return services.Select(s => MapToReadDto(s, language, tagsByService.TryGetValue(s.Id, out var tagIds) ? tagIds : new List<int>())).ToList();
         }
 
         public async Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null)
         {
-            var service = await _unitOfWork.Services.GetByIdAsync(id);
+            var service = await _unitOfWork.Services.SingleOrDefaultAsync(s => s.Id == id, s => s.ServiceTags);
             return service is null ? null : MapToReadDto(service, language);
         }
 
@@ -161,7 +163,7 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        private static ServiceReadDto MapToReadDto(Service service, string? language) => new()
+        private static ServiceReadDto MapToReadDto(Service service, string? language, List<int>? tagIdsOverride = null) => new()
         {
             Id = service.Id,
             Name = LanguageHelper.Select(service.NameAz, service.NameRu, service.NameEn, language),
@@ -174,7 +176,11 @@ namespace SalonHub.Application.Services
             DurationMinutes = service.DurationMinutes,
             CategoryId = service.CategoryId,
             SalonId = service.SalonId,
-            RequiredEquipmentId = service.RequiredEquipmentId
+            RequiredEquipmentId = service.RequiredEquipmentId,
+            TagIds = tagIdsOverride ?? (service.ServiceTags != null ? service.ServiceTags.Select(st => st.TagId).ToList() : new List<int>())
         };
     }
 }
+
+
+
