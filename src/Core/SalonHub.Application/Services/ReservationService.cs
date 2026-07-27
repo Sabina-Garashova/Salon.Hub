@@ -203,25 +203,31 @@ namespace SalonHub.Application.Services
 
             if (service.RequiredEquipmentId.HasValue)
             {
-                if (!employee.AssignedEquipmentId.HasValue)
-                    throw new InvalidOperationException("Secilmis isciye bu xidmet ucun lazimi avadanliq teyin olunmayib.");
-
-                var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
+                var requiredEquipmentRef = await _unitOfWork.Equipments.GetByIdAsync(service.RequiredEquipmentId.Value)
                     ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
-                if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
+                var candidateEquipments = (await _unitOfWork.Equipments.FindAsync(e =>
+                    e.BranchId == dto.BranchId && e.Type == requiredEquipmentRef.Type &&
+                    e.Status != EquipmentStatus.Faulty && e.Status != EquipmentStatus.InRepair)).ToList();
+
+                if (!candidateEquipments.Any())
                     throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
-                equipmentIdToUse = equipment.Id;
+                Equipment? freeEquipment = null;
+                foreach (var candidate in candidateEquipments)
+                {
+                    var conflicts = await _unitOfWork.Reservations.FindAsync(r =>
+                        r.EquipmentId == candidate.Id &&
+                        r.ReservationDate.Date == dto.ReservationDate.Date &&
+                        r.Status != ReservationStatus.Cancelled &&
+                        r.StartTime < endTime && dto.StartTime < r.EndTime);
+                    if (!conflicts.Any()) { freeEquipment = candidate; break; }
+                }
 
-                var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
-                    r.EquipmentId == equipmentIdToUse &&
-                    r.ReservationDate.Date == dto.ReservationDate.Date &&
-                    r.Status != ReservationStatus.Cancelled &&
-                    r.StartTime < endTime && dto.StartTime < r.EndTime);
-
-                if (equipmentReservations.Any())
+                if (freeEquipment is null)
                     throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
+
+                equipmentIdToUse = freeEquipment.Id;
             }
 
             var reservation = new Reservation
@@ -325,26 +331,32 @@ namespace SalonHub.Application.Services
 
             if (service.RequiredEquipmentId.HasValue)
             {
-                if (!employee.AssignedEquipmentId.HasValue)
-                    throw new InvalidOperationException("Secilmis isciye bu xidmet ucun lazimi avadanliq teyin olunmayib.");
-
-                var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
+                var requiredEquipmentRef = await _unitOfWork.Equipments.GetByIdAsync(service.RequiredEquipmentId.Value)
                     ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
-                if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
+                var candidateEquipments = (await _unitOfWork.Equipments.FindAsync(e =>
+                    e.BranchId == dto.BranchId && e.Type == requiredEquipmentRef.Type &&
+                    e.Status != EquipmentStatus.Faulty && e.Status != EquipmentStatus.InRepair)).ToList();
+
+                if (!candidateEquipments.Any())
                     throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
-                equipmentIdToUse = equipment.Id;
+                Equipment? freeEquipment = null;
+                foreach (var candidate in candidateEquipments)
+                {
+                    var conflicts = await _unitOfWork.Reservations.FindAsync(r =>
+                        r.Id != id &&
+                        r.EquipmentId == candidate.Id &&
+                        r.ReservationDate.Date == dto.ReservationDate.Date &&
+                        r.Status != ReservationStatus.Cancelled &&
+                        r.StartTime < endTime && dto.StartTime < r.EndTime);
+                    if (!conflicts.Any()) { freeEquipment = candidate; break; }
+                }
 
-                var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
-                    r.Id != id &&
-                    r.EquipmentId == equipmentIdToUse &&
-                    r.ReservationDate.Date == dto.ReservationDate.Date &&
-                    r.Status != ReservationStatus.Cancelled &&
-                    r.StartTime < endTime && dto.StartTime < r.EndTime);
-
-                if (equipmentReservations.Any())
+                if (freeEquipment is null)
                     throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
+
+                equipmentIdToUse = freeEquipment.Id;
             }
 
             var oldDate = reservation.ReservationDate;
@@ -707,25 +719,31 @@ namespace SalonHub.Application.Services
 
                 if (service.RequiredEquipmentId.HasValue)
                 {
-                    if (!employee.AssignedEquipmentId.HasValue)
-                        throw new InvalidOperationException($"Secilmis isciye ({employee.FullName}) bu xidmet ucun lazimi avadanliq teyin olunmayib.");
-
-                    var equipment = await _unitOfWork.Equipments.GetByIdAsync(employee.AssignedEquipmentId.Value)
+                    var requiredEquipmentRef = await _unitOfWork.Equipments.GetByIdAsync(service.RequiredEquipmentId.Value)
                         ?? throw new KeyNotFoundException("Teleb olunan avadanliq tapilmadi.");
 
-                    if (equipment.Status is EquipmentStatus.Faulty or EquipmentStatus.InRepair)
+                    var candidateEquipments = (await _unitOfWork.Equipments.FindAsync(e =>
+                        e.BranchId == dto.BranchId && e.Type == requiredEquipmentRef.Type &&
+                        e.Status != EquipmentStatus.Faulty && e.Status != EquipmentStatus.InRepair)).ToList();
+
+                    if (!candidateEquipments.Any())
                         throw new InvalidOperationException("Teleb olunan avadanliq hazirda nasazdir ve ya temirdedir.");
 
-                    equipmentIdToUse = equipment.Id;
+                    Equipment? freeEquipment = null;
+                    foreach (var candidate in candidateEquipments)
+                    {
+                        var conflicts = await _unitOfWork.Reservations.FindAsync(r =>
+                            r.EquipmentId == candidate.Id &&
+                            r.ReservationDate.Date == dto.ReservationDate.Date &&
+                            r.Status != ReservationStatus.Cancelled &&
+                            r.StartTime < endTime && currentStartTime < r.EndTime);
+                        if (!conflicts.Any()) { freeEquipment = candidate; break; }
+                    }
 
-                    var equipmentReservations = await _unitOfWork.Reservations.FindAsync(r =>
-                        r.EquipmentId == equipmentIdToUse &&
-                        r.ReservationDate.Date == dto.ReservationDate.Date &&
-                        r.Status != ReservationStatus.Cancelled &&
-                        r.StartTime < endTime && currentStartTime < r.EndTime);
-
-                    if (equipmentReservations.Any())
+                    if (freeEquipment is null)
                         throw new InvalidOperationException("Teleb olunan avadanliq bu saat araliginda mesguldur.");
+
+                    equipmentIdToUse = freeEquipment.Id;
                 }
 
                 reservationsToCreate.Add(new Reservation

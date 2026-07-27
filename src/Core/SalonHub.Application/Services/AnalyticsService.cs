@@ -254,7 +254,7 @@ namespace SalonHub.Application.Services
             var totalCustomers = customerIdsInRange.Count;
             var newCustomers = customerIdsInRange.Count(id => !priorReservationCustomerIds.Contains(id));
 
-            return new CustomerAnalyticsDto { TotalCustomers = totalCustomers, NewCustomers = newCustomers, ReturningCustomers = totalCustomers - newCustomers, RetentionRatePercent = totalCustomers > 0 ? Math.Round((double)(totalCustomers - newCustomers) / totalCustomers * 100, 2) : 0, TopCustomers = topCustomers.OrderByDescending(x => x.TotalSpent).Take(10).ToList() };
+            return new CustomerAnalyticsDto { TotalCustomers = totalCustomers, NewCustomers = newCustomers, ReturningCustomers = totalCustomers - newCustomers, RetentionRatePercent = totalCustomers > 0 ? Math.Round((double)(totalCustomers - newCustomers) / totalCustomers * 100, 2) : 0, TopCustomers = topCustomers.OrderByDescending(x => x.TotalSpent).Take(5).ToList() };
         }
 
         public async Task<SiteStatisticsDto> GetSiteStatisticsAsync()
@@ -293,6 +293,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

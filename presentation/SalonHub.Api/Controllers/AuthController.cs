@@ -199,6 +199,48 @@ namespace SalonHub.Api.Controllers
             return Ok(matches);
         }
 
+        public class UpdateFullNameDto { public string FullName { get; set; } = string.Empty; }
+        public class CreatePlaceholderUserDto { public string Id { get; set; } = string.Empty; public string FullName { get; set; } = string.Empty; }
+
+        [HttpPost("users/placeholder")]
+        [Authorize(Roles = Roles.SuperAdmin)]
+        public async Task<IActionResult> CreatePlaceholderUser([FromBody] CreatePlaceholderUserDto dto)
+        {
+            var existing = await _userManager.FindByIdAsync(dto.Id);
+            if (existing is not null)
+            {
+                existing.FullName = dto.FullName;
+                await _userManager.UpdateAsync(existing);
+                return Ok(new { message = "Movcud istifadeci yenilendi." });
+            }
+
+            var user = new ApplicationUser
+            {
+                Id = dto.Id,
+                FullName = dto.FullName,
+                UserName = $"{dto.Id}@placeholder.salonhub.com",
+                Email = $"{dto.Id}@placeholder.salonhub.com",
+                EmailConfirmed = true
+            };
+            var result = await _userManager.CreateAsync(user, "Placeholder123!");
+            if (!result.Succeeded)
+                return BadRequest(new { message = string.Join("; ", result.Errors.Select(e => e.Description)) });
+
+            await _userManager.AddToRoleAsync(user, Roles.Customer);
+            return Ok(new { message = "Yaradildi." });
+        }
+
+        [HttpPut("users/{id}/fullname")]
+        [Authorize(Roles = Roles.SuperAdmin)]
+        public async Task<IActionResult> UpdateFullName(string id, [FromBody] UpdateFullNameDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(id)
+                ?? throw new KeyNotFoundException("Istifadeci tapilmadi.");
+            user.FullName = dto.FullName;
+            await _userManager.UpdateAsync(user);
+            return Ok(new { message = "Ad yenilendi." });
+        }
+
         private static string GenerateReferralCode()
         {
             var random = new Random();
@@ -211,4 +253,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+
+
 

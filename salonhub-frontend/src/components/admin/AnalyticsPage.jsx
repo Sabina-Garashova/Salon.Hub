@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 import api from "../../services/api";
 
-const WEEKDAY_NAMES = ["B.", "B.E.", "C.A.", "C.", "C.A.", "C.", "S."];
+const WEEKDAY_NAMES = ["B.", "B.E.", "ÇA.", "Ç.", "CA.", "C.", "Ş."];
 
 function getMonthStart() {
   const d = new Date();

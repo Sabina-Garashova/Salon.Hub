@@ -16,6 +16,7 @@ import EquipmentManagement from "../../components/admin/EquipmentManagement";
 import EmployeeModal from "../../components/admin/EmployeeModal";
 import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
+import AuditLogsPanel from "../../components/admin/AuditLogsPanel";
 
 function decodeToken(token) {
   try {
@@ -54,6 +55,7 @@ export default function AdminPanel() {
   const [allReservations, setAllReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [equipment, setEquipment] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [branches, setBranches] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
@@ -87,6 +89,7 @@ export default function AdminPanel() {
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
     { id: "Equipment", name: "Avadanliq", icon: Wrench },
+    { id: "AuditLogs", name: "Audit Loglari", icon: FileClock },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -130,6 +133,10 @@ export default function AdminPanel() {
         if (activeTab === "AllReservations" || activeTab === "Dashboard") {
           const resvRes = await api.get("/Reservation");
           setAllReservations(resvRes.data.sort((a, b) => new Date(b.reservationDate) - new Date(a.reservationDate)));
+        }
+        if (activeTab === "AuditLogs") {
+          const auditRes = await api.get("/AuditLogs");
+          setAuditLogs(auditRes.data);
         }
       } catch (err) {
         console.error("Data yuklenmedi", err);
@@ -650,6 +657,10 @@ export default function AdminPanel() {
                 />
               )}
 
+              {activeTab === "AuditLogs" && isSuperAdmin && (
+                <AuditLogsPanel logs={auditLogs} loading={isLoading} />
+              )}
+
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
@@ -692,6 +703,9 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
 
 
 
