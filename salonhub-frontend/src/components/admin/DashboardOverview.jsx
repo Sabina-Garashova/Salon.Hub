@@ -1,4 +1,5 @@
 ﻿import React, { useMemo } from 'react';
+import NewsSection from '../NewsSection';
 import { 
   UserPlus, 
   Users, 
@@ -126,6 +127,7 @@ const DashboardOverview = ({
         </div>
       </section>
 
+        <NewsSection limit={3} title="Son Xeberler" />
       <section className="mb-8 bg-white p-7 rounded-3xl shadow-xl shadow-[#1A1714]/5 border border-gray-100">
         <h2 className="font-serif text-2xl font-bold text-[#1A1714] mb-5">Bugunku Gorusler</h2>
         {todaysAppointments.length === 0 ? (

@@ -2,8 +2,9 @@
 import Layout from "./Layout";
 import jsQR from "jsqr";
 import ReviewsManagement from "./admin/ReviewsManagement";
+import NewsManagement from "./admin/NewsManagement";
 import api from "../services/api";
-import { Calendar, MessageSquare, Wrench, AlertCircle, Scissors } from "lucide-react";
+import { Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper } from "lucide-react";
 
 function decodeToken(token) {
   try {
@@ -34,10 +35,26 @@ export default function EmployeeDashboard() {
   const [checkInResult, setCheckInResult] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [assignedEquipment, setAssignedEquipment] = useState(null);
+  const [news, setNews] = useState([]);
+  const [salons, setSalons] = useState([]);
 
   const handleRespondReview = async (id, response) => {
     await api.post(`/Review/${id}/respond`, { response });
     setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response } : r)));
+  };
+  const handleCreateNews = async (payload) => {
+    await api.post("/News", { ...payload, authorEmployeeId: myEmployeeId });
+    const res = await api.get("/News");
+    setNews(res.data);
+  };
+  const handleEditNews = async (id, payload) => {
+    await api.put(`/News/${id}`, payload);
+    const res = await api.get("/News");
+    setNews(res.data);
+  };
+  const handleDeleteNews = async (id) => {
+    await api.delete(`/News/${id}`);
+    setNews((prev) => prev.filter((n) => n.id !== id));
   };
 
   const performCheckIn = async (code) => {
@@ -217,6 +234,11 @@ export default function EmployeeDashboard() {
     fetchEmployeeAppointments();
   }, []);
 
+  useEffect(() => {
+    api.get("/News").then((res) => setNews(res.data)).catch(() => {});
+    api.get("/salon").then((res) => setSalons(res.data)).catch(() => {});
+  }, []);
+
   const totalRevenue = appointments
     .filter(app => app?.status === "Completed" || app?.status === "Confirmed")
     .reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
@@ -286,6 +308,13 @@ export default function EmployeeDashboard() {
             >
               <Wrench className="w-5 h-5 mr-2" />
               Avadanligim
+            </button>
+            <button
+              onClick={() => setActiveTab("news")}
+              className={"flex items-center px-6 py-4 font-medium transition-colors whitespace-nowrap " + (activeTab === "news" ? "text-[#C9A227] border-b-2 border-[#C9A227] bg-white" : "text-gray-500 hover:text-[#1A1714] hover:bg-white")}
+            >
+              <Newspaper className="w-5 h-5 mr-2" />
+              Xeberler
             </button>
           </div>
 
@@ -509,6 +538,15 @@ export default function EmployeeDashboard() {
                 )}
               </div>
             )}
+            {activeTab === "news" && (
+              <NewsManagement
+                news={news}
+                salons={salons}
+                onCreate={handleCreateNews}
+                onEdit={handleEditNews}
+                onDelete={handleDeleteNews}
+              />
+            )}
 
           </div>
         </div>
@@ -516,3 +554,9 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
+
+
+
+
+

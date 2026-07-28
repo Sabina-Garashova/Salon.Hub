@@ -74,7 +74,8 @@ namespace SalonHub.Application.Services
                 CategoryId = dto.CategoryId,
                 SalonId = dto.SalonId,
                 RequiredEquipmentId = dto.RequiredEquipmentId,
-                DiscountPercent = dto.DiscountPercent
+                DiscountPercent = dto.DiscountPercent,
+                OriginalPrice = dto.OriginalPrice
             };
 
             await _unitOfWork.Services.AddAsync(service);
@@ -108,6 +109,7 @@ namespace SalonHub.Application.Services
             service.CategoryId = dto.CategoryId;
             service.RequiredEquipmentId = dto.RequiredEquipmentId;
             service.DiscountPercent = dto.DiscountPercent;
+            service.OriginalPrice = dto.OriginalPrice;
             service.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Services.Update(service);
@@ -180,10 +182,12 @@ namespace SalonHub.Application.Services
             SalonId = service.SalonId,
             RequiredEquipmentId = service.RequiredEquipmentId,
             DiscountPercent = service.DiscountPercent,
+            OriginalPrice = service.OriginalPrice,
             TagIds = tagIdsOverride ?? (service.ServiceTags != null ? service.ServiceTags.Select(st => st.TagId).ToList() : new List<int>())
         };
     }
 }
+
 
 
 

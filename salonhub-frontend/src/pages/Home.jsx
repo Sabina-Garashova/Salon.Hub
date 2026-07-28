@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
 import BookingModal from "../components/BookingModal";
 import api from "../services/api";
+import NewsSection from "../components/NewsSection";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -248,6 +249,7 @@ export default function Home() {
           )}
         </div>
 
+        <NewsSection limit={3} />
         {reviews.length > 0 && (
           <>
             <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">Musteri Reyleri</h3>

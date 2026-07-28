@@ -19,9 +19,11 @@ namespace SalonHub.Domain.Entities
         public int? RequiredEquipmentId { get; set; }
         public Equipment? RequiredEquipment { get; set; }
         public int? DiscountPercent { get; set; }
+        public decimal? OriginalPrice { get; set; }
         public ICollection<ServiceTag> ServiceTags { get; set; } = new List<ServiceTag>();
         public ICollection<EmployeeService> EmployeeServices { get; set; } = new List<EmployeeService>();
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }
+
 

@@ -35,4 +35,7 @@ public class NewsArticleUpdateDto
     public string? ContentRu { get; set; }
     public string? ContentEn { get; set; }
     public string? ImageUrl { get; set; }
+    public int? SalonId { get; set; }
+    public int? AuthorEmployeeId { get; set; }
 }
+

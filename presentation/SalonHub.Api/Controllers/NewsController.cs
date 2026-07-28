@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.News;
 using SalonHub.Application.Services;
@@ -41,16 +42,22 @@ namespace SalonHub.Api.Controllers
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Update(int id, NewsArticleUpdateDto dto)
         {
-            await _newsService.UpdateAsync(id, dto);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
+            await _newsService.UpdateAsync(id, dto, requesterId, isAdmin);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _newsService.DeleteAsync(id);
+            var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
+            await _newsService.DeleteAsync(id, requesterId, isAdmin);
             return NoContent();
         }
     }
 }
+
+

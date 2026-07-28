@@ -22,6 +22,7 @@ import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModa
 import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
+import NewsSection from "../../components/NewsSection";
 
 function decodeToken(token) {
   try {
@@ -420,6 +421,8 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
+
+          <NewsSection limit={3} />
 
           {reviews.length > 0 && (
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">

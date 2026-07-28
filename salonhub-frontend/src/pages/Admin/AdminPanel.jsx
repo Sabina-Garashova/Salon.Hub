@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
   Calendar, Image, Star, BarChart3, Building2, UserCog, Award, Newspaper,
   FileClock, Settings, Menu, X, Plus, Search, Edit2, Trash2, Check,
-  AlertCircle, TrendingUp, ChevronRight, User, Mail, DollarSign
+  AlertCircle, TrendingUp, ChevronRight, User, Mail, DollarSign,
 } from "lucide-react";
 import api from "../../services/api";
 import ServicesManagement from "../../components/admin/ServicesManagement";
@@ -18,6 +18,7 @@ import SystemJobsPanel from "../../components/admin/SystemJobsPanel";
 import CategoriesManagement from "../../components/admin/CategoriesManagement";
 import AuditLogsPanel from "../../components/admin/AuditLogsPanel";
 import TagsManagement from "../../components/admin/TagsManagement";
+import NewsManagement from "../../components/admin/NewsManagement";
 
 function decodeToken(token) {
   try {
@@ -58,6 +59,7 @@ export default function AdminPanel() {
   const [equipment, setEquipment] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [tags, setTags] = useState([]);
+  const [news, setNews] = useState([]);
   const [branches, setBranches] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [agreedSalary, setAgreedSalary] = useState({});
@@ -94,6 +96,7 @@ export default function AdminPanel() {
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
     { id: "Equipment", name: "Avadanliq", icon: Wrench },
     { id: "AuditLogs", name: "Audit Loglari", icon: FileClock },
+    { id: "News", name: "Xeberler", icon: Newspaper },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -145,6 +148,10 @@ export default function AdminPanel() {
         if (activeTab === "Tags" || activeTab === "Categories" || activeTab === "Services") {
           const tagRes = await api.get("/Tag");
           setTags(tagRes.data);
+        }
+        if (activeTab === "News") {
+          const newsRes = await api.get("/News");
+          setNews(newsRes.data);
         }
       } catch (err) {
         console.error("Data yuklenmedi", err);
@@ -199,6 +206,7 @@ export default function AdminPanel() {
           durationMinutes: payload.durationMinutes,
           categoryId: payload.categoryId,
           discountPercent: payload.discountPercent ?? null,
+          originalPrice: payload.originalPrice ?? null,
           salonId,
         })
       )
@@ -217,6 +225,7 @@ export default function AdminPanel() {
       salonId: existing?.salonId,
       requiredEquipmentId: payload.requiredEquipmentId ?? null,
       discountPercent: payload.discountPercent ?? null,
+      originalPrice: payload.originalPrice ?? null,
     });
     const oldTagIds = existing?.tagIds || [];
     const newTagIds = payload.tagIds || [];
@@ -245,6 +254,23 @@ export default function AdminPanel() {
   const handleDeleteTag = async (id) => {
     await api.delete(`/Tag/${id}`);
     setTags(tags.filter((t) => t.id !== id));
+  };
+
+  const handleCreateNews = async (payload) => {
+    await api.post("/News", payload);
+    const res = await api.get("/News");
+    setNews(res.data);
+  };
+
+  const handleEditNews = async (id, payload) => {
+    await api.put("/News/" + id, payload);
+    const res = await api.get("/News");
+    setNews(res.data);
+  };
+
+  const handleDeleteNews = async (id) => {
+    await api.delete("/News/" + id);
+    setNews(news.filter((n) => n.id !== id));
   };
 
   const handleDeleteService = async (id) => {
@@ -674,6 +700,15 @@ export default function AdminPanel() {
                   onDelete={handleDeleteTag}
                 />
               )}
+              {activeTab === "News" && (
+                <NewsManagement
+                  news={news}
+                  salons={salons}
+                  onCreate={handleCreateNews}
+                  onEdit={handleEditNews}
+                  onDelete={handleDeleteNews}
+                />
+              )}
 
               {activeTab === "Reviews" && (
                 <ReviewsManagement
@@ -749,6 +784,11 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

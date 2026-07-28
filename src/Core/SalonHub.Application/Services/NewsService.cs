@@ -10,8 +10,8 @@ namespace SalonHub.Application.Services
         Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null);
         Task<NewsArticleReadDto?> GetByIdAsync(int id, string? language = null);
         Task<NewsArticleReadDto> CreateAsync(NewsArticleCreateDto dto);
-        Task UpdateAsync(int id, NewsArticleUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task UpdateAsync(int id, NewsArticleUpdateDto dto, string requesterId, bool isAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isAdmin);
     }
 
     public class NewsService : INewsService
@@ -74,10 +74,17 @@ namespace SalonHub.Application.Services
             return await MapToReadDtoAsync(article, null);
         }
 
-        public async Task UpdateAsync(int id, NewsArticleUpdateDto dto)
+        public async Task UpdateAsync(int id, NewsArticleUpdateDto dto, string requesterId, bool isAdmin)
         {
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xəbər tapılmadı: {id}");
+
+            if (!isAdmin)
+            {
+                var requesterEmployee = (await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == requesterId)).FirstOrDefault();
+                if (requesterEmployee is null || article.AuthorEmployeeId != requesterEmployee.Id)
+                    throw new UnauthorizedAccessException("Bu xəbəri redaktə etmək icazəniz yoxdur.");
+            }
 
             article.TitleAz = dto.TitleAz;
             article.TitleRu = dto.TitleRu;
@@ -86,16 +93,25 @@ namespace SalonHub.Application.Services
             article.ContentRu = dto.ContentRu;
             article.ContentEn = dto.ContentEn;
             article.ImageUrl = dto.ImageUrl;
+            article.SalonId = dto.SalonId;
+            article.AuthorEmployeeId = dto.AuthorEmployeeId;
             article.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.NewsArticles.Update(article);
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, string requesterId, bool isAdmin)
         {
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Xəbər tapılmadı: {id}");
+
+            if (!isAdmin)
+            {
+                var requesterEmployee = (await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == requesterId)).FirstOrDefault();
+                if (requesterEmployee is null || article.AuthorEmployeeId != requesterEmployee.Id)
+                    throw new UnauthorizedAccessException("Bu xəbəri silmək icazəniz yoxdur.");
+            }
 
             _unitOfWork.NewsArticles.Remove(article);
             await _unitOfWork.CompleteAsync();
@@ -132,3 +148,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
+
+

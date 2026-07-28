@@ -11,6 +11,7 @@
         public int SalonId { get; set; }
         public int? RequiredEquipmentId { get; set; }
         public int? DiscountPercent { get; set; }
+        public decimal? OriginalPrice { get; set; }
         public List<int> TagIds { get; set; } = new();
     }
 
@@ -27,6 +28,7 @@
         public int CategoryId { get; set; }
         public int SalonId { get; set; }
         public int? DiscountPercent { get; set; }
+        public decimal? OriginalPrice { get; set; }
         public int? RequiredEquipmentId { get; set; }
     }
 
@@ -43,8 +45,10 @@
         public int CategoryId { get; set; }
         public int? RequiredEquipmentId { get; set; }
         public int? DiscountPercent { get; set; }
+        public decimal? OriginalPrice { get; set; }
     }
 }
+
 
 
 
