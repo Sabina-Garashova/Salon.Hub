@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   CalendarPlus,
@@ -221,9 +221,14 @@ export default function SalonProfile({
                       {services.map((service) => (
                         <div
                           key={service.id}
-                          className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:border-[#C9A227]/30 hover:shadow-md transition-all"
+                          className="relative bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:border-[#C9A227]/30 hover:shadow-md transition-all overflow-hidden"
                         >
                           <p className="font-semibold text-[#1A1714] text-sm">{service.name}</p>
+                          {service.discountPercent != null && (
+                            <div className="absolute top-0 right-0 bg-gradient-to-tr from-[#B8935A] to-[#C9A227] text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-md">
+                              -{service.discountPercent}%
+                            </div>
+                          )}
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-[#C9A227] font-bold text-sm">
                               {service.price} AZN
@@ -392,6 +397,7 @@ export default function SalonProfile({
     </div>
   );
 }
+
 
 
 

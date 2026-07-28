@@ -10,6 +10,7 @@
         public int CategoryId { get; set; }
         public int SalonId { get; set; }
         public int? RequiredEquipmentId { get; set; }
+        public int? DiscountPercent { get; set; }
         public List<int> TagIds { get; set; } = new();
     }
 
@@ -25,6 +26,7 @@
         public int DurationMinutes { get; set; }
         public int CategoryId { get; set; }
         public int SalonId { get; set; }
+        public int? DiscountPercent { get; set; }
         public int? RequiredEquipmentId { get; set; }
     }
 
@@ -40,6 +42,9 @@
         public int DurationMinutes { get; set; }
         public int CategoryId { get; set; }
         public int? RequiredEquipmentId { get; set; }
+        public int? DiscountPercent { get; set; }
     }
 }
+
+
 

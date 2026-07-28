@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Plus, Edit2, Trash2, ChevronDown, ChevronUp, 
-  Clock, DollarSign, MapPin, Layers, Scissors, 
-  AlertTriangle, HelpCircle, CheckSquare, Square 
+﻿import React, { useState, useMemo } from 'react';
+import {
+  Plus, Edit2, Trash2, ChevronDown, ChevronUp,
+  Clock, DollarSign, MapPin, Layers, Scissors,
+  AlertTriangle, HelpCircle, CheckSquare, Square
 } from 'lucide-react';
 
 export default function ServicesManagement({
@@ -20,23 +20,27 @@ export default function ServicesManagement({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   const [selectedService, setSelectedService] = useState(null);
-  
+  const [selectedSalonIds, setSelectedSalonIds] = useState([]);
+
+  // Create modal states
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newDuration, setNewDuration] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
-  const [newRequiredEquipmentId, setNewRequiredEquipmentId] = useState('');
+  const [newOriginalPrice, setNewOriginalPrice] = useState('');
   const [newTagIds, setNewTagIds] = useState([]);
-  const [selectedSalonIds, setSelectedSalonIds] = useState([]);
-  
+  const [newRequiredEquipmentId, setNewRequiredEquipmentId] = useState('');
+
+  // Edit modal states
+  const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editDuration, setEditDuration] = useState('');
-  const [editName, setEditName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
-  const [editRequiredEquipmentId, setEditRequiredEquipmentId] = useState('');
+  const [editOriginalPrice, setEditOriginalPrice] = useState('');
   const [editTagIds, setEditTagIds] = useState([]);
+  const [editRequiredEquipmentId, setEditRequiredEquipmentId] = useState('');
 
   const groupedServices = useMemo(() => {
     const groups = {};
@@ -66,7 +70,7 @@ export default function ServicesManagement({
   };
 
   const handleToggleSalon = (salonId) => {
-    setSelectedSalonIds(prev => 
+    setSelectedSalonIds(prev =>
       prev.includes(salonId) ? prev.filter(id => id !== salonId) : [...prev, salonId]
     );
   };
@@ -74,46 +78,94 @@ export default function ServicesManagement({
   const handleCreateSubmit = (e) => {
     e.preventDefault();
     if (selectedSalonIds.length === 0) return alert('En azi bir salon secmelisiniz!');
-    
+
+    const currentPrice = parseFloat(newPrice);
+    const origPrice = newOriginalPrice ? parseFloat(newOriginalPrice) : null;
+    const calcDiscount = (origPrice && currentPrice && origPrice > currentPrice)
+      ? Math.round(((origPrice - currentPrice) / origPrice) * 100)
+      : null;
+
     const payload = {
       name: newName,
-      price: parseFloat(newPrice),
+      price: currentPrice,
+      originalPrice: origPrice,
+      oldPrice: origPrice,
       durationMinutes: parseInt(newDuration),
-      categoryId: newCategoryId
+      categoryId: newCategoryId,
+      tagIds: newTagIds,
+      requiredEquipmentId: newRequiredEquipmentId ? Number(newRequiredEquipmentId) : null,
+      discountPercent: calcDiscount,
     };
-    
-    onCreateForSalons(payload, selectedSalonIds);
-    
+
+    if (onCreateForSalons) {
+      onCreateForSalons(payload, selectedSalonIds);
+    }
+
     setNewName('');
     setNewPrice('');
     setNewDuration('');
     setNewCategoryId('');
+    setNewOriginalPrice('');
+    setNewTagIds([]);
+    setNewRequiredEquipmentId('');
     setSelectedSalonIds([]);
     setIsCreateModalOpen(false);
   };
 
   const handleEditOpen = (service) => {
     setSelectedService(service);
-    setEditName(service.name);
-    setEditPrice(service.price.toString());
-    setEditDuration(service.durationMinutes.toString());
-    setEditCategoryId(service.categoryId);
-    setEditRequiredEquipmentId(service.requiredEquipmentId || '');
+    setEditName(service.name || '');
+    const currentPriceStr = service.price != null ? service.price.toString() : '';
+    setEditPrice(currentPriceStr);
+    setEditDuration(service.durationMinutes ? service.durationMinutes.toString() : '');
+    setEditCategoryId(service.categoryId || '');
+
+    // Dəqiq İlkin Qiymət hesablama mentiqi
+    let calculatedOrig = '';
+    const p = parseFloat(service.price);
+    const d = parseFloat(service.discountPercent);
+
+    if (service.originalPrice != null && service.originalPrice !== '' && Number(service.originalPrice) > 0) {
+      calculatedOrig = service.originalPrice.toString();
+    } else if (service.oldPrice != null && service.oldPrice !== '' && Number(service.oldPrice) > 0) {
+      calculatedOrig = service.oldPrice.toString();
+    } else if (!isNaN(p) && !isNaN(d) && d > 0 && d < 100) {
+      // Endirim faizinden ilkin qiymeti geri hesablayiriq: Original = Price / (1 - d/100)
+      calculatedOrig = Math.round(p / (1 - (d / 100))).toString();
+    }
+
+    setEditOriginalPrice(calculatedOrig);
     setEditTagIds(service.tagIds || []);
+    setEditRequiredEquipmentId(service.requiredEquipmentId ? service.requiredEquipmentId.toString() : '');
+
     setIsEditModalOpen(true);
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
+    if (!selectedService) return;
+
+    const currentPrice = parseFloat(editPrice);
+    const origPrice = editOriginalPrice ? parseFloat(editOriginalPrice) : null;
+    const calcDiscount = (origPrice && currentPrice && origPrice > currentPrice)
+      ? Math.round(((origPrice - currentPrice) / origPrice) * 100)
+      : null;
+
     const payload = {
       name: editName,
-      price: parseFloat(editPrice),
+      price: currentPrice,
+      originalPrice: origPrice,
+      oldPrice: origPrice,
       categoryId: editCategoryId,
       durationMinutes: parseInt(editDuration),
+      tagIds: editTagIds,
       requiredEquipmentId: editRequiredEquipmentId ? Number(editRequiredEquipmentId) : null,
-      tagIds: editTagIds
+      discountPercent: calcDiscount,
     };
-    onEdit(selectedService.id, payload);
+
+    if (onEdit) {
+      onEdit(selectedService.id, payload);
+    }
     setIsEditModalOpen(false);
   };
 
@@ -123,7 +175,9 @@ export default function ServicesManagement({
   };
 
   const handleDeleteConfirm = () => {
-    onDelete(selectedService.id);
+    if (selectedService && onDelete) {
+      onDelete(selectedService.id);
+    }
     setIsDeleteModalOpen(false);
   };
 
@@ -168,11 +222,11 @@ export default function ServicesManagement({
             const categoryObj = categories.find(c => c.id === group.categoryId);
 
             return (
-              <div 
-                key={group.name} 
+              <div
+                key={group.name}
                 className="bg-white border border-[#B8935A]/20 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-[#C9A227]/40 shadow-sm"
               >
-                <div 
+                <div
                   onClick={() => toggleGroup(group.name)}
                   className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer select-none bg-gradient-to-r from-white to-[#FAF6F0]/30 hover:bg-[#FAF6F0]/50 transition-colors"
                 >
@@ -197,7 +251,6 @@ export default function ServicesManagement({
                     </span>
 
                     <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#C9A227]/10 text-[#B8935A] border border-[#C9A227]/30">
-                      
                       {minPrice === maxPrice ? `${minPrice} AZN` : `${minPrice} - ${maxPrice} AZN`}
                     </span>
 
@@ -217,7 +270,7 @@ export default function ServicesManagement({
                             <MapPin size={16} className="text-[#B8935A]" />
                             <span className="font-medium text-sm text-[#1A1714]">{currentSalon ? currentSalon.name : 'Namelum Salon'}</span>
                           </div>
-                          
+
                           <div className="flex items-center justify-between sm:justify-end gap-6">
                             <div className="flex items-center gap-4 text-sm text-[#1A1714]/70">
                               <div className="flex items-center gap-1">
@@ -257,12 +310,13 @@ export default function ServicesManagement({
         </div>
       )}
 
+      {/* YENİ XİDMƏT MODALI */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#1A1714]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-[#B8935A]/30 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="bg-[#1A1714] p-5 border-b border-[#B8935A]/20 flex justify-between items-center">
               <h2 className="text-xl font-serif font-bold text-[#FAF6F0]">Yeni Xidmet Elave Et</h2>
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(false)}
                 className="text-[#FAF6F0]/70 hover:text-[#F0D68A] transition-colors text-sm"
               >
@@ -271,13 +325,12 @@ export default function ServicesManagement({
             </div>
 
             <form onSubmit={handleCreateSubmit} className="overflow-y-auto p-6 space-y-6 flex-1">
-              
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A] mb-3">1. Esas Melumatlar</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Xidmetin Adi</label>
-                    <input 
+                    <input
                       type="text" required value={newName} onChange={e => setNewName(e.target.value)}
                       placeholder="Mes. Manikur, Sac kesimi"
                       className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
@@ -285,7 +338,7 @@ export default function ServicesManagement({
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Kateqoriya</label>
-                    <select 
+                    <select
                       required value={newCategoryId} onChange={e => setNewCategoryId(e.target.value)}
                       className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
                     >
@@ -294,38 +347,8 @@ export default function ServicesManagement({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
-                    <select
-                      value={newRequiredEquipmentId} onChange={e => setNewRequiredEquipmentId(e.target.value)}
-                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
-                    >
-                      <option value="">Avadanliq lazim deyil</option>
-                      {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && selectedSalonIds.map(Number).includes(b.salonId); }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
-                    </select>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag) => {
-                        const isChecked = newTagIds.includes(tag.id);
-                        return (
-                          <label key={tag.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer ${isChecked ? "bg-[#C9A227]/10 border-[#C9A227] text-[#1A1714] font-medium" : "bg-white border-gray-200 text-gray-500"}`}>
-                            <input type="checkbox" checked={isChecked} onChange={(e) => setNewTagIds((prev) => e.target.checked ? [...prev, tag.id] : prev.filter((id) => id !== tag.id))} className="hidden" />
-                            {tag.name}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-[#B8935A]/10">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A] mb-3">2. Qiymet ve Muddet</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
                     <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Qiymet (AZN)</label>
-                    <input 
+                    <input
                       type="number" step="0.01" required value={newPrice} onChange={e => setNewPrice(e.target.value)}
                       placeholder="0.00"
                       className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
@@ -333,69 +356,104 @@ export default function ServicesManagement({
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Muddet (Deqiqe)</label>
-                    <input 
+                    <input
                       type="number" required value={newDuration} onChange={e => setNewDuration(e.target.value)}
-                      placeholder="Mes. 30, 60"
+                      placeholder="30"
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Ilkin Qiymet (Konullu - Endirim ucun)</label>
+                    <input
+                      type="number" step="0.01" value={newOriginalPrice} onChange={e => setNewOriginalPrice(e.target.value)}
+                      placeholder="Mes. 150"
                       className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#B8935A]/10">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A] mb-3">2. Avadanliq ve Tag-lar</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
+                    <select
+                      value={newRequiredEquipmentId} onChange={e => setNewRequiredEquipmentId(e.target.value)}
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    >
+                      <option value="">Avadanliq lazim deyil</option>
+                      {equipment.map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => {
+                        const isChecked = newTagIds.includes(tag.id);
+                        return (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => setNewTagIds((prev) => isChecked ? prev.filter((id) => id !== tag.id) : [...prev, tag.id])}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer transition-all ${isChecked ? "bg-[#C9A227] text-white border-[#C9A227] font-semibold" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                          >
+                            {tag.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A]">3. Salon Secimi</h4>
-                  <label className="flex items-center gap-1.5 text-xs text-[#1A1714]/70 cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
-                      onChange={handleSelectAllSalons} 
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A]">3. Salonlarin Secilmesi</h4>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#1A1714]/80">
+                    <input
+                      type="checkbox"
                       checked={selectedSalonIds.length === salons.length && salons.length > 0}
-                      className="rounded border-[#B8935A]/40 accent-[#1A1714]"
+                      onChange={handleSelectAllSalons}
+                      className="rounded border-[#B8935A]/40 text-[#C9A227] focus:ring-[#C9A227]"
                     />
-                    <span>Butun salonlara tetbiq et</span>
+                    <span>Hamisini Sec</span>
                   </label>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-[#FAF6F0]/40 p-3.5 rounded-lg border border-[#B8935A]/10 max-h-40 overflow-y-auto">
-                  {salons.map(salon => {
-                    const isChecked = selectedSalonIds.includes(salon.id);
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-[#FAF6F0]/40 rounded-lg border border-[#B8935A]/20">
+                  {salons.map(s => {
+                    const isChecked = selectedSalonIds.includes(s.id);
                     return (
-                      <label 
-                        key={salon.id}
-                        className={`flex items-center gap-3 p-2.5 rounded-md border text-sm cursor-pointer transition-all ${
-                          isChecked 
-                            ? 'bg-white border-[#C9A227] shadow-sm font-medium text-[#1A1714]' 
-                            : 'bg-white/50 border-gray-200 text-[#1A1714]/70 hover:bg-white'
-                        }`}
+                      <label
+                        key={s.id}
+                        className={`flex items-center gap-2 p-2 rounded-md cursor-pointer text-xs transition-colors ${isChecked ? 'bg-[#C9A227]/10 text-[#1A1714] font-medium' : 'hover:bg-white text-[#1A1714]/70'}`}
                       >
-                        <input 
-                          type="checkbox" 
-                          checked={isChecked} 
-                          onChange={() => handleToggleSalon(salon.id)}
-                          className="rounded border-[#B8935A]/40 accent-[#1A1714]"
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleToggleSalon(s.id)}
+                          className="rounded border-[#B8935A]/40 text-[#C9A227] focus:ring-[#C9A227]"
                         />
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={14} className={isChecked ? "text-[#C9A227]" : "text-gray-400"} />
-                          {salon.name}
-                        </span>
+                        <span className="truncate">{s.name}</span>
                       </label>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#B8935A]/10 flex justify-end gap-3 bg-white">
-                <button 
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                <button
                   type="button" onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-[#1A1714]/70 hover:bg-gray-50 font-medium transition-colors"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-[#1A1714]/70 hover:bg-gray-50"
                 >
                   Legv et
                 </button>
-                <button 
+                <button
                   type="submit"
-                  className="px-5 py-2.5 bg-[#1A1714] text-[#FAF6F0] hover:bg-[#C9A227] hover:text-[#1A1714] rounded-lg text-sm font-medium transition-colors border border-[#B8935A]/30 shadow-md"
+                  className="px-5 py-2 bg-[#1A1714] text-[#FAF6F0] hover:bg-[#C9A227] hover:text-[#1A1714] rounded-lg text-sm font-medium transition-colors border border-[#B8935A]/30"
                 >
-                  Yadda Saxla
+                  Elave Et
                 </button>
               </div>
             </form>
@@ -403,89 +461,111 @@ export default function ServicesManagement({
         </div>
       )}
 
+      {/* REDAKTƏ MODALI */}
       {isEditModalOpen && selectedService && (
         <div className="fixed inset-0 z-50 bg-[#1A1714]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl border border-[#B8935A]/30 w-full max-w-lg overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-[#B8935A]/30 w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="bg-[#1A1714] p-5 border-b border-[#B8935A]/20 flex justify-between items-center">
               <h2 className="text-xl font-serif font-bold text-[#FAF6F0]">Xidmeti Redakte Et</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-[#FAF6F0]/70 hover:text-[#F0D68A] text-sm">Bagla</button>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-[#FAF6F0]/70 hover:text-[#F0D68A] transition-colors text-sm"
+              >
+                Bagla
+              </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-              <div className="p-3 bg-[#FAF6F0] border border-[#B8935A]/20 rounded-lg flex items-center gap-2 text-xs text-[#1A1714]/70">
-                <MapPin size={14} className="text-[#C9A227]" />
-                <span>
-                  Konkret Salon Nusxesi: <strong>{salons.find(s => s.id === selectedService.salonId)?.name}</strong>
-                </span>
+            <form onSubmit={handleEditSubmit} className="overflow-y-auto p-6 space-y-6 flex-1">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A] mb-3">1. Esas Melumatlar</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Xidmetin Adi</label>
+                    <input
+                      type="text" required value={editName} onChange={e => setEditName(e.target.value)}
+                      placeholder="Mes. Manikur, Sac kesimi"
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Kateqoriya</label>
+                    <select
+                      required value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)}
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    >
+                      <option value="">Kateqoriya secin</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Qiymet (AZN)</label>
+                    <input
+                      type="number" step="0.01" required value={editPrice} onChange={e => setEditPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Muddet (Deqiqe)</label>
+                    <input
+                      type="number" required value={editDuration} onChange={e => setEditDuration(e.target.value)}
+                      placeholder="30"
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Ilkin Qiymet (Konullu - Endirim ucun)</label>
+                    <input
+                      type="number" step="0.01" value={editOriginalPrice} onChange={e => setEditOriginalPrice(e.target.value)}
+                      placeholder="Mes. 150"
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Xidmetin Adi</label>
-                <input 
-                  type="text" required value={editName} onChange={e => setEditName(e.target.value)}
-                  className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Qiymet (AZN)</label>
-                  <input 
-                    type="number" step="0.01" required value={editPrice} onChange={e => setEditPrice(e.target.value)}
-                    className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227]"
-                  />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#B8935A] mb-3">2. Avadanliq ve Tag-lar</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
+                    <select
+                      value={editRequiredEquipmentId} onChange={e => setEditRequiredEquipmentId(e.target.value)}
+                      className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-[#FAF6F0]/30"
+                    >
+                      <option value="">Avadanliq lazim deyil</option>
+                      {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && b.salonId === selectedService?.salonId; }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => {
+                        const isChecked = editTagIds.includes(tag.id);
+                        return (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => setEditTagIds((prev) => isChecked ? prev.filter((id) => id !== tag.id) : [...prev, tag.id])}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer transition-all ${isChecked ? "bg-[#C9A227] text-white border-[#C9A227] font-semibold" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                          >
+                            {tag.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Muddet (Deq)</label>
-                  <input 
-                    type="number" required value={editDuration} onChange={e => setEditDuration(e.target.value)}
-                    className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Kateqoriya</label>
-                <select 
-                  required value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)}
-                  className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-white"
-                >
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-1">Teleb Olunan Avadanliq (Konullu)</label>
-                <select
-                  value={editRequiredEquipmentId} onChange={e => setEditRequiredEquipmentId(e.target.value)}
-                  className="w-full text-sm p-2.5 rounded-lg border border-[#B8935A]/30 focus:outline-none focus:border-[#C9A227] bg-white"
-                >
-                  <option value="">Avadanliq lazim deyil</option>
-                  {equipment.filter((eq) => { const b = branches.find((br) => br.id === eq.branchId); return b && b.salonId === selectedService?.salonId; }).map(eq => <option key={eq.id} value={eq.id}>{eq.name}</option>)}
-                </select>
-              <div>
-                <label className="block text-xs font-semibold text-[#1A1714]/70 mb-2">Tag-lar (Konullu)</label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => {
-                    const isChecked = editTagIds.includes(tag.id);
-                    return (
-                      <label key={tag.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs cursor-pointer ${isChecked ? "bg-[#C9A227]/10 border-[#C9A227] text-[#1A1714] font-medium" : "bg-white border-gray-200 text-gray-500"}`}>
-                        <input type="checkbox" checked={isChecked} onChange={(e) => setEditTagIds((prev) => e.target.checked ? [...prev, tag.id] : prev.filter((id) => id !== tag.id))} className="hidden" />
-                        {tag.name}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
               </div>
 
               <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                <button 
+                <button
                   type="button" onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-[#1A1714]/70 hover:bg-gray-50"
                 >
                   Legv et
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="px-5 py-2 bg-[#1A1714] text-[#FAF6F0] hover:bg-[#C9A227] hover:text-[#1A1714] rounded-lg text-sm font-medium transition-colors border border-[#B8935A]/30"
                 >
@@ -497,6 +577,7 @@ export default function ServicesManagement({
         </div>
       )}
 
+      {/* SİL MODALI */}
       {isDeleteModalOpen && selectedService && (
         <div className="fixed inset-0 z-50 bg-[#1A1714]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-red-100 w-full max-w-md overflow-hidden">
@@ -508,15 +589,15 @@ export default function ServicesManagement({
               <p className="text-sm text-[#1A1714]/60 mb-6">
                 <strong>{selectedService.name}</strong> xidmetini <strong>{salons.find(s => s.id === selectedService.salonId)?.name}</strong> salonundan silmek istediyinize eminsiniz? Bu emeliyyat geri qaytarila bilmez.
               </p>
-              
+
               <div className="flex justify-center gap-3">
-                <button 
+                <button
                   onClick={() => setIsDeleteModalOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-[#1A1714]/70 hover:bg-gray-50 font-medium transition-colors"
                 >
                   Geri qayit
                 </button>
-                <button 
+                <button
                   onClick={handleDeleteConfirm}
                   className="px-5 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg text-sm font-medium transition-colors shadow-md"
                 >
@@ -530,9 +611,3 @@ export default function ServicesManagement({
     </div>
   );
 }
-
-
-
-
-
-

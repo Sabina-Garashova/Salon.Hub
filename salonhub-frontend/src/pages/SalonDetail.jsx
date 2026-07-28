@@ -59,6 +59,7 @@ export default function SalonDetail() {
             (g) => g.salonId === salonId
           )
         );
+        setTags(tagRes.data);
 
         if (token) {
           api.get("/Reservation").then((resvRes) => {

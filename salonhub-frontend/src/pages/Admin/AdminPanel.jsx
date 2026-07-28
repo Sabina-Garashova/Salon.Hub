@@ -198,6 +198,7 @@ export default function AdminPanel() {
           price: payload.price,
           durationMinutes: payload.durationMinutes,
           categoryId: payload.categoryId,
+          discountPercent: payload.discountPercent ?? null,
           salonId,
         })
       )
@@ -215,6 +216,7 @@ export default function AdminPanel() {
       categoryId: payload.categoryId,
       salonId: existing?.salonId,
       requiredEquipmentId: payload.requiredEquipmentId ?? null,
+      discountPercent: payload.discountPercent ?? null,
     });
     const oldTagIds = existing?.tagIds || [];
     const newTagIds = payload.tagIds || [];
