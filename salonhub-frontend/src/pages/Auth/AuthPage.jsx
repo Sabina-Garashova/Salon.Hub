@@ -1,7 +1,8 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, Calendar, Gift } from "lucide-react";
 import api from "../../services/api";
+import { useLanguage } from "../../context/LanguageContext";
 
 function SalonIllustration() {
   return (
@@ -30,6 +31,7 @@ function LogoMark() {
 }
 
 export default function AuthPage() {
+  const { t } = useLanguage();
   const location = useLocation();
   const [tab, setTab] = useState(location.state?.tab === "register" ? "register" : "login");
   const [showPass, setShowPass] = useState(false);
@@ -56,7 +58,7 @@ export default function AuthPage() {
       localStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (err) {
-      const msg = err.response?.data?.message || "Giris ugursuz oldu";
+      const msg = err.response?.data?.message || t("auth_login_error");
       alert(msg);
     }
   };
@@ -64,7 +66,7 @@ export default function AuthPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (registerData.password !== registerData.confirmPassword) {
-      alert("Sifreler uygun gelmir");
+      alert(t("auth_password_mismatch"));
       return;
     }
     try {
@@ -77,9 +79,9 @@ export default function AuthPage() {
       };
       await api.post("/auth/register", payload);
       setTab("login");
-      alert("Qeydiyyat ugurludur, indi daxil olun");
+      alert(t("auth_register_success"));
     } catch (err) {
-      const msg = err.response?.data?.message || "Qeydiyyat ugursuz oldu";
+      const msg = err.response?.data?.message || t("auth_register_error");
       alert(msg);
     }
   };
@@ -127,19 +129,19 @@ export default function AuthPage() {
 
           {tab === "login" ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1A1714] mb-2">Xos gelmisiniz</h2>
+              <h2 className="text-2xl font-serif text-[#1A1714] mb-2">{t("auth_welcome")}</h2>
 
               <div className="relative">
                 <Mail className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Email or Phone"
+                  placeholder="Email ve ya Telefon"
                   value={loginData.emailOrPhone}
                   onChange={(e) => setLoginData({ ...loginData, emailOrPhone: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   maxLength={40}
                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                  title="Zehmet olmasa etibarli bir email adresi daxil edin"
+                  title={t("auth_email_hint")}
                   required
                 />
               </div>
@@ -148,7 +150,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showPass ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Sifre"
                   value={loginData.password}
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -162,9 +164,9 @@ export default function AuthPage() {
               <div className="flex justify-between items-center text-sm">
                 <label className="flex items-center gap-2 text-gray-600">
                   <input type="checkbox" className="accent-[#C9A227]" />
-                  Remember me
+                  Meni xatirla
                 </label>
-                <a href="#" className="text-[#C9A227] font-medium">Forgot password?</a>
+                <a href="#" className="text-[#C9A227] font-medium">Sifreni unutmusunuz?</a>
               </div>
 
               <button type="submit" className="w-full py-3 rounded-xl bg-[#1A1714] text-white font-medium hover:bg-[#2A231C] transition">
@@ -173,13 +175,13 @@ export default function AuthPage() {
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
-              <h2 className="text-2xl font-serif text-[#1A1714] mb-2">Hesab yaradin</h2>
+              <h2 className="text-2xl font-serif text-[#1A1714] mb-2">{t("auth_create_account_title")}</h2>
 
               <div className="relative">
                 <User className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder={t("auth_full_name")}
                   value={registerData.fullName}
                   onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -197,7 +199,7 @@ export default function AuthPage() {
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   maxLength={40}
                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                  title="Zehmet olmasa etibarli bir email adresi daxil edin"
+                  title={t("auth_email_hint")}
                   required
                 />
               </div>
@@ -206,7 +208,7 @@ export default function AuthPage() {
                 <Calendar className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="date"
-                  placeholder="Date of Birth"
+                  placeholder="Dogum Tarixi"
                   value={registerData.dateOfBirth}
                   onChange={(e) => setRegisterData({ ...registerData, dateOfBirth: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-gray-600"
@@ -218,7 +220,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showPass ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Sifre"
                   value={registerData.password}
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -233,7 +235,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showConfirm ? "text" : "password"}
-                  placeholder="Confirm Password"
+                  placeholder="Sifreni Tesdiqle"
                   value={registerData.confirmPassword}
                   onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -248,7 +250,7 @@ export default function AuthPage() {
                 <Gift className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Devet kodu (istege gore)"
+                  placeholder="Devet kodu (isteye gore)"
                   value={registerData.referredByCode}
                   onChange={(e) => setRegisterData({ ...registerData, referredByCode: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"

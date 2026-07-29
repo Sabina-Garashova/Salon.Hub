@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoyaltyProgram from "../components/LoyaltyProgram";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
 function decodeToken(token) {
   try {
@@ -20,6 +21,7 @@ function decodeToken(token) {
 }
 
 export default function LoyaltyPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [balances, setBalances] = useState([]);
   const [referralCode, setReferralCode] = useState("");
@@ -52,7 +54,7 @@ export default function LoyaltyPage() {
         const resvRes = await api.get("/Reservation");
         setReservations(resvRes.data.filter((r) => r.customerId === myUserId));
       })
-      .catch((err) => console.error("Loyalty melumati yuklenmedi", err))
+      .catch((err) => console.error("Loyalty məlumatı yüklənmədi", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -77,12 +79,12 @@ export default function LoyaltyPage() {
         discountAmount,
         reservationId: reservationId ? Number(reservationId) : null,
       });
-      alert(`Ugurla istifade edildi! Qalan bal: ${res.data.remainingPoints}`);
+      alert(`${t("loy_redeem_success")} ${res.data.remainingPoints}`);
       setBalances((prev) =>
         prev.map((b) => (b.salonId === salonId ? { ...b, points: res.data.remainingPoints } : b))
       );
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || t("home_review_error"));
     }
   };
 
@@ -104,9 +106,9 @@ export default function LoyaltyPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
             <div className="bg-gradient-to-r from-[#1A1714] to-[#2D2622] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#B8935A]/20">
               <div>
-                <p className="text-xs uppercase tracking-widest text-[#B8935A] font-semibold mb-1">Sexsi Devet Kodunuz</p>
+                <p className="text-xs uppercase tracking-widest text-[#B8935A] font-semibold mb-1">{t("loy_referral_title")}</p>
                 <p className="text-2xl font-serif font-bold text-[#F0D68A] tracking-wider">{referralCode}</p>
-                <p className="text-xs text-gray-400 mt-1">Bu kodu dostlariniza paylasin, her ikiniz bonus bal qazanin!</p>
+                <p className="text-xs text-gray-400 mt-1">{t("loy_referral_desc")}</p>
               </div>
               <button
                 onClick={() => {
@@ -116,7 +118,7 @@ export default function LoyaltyPage() {
                 }}
                 className="px-5 py-2.5 bg-[#C9A227] text-[#1A1714] rounded-xl text-sm font-bold hover:bg-[#F0D68A] transition whitespace-nowrap"
               >
-                {copied ? "Kopyalandi!" : "Kopyala"}
+                {copied ? t("loy_copied") : t("loy_copy")}
               </button>
             </div>
           </div>

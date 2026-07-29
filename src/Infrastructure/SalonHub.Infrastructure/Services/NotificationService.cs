@@ -28,7 +28,7 @@ public class NotificationService : INotificationService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task NotifyReservationChangedAsync(string customerId, string message)
+    public async Task NotifyReservationChangedAsync(string customerId, string message, string? typeKey = null, string? paramsJson = null)
     {
         _logger.LogInformation("BİLDİRİŞ [Müştəri: {CustomerId}]: {Message}", customerId, message);
 
@@ -64,7 +64,7 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task NotifyEmployeeAsync(int employeeId, string message)
+    public async Task NotifyEmployeeAsync(int employeeId, string message, string? typeKey = null, string? paramsJson = null)
     {
         _logger.LogInformation("BİLDİRİŞ [İşçi ID: {EmployeeId}]: {Message}", employeeId, message);
 
@@ -107,5 +107,6 @@ public class NotificationService : INotificationService
         }
     }
 }
+
 
 

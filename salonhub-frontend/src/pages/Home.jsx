@@ -1,11 +1,13 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
 import BookingModal from "../components/BookingModal";
 import api from "../services/api";
 import NewsSection from "../components/NewsSection";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [salons, setSalons] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -67,13 +69,13 @@ export default function Home() {
         rating: reviewRating,
         comment: reviewComment,
       });
-      alert("Reyiniz ucun tesekkur edirik!");
+      alert(t("home_review_thanks"));
       setReviewModalSalon(null);
       const reviewRes = await api.get("/Review");
       const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
       setReviews(withComments.slice(0, 6));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || t("home_review_error"));
     } finally {
       setSubmittingReview(false);
     }
@@ -98,13 +100,13 @@ export default function Home() {
               onClick={() => navigate("/auth", { state: { tab: "login" } })}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-[#F0D68A] hover:bg-white/5 transition"
             >
-              <LogIn className="w-4 h-4" /> Giriş
+              <LogIn className="w-4 h-4" /> {t("home_login")}
             </button>
             <button
               onClick={() => navigate("/auth", { state: { tab: "register" } })}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] hover:opacity-95 transition"
             >
-              <UserPlus className="w-4 h-4" /> Qeydiyyat
+              <UserPlus className="w-4 h-4" /> {t("home_register")}
             </button>
           </div>
         </div>
@@ -112,7 +114,7 @@ export default function Home() {
 
       <section className="bg-gradient-to-b from-[#1A1714] to-[#2B2118] py-16 px-6 text-center">
         <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#F4EDE0] max-w-2xl mx-auto leading-tight">
-          Gözəlliyinizi kəşf edin,<br />bizimlə bir addım öndə olun
+          {t("home_hero_title")}
         </h2>
         <p className="mt-4 text-gray-400 max-w-lg mx-auto text-sm">
           Şəbəkəmizdəki ən yaxşı salonları və ustaları kəşf edin, rezervasiya edin
@@ -124,9 +126,9 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Salonlar</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_salons")}</span>
               <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{salons.length}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Sebekemizde</span>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_in_network")}</span>
             </div>
             <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
               <Building2 className="w-5 h-5" />
@@ -134,9 +136,9 @@ export default function Home() {
           </div>
           <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Ustalar</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_masters")}</span>
               <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{employees.length}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Peseler usta</span>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_professional_masters")}</span>
             </div>
             <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#B8935A10", color: "#B8935A" }}>
               <Users className="w-5 h-5" />
@@ -144,13 +146,13 @@ export default function Home() {
           </div>
           <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Orta Reytinq</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_avg_rating")}</span>
               <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">
                 {reviews.length > 0
                   ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
                   : "0.0"}
               </h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">5 uzerinden</span>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_out_of_5")}</span>
             </div>
             <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#1A171410", color: "#1A1714" }}>
               <Star className="w-5 h-5" />
@@ -158,9 +160,9 @@ export default function Home() {
           </div>
           <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Musteriler</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_customers")}</span>
               <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{uniqueCustomersCount}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">Bize etibar edir</span>
+              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_trust_us")}</span>
             </div>
             <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
               <Users className="w-5 h-5" />
@@ -168,12 +170,12 @@ export default function Home() {
           </div>
         </div>
 
-        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">Salonlarımız</h3>
+        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_our_salons")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
           {loading ? (
             <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
           ) : salons.length === 0 ? (
-            <p className="text-sm text-gray-400 col-span-full">Hələ salon əlavə edilməyib.</p>
+            <p className="text-sm text-gray-400 col-span-full">{t("home_no_salons")}</p>
           ) : (
             salons.map((salon) => (
               <div
@@ -190,7 +192,7 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   {salon.isMonthlyTopSalon && (
-                    <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title="Ayın ən yaxşı salonu">
+                    <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title={t("home_top_salon_badge")}>
                       <Crown className="w-4 h-4 fill-[#C9A227]" />
                     </div>
                   )}
@@ -219,12 +221,12 @@ export default function Home() {
           )}
         </div>
 
-        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">Ustalarımız</h3>
+        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_our_masters")}</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-16">
           {loading ? (
             <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
           ) : employees.length === 0 ? (
-            <p className="text-sm text-gray-400 col-span-full">Hələ usta əlavə edilməyib.</p>
+            <p className="text-sm text-gray-400 col-span-full">{t("home_no_masters")}</p>
           ) : (
             employees.map((emp) => (
               <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:shadow-md transition">
@@ -252,7 +254,7 @@ export default function Home() {
         <NewsSection limit={3} />
         {reviews.length > 0 && (
           <>
-            <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">Musteri Reyleri</h3>
+            <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_customer_reviews")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-16">
               {reviews.map((rev) => {
                 const salonName = salons.find((s) => s.id === rev.salonId)?.name;
@@ -284,14 +286,14 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rey yaz</h3>
+              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rəy yaz</h3>
               <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleSubmitReview} className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reytinq</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">{t("home_rating")}</label>
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <button
@@ -306,13 +308,13 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reyiniz</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">{t("home_your_review")}</label>
                 <textarea
                   rows={4}
                   required
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Tecrubenizi bizimle paylasin..."
+                  placeholder={t("home_review_placeholder")}
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 />
               </div>
@@ -321,7 +323,7 @@ export default function Home() {
                   Imtina
                 </button>
                 <button type="submit" disabled={submittingReview} className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50">
-                  <Send className="w-3.5 h-3.5" /> {submittingReview ? "Gonderilir..." : "Gonder"}
+                  <Send className="w-3.5 h-3.5" /> {submittingReview ? t("home_sending") : t("home_submit_review")}
                 </button>
               </div>
             </form>

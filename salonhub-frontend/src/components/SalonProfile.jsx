@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 import {
   ArrowLeft,
   CalendarPlus,
@@ -94,6 +95,7 @@ export default function SalonProfile({
   onSubmitReview,
   reviewableEmployees = [],
 }) {
+  const { t } = useLanguage();
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewComment, setReviewComment] = useState("");
@@ -139,7 +141,7 @@ export default function SalonProfile({
           <LoadingSkeleton />
         ) : !salon ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
-            <p className="text-gray-400 text-sm">Salon tapılmadı.</p>
+            <p className="text-gray-400 text-sm">{t("sp_not_found")}</p>
           </div>
         ) : (
           <>
@@ -159,7 +161,7 @@ export default function SalonProfile({
                   <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#F4EDE0] flex items-center gap-2 flex-wrap">
                     {salon.name}
                     {salon.isMonthlyTopSalon && (
-                      <Crown className="w-7 h-7 text-[#C9A227] fill-[#C9A227]" aria-label="Ayin salonu" />
+                      <Crown className="w-7 h-7 text-[#C9A227] fill-[#C9A227]" aria-label={t("sp_top_salon")} />
                     )}
                   </h1>
 
@@ -211,10 +213,10 @@ export default function SalonProfile({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="lg:col-span-2 space-y-8">
                 <section>
-                  <SectionTitle icon={Scissors}>Xidmetler</SectionTitle>
+                  <SectionTitle icon={Scissors}>{t("sp_services")}</SectionTitle>
                   {services.length === 0 ? (
                     <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
-                      Hele xidmet elave edilmeyib.
+                      {t("sp_no_services")}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -260,10 +262,10 @@ export default function SalonProfile({
                 </section>
 
                 <section>
-                  <SectionTitle icon={Users}>Ustalar</SectionTitle>
+                  <SectionTitle icon={Users}>{t("sp_masters")}</SectionTitle>
                   {employees.length === 0 ? (
                     <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
-                      Hele usta elave edilmeyib.
+                      {t("sp_no_masters")}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -299,10 +301,10 @@ export default function SalonProfile({
                 </section>
 
                 <section>
-                  <SectionTitle icon={MessageSquare}>Reyler</SectionTitle>
+                  <SectionTitle icon={MessageSquare}>{t("sp_reviews")}</SectionTitle>
                   {reviews.length === 0 ? (
                     <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
-                      Hele rey yoxdur.
+                      {t("sp_no_reviews")}
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -317,12 +319,12 @@ export default function SalonProfile({
                             </span>
                             <StarRating rating={review.rating} size="sm" />
                           </div>
-                          {review.employeeFullName && (<p className="text-xs text-[#B8935A] font-medium mb-1">Usta: {review.employeeFullName}</p>)}
+                          {review.employeeFullName && (<p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {review.employeeFullName}</p>)}
                           <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
                           {review.response && (
                             <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
                               <p className="text-xs text-gray-500">
-                                <span className="font-semibold text-[#B8935A]">Salon cavabi: </span>
+                                <span className="font-semibold text-[#B8935A]">{t("sp_salon_reply")} </span>
                                 {review.response}
                               </p>
                             </div>
@@ -337,13 +339,13 @@ export default function SalonProfile({
               <aside className="lg:col-span-1">
                 <div className="lg:sticky lg:top-6 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                   <h3 className="text-lg font-serif font-bold text-[#1A1714] mb-4">
-                    Rey Bildirin
+                    {t("sp_leave_review")}
                   </h3>
 
                   {canReview ? (
                     <form onSubmit={handleReviewSubmit} className="space-y-4">
                       <div>
-                        <p className="text-xs text-gray-500 mb-2">Reytinqiniz</p>
+                        <p className="text-xs text-gray-500 mb-2">{t("sp_rating")}</p>
                         <StarRating
                           rating={reviewRating}
                           size="lg"
@@ -353,13 +355,13 @@ export default function SalonProfile({
                       </div>
                       {reviewableEmployees.length > 0 && (
                         <div>
-                          <p className="text-xs text-gray-500 mb-2">Hansi usta ile isledin? (Konullu)</p>
+                          <p className="text-xs text-gray-500 mb-2">{t("sp_which_master")}</p>
                           <select
                             value={reviewEmployeeId}
                             onChange={(e) => setReviewEmployeeId(e.target.value)}
                             className="w-full p-3 bg-[#FAF6F0] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 transition"
                           >
-                            <option value="">Sadece salona rey ver</option>
+                            <option value="">{t("sp_only_salon")}</option>
                             {reviewableEmployees.map((emp) => (
                               <option key={emp.id} value={emp.id}>{emp.fullName}</option>
                             ))}
@@ -371,7 +373,7 @@ export default function SalonProfile({
                         required
                         value={reviewComment}
                         onChange={(e) => setReviewComment(e.target.value)}
-                        placeholder="Tecrubenizi bolusun..."
+                        placeholder={t("sp_review_placeholder")}
                         className="w-full p-3 bg-[#FAF6F0] border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C9A227]/50 transition"
                       />
                       <button
@@ -380,12 +382,12 @@ export default function SalonProfile({
                         className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:opacity-95 transition"
                       >
                         <Send className="w-4 h-4" />
-                        {isSubmittingReview ? "Gonderilir..." : "Gonder"}
+                        {isSubmittingReview ? t("sp_sending") : t("sp_send")}
                       </button>
                     </form>
                   ) : (
                     <div className="bg-[#FAF6F0] border border-dashed border-gray-200 rounded-xl p-4 text-center text-xs text-gray-400 leading-relaxed">
-                      Rey yazmaq ucun tamamlanmis rezervasiyaniz olmalidir.
+                      {t("sp_review_gate")}
                     </div>
                   )}
                 </div>

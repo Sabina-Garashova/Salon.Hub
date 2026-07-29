@@ -1,9 +1,10 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import BookingModal from "../components/BookingModal";
 import SalonProfile from "../components/SalonProfile";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
 function decodeToken(t) {
   try {
@@ -21,6 +22,7 @@ function decodeToken(t) {
 }
 
 export default function SalonDetail() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const salonId = Number(id);
@@ -77,7 +79,7 @@ export default function SalonDetail() {
           });
         }
       })
-      .catch((err) => console.error("Salon melumati yuklenmedi", err))
+      .catch((err) => console.error("Salon məlumatı yüklənmədi", err))
       .finally(() => setLoading(false));
   }, [salonId, token]);
 
@@ -102,11 +104,11 @@ export default function SalonDetail() {
     setSubmittingReview(true);
     try {
       await api.post("/Review", { salonId, rating, comment });
-      alert("Reyiniz ucun tesekkur edirik!");
+      alert(t("home_review_thanks"));
       const revRes = await api.get("/Review");
       setReviews(revRes.data.filter((r) => r.salonId === salonId));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || t("home_review_error"));
     } finally {
       setSubmittingReview(false);
     }

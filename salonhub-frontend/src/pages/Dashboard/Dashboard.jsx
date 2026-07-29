@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DollarSign,
@@ -23,6 +23,7 @@ import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
 import NewsSection from "../../components/NewsSection";
+import { useLanguage } from "../../context/LanguageContext";
 
 function decodeToken(token) {
   try {
@@ -45,6 +46,16 @@ function getFirstName(fullName) {
 }
 
 export default function Dashboard() {
+  const { t, language } = useLanguage();
+  const localeMap = { az: "az-AZ", en: "en-US", ru: "ru-RU" };
+  const dateStr = new Date().toLocaleDateString(localeMap[language] || "az-AZ", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+  const formattedDate = dateStr;
+  const currentDateStr = dateStr;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -147,9 +158,7 @@ export default function Dashboard() {
   const now = new Date();
   const hour = now.getHours();
   const greeting =
-    hour < 6 ? "Yaxsi geceler" : hour < 12 ? "Sabahiniz xeyir" : hour < 18 ? "Gununuz xeyir" : "Axsaminiz xeyir";
-  const dateStr = now.toLocaleDateString("az-AZ", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
-
+    hour < 6 ? t("dash_good_night") : hour < 12 ? t("dash_good_morning") : hour < 18 ? t("dash_good_day") : t("dash_good_evening");
   useEffect(() => {
     Promise.all([api.get("/salon"), api.get("/GalleryImage"), api.get("/Employee"), api.get("/Review")])
       .then(([salonRes, galleryRes, empRes, reviewRes]) => {
@@ -180,11 +189,11 @@ export default function Dashboard() {
   const totalRevenue = globalReservations.filter((r) => r.status === "Completed").reduce((sum, r) => sum + (r.price || 0), 0);
 
   const allStats = [
-    { id: 1, name: "UMUMI QAZANC", value: totalRevenue.toFixed(2) + " AZN", change: "Tamamlanmis", icon: DollarSign, color: "#C9A227", adminOnly: true },
-    { id: 2, name: "AKTIV GORUSLER", value: activeSessionsCount + " Seans", change: "Indiki veziyyet", icon: Calendar, color: "#B8935A" },
-    { id: 3, name: "MUSTERILER", value: uniqueCustomersCount + " Nefer", change: "Umumi", icon: Users, color: "#1A1714" },
-    { id: 4, name: "SALON REYTINQI", value: avgSalonRating + " / 5.0", change: reviews.length + " rey", icon: Star, color: "#C9A227" },
-    { id: 5, name: "USTALAR", value: employees.length + " Nefer", change: "Umumi", icon: Scissors, color: "#B8935A" },
+    { id: 1, name: t("dash_total_earnings"), value: totalRevenue.toFixed(2) + " AZN", change: t("dash_completed"), icon: DollarSign, color: "#C9A227", adminOnly: true },
+    { id: 2, name: t("dash_active_sessions"), value: activeSessionsCount + " " + t("emp_sessions"), change: t("dash_current_status"), icon: Calendar, color: "#B8935A" },
+    { id: 3, name: t("dash_customers"), value: uniqueCustomersCount + " " + t("dash_people"), change: t("dash_total"), icon: Users, color: "#1A1714" },
+    { id: 4, name: t("dash_salon_rating"), value: avgSalonRating + " / 5.0", change: reviews.length + " " + t("dash_reviews_count"), icon: Star, color: "#C9A227" },
+    { id: 5, name: t("dash_masters"), value: employees.length + " " + t("dash_people"), change: t("dash_total"), icon: Scissors, color: "#B8935A" },
   ];
   const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
 
@@ -210,7 +219,7 @@ export default function Dashboard() {
   const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
 
   const statusLabel = (s) =>
-    s === "Confirmed" ? "Tesdiqlenib" : s === "Completed" ? "Tamamlanib" : s === "Cancelled" ? "Legv edilib" : "Gozlenilir";
+    s === "Confirmed" ? "Tesdiqlenib" : s === "Completed" ? "Tamamlanıb" : s === "Cancelled" ? "Legv edilib" : "Gozlenilir";
 
   const serviceStats = (() => {
     const completed = globalReservations.filter((r) => r.status === "Completed");
@@ -254,10 +263,10 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-[#B8935A] uppercase tracking-widest block mb-1">
-                {greeting}{firstName ? `, ${firstName}` : ""} ?
+                {greeting}{firstName ? `, ${firstName}` : ""}
               </span>
-              <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714] tracking-tight">Idareetme Paneli</h1>
-              <p className="text-gray-400 text-xs mt-0.5 font-medium">Salonunuzun gunluk fealiyyeti ve analitikasi.</p>
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714] tracking-tight">{t("dash_panel_title")}</h1>
+              <p className="text-gray-400 text-xs mt-0.5 font-medium">{t("dash_panel_sub")}</p>
             </div>
 
             <div className="bg-white/70 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-sm border border-white/60 text-sm text-gray-700 font-semibold flex items-center gap-3 self-start sm:self-center transition-all hover:shadow-md">
@@ -265,7 +274,7 @@ export default function Dashboard() {
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Cari Tarix</div>
+                <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">{t("dash_current_date")}</div>
                 <div className="font-mono text-[#1A1714] capitalize">{dateStr}</div>
               </div>
             </div>
@@ -279,13 +288,13 @@ export default function Dashboard() {
               <div className="space-y-3 max-w-2xl">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#F0D68A] text-[10px] font-bold uppercase tracking-widest">
                   <Sparkles className="w-3 h-3 text-[#C9A227]" />
-                  Karyera Imkani
+                  Karyera İmkanı
                 </div>
                 <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#FAF6F0] leading-tight">
-                  Usta olmaq isteyirsiniz?
+                  {t("dash_career_question")}
                 </h2>
                 <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light">
-                  SalonHub sebekesinde oz ferdi profilinizi yaradin, musterilerinizi qeydiyyata alin, cedvelinizi rahatliqla idare ederek gelirlerinizi qat-qat artirin!
+                  {t("dash_career_desc")}
                 </p>
               </div>
 
@@ -293,7 +302,7 @@ export default function Dashboard() {
                 onClick={() => setShowApplicationModal(true)}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-sm rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#B8935A]/10 whitespace-nowrap group/btn"
               >
-                Muraciet Et
+                Müraciət Et
                 <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
               </button>
             </div>
@@ -329,8 +338,8 @@ export default function Dashboard() {
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-xl font-serif font-bold text-[#1A1714]">Salonlar</h3>
-                <p className="text-xs text-gray-400 font-medium">Sebekemizdeki gozellik salonlari.</p>
+                <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_salons")}</h3>
+                <p className="text-xs text-gray-400 font-medium">{t("dash_our_salons_sub")}</p>
               </div>
               <div className="text-gray-300">
                 <Scissors className="w-5 h-5 opacity-40 rotate-90" />
@@ -397,7 +406,7 @@ export default function Dashboard() {
 
 
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
-            <h3 className="text-xl font-serif font-bold text-[#1A1714]">Ustalarimiz</h3>
+            <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_masters")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {employees.map((emp) => (
                 <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:shadow-md transition">
@@ -426,7 +435,7 @@ export default function Dashboard() {
 
           {reviews.length > 0 && (
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
-            <h3 className="text-xl font-serif font-bold text-[#1A1714]">Musteri Reyleri</h3>
+            <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_customer_reviews")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {reviews.map((rev) => {
                 const s = salons.find((sal) => sal.id === rev.salonId);
@@ -452,11 +461,11 @@ export default function Dashboard() {
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
-                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">Bugunki Gorusler</h3>
-                  <p className="text-xs text-gray-400">Son qeydiyyatdan kecen musterilerin siyahisi.</p>
+                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">{t("dash_todays_appointments")}</h3>
+                  <p className="text-xs text-gray-400">{t("dash_todays_appointments_sub")}</p>
                 </div>
                 <button className="text-xs font-semibold text-[#C9A227] hover:text-[#B8935A] inline-flex items-center gap-0.5 transition">
-                  Hamisina bax <ArrowUpRight className="w-3.5 h-3.5" />
+                  Hamısına bax <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -466,9 +475,9 @@ export default function Dashboard() {
                     <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
                       {role !== "Customer" && <th className="py-3 font-medium">Musteri</th>}
                       {role !== "Employee" && <th className="py-3 font-medium">Usta</th>}
-                      <th className="py-3 font-medium">Xidmet</th>
+                      <th className="py-3 font-medium">Xidmət</th>
                       <th className="py-3 font-medium">Saat</th>
-                      <th className="py-3 font-medium">Qiymet</th>
+                      <th className="py-3 font-medium">Qiymət</th>
                       <th className="py-3 font-medium text-right">Status</th>
                       {role === "Customer" && <th className="py-3 font-medium text-right">QR</th>}
                     </tr>
@@ -522,8 +531,8 @@ export default function Dashboard() {
 
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 space-y-4">
               <div className="border-b border-gray-100 pb-3">
-                <h3 className="text-lg font-serif font-bold text-[#1A1714]">En Cox Satilanlar</h3>
-                <p className="text-xs text-gray-400">Umumi neticelere gore en cox teleb olunan xidmetler.</p>
+                <h3 className="text-lg font-serif font-bold text-[#1A1714]">{t("dash_top_services")}</h3>
+                <p className="text-xs text-gray-400">{t("dash_top_services_sub")}</p>
               </div>
 
               <div className="space-y-4 pt-1">

@@ -1,4 +1,5 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LanguageProvider } from "./context/LanguageContext.jsx";
 import AuthPage from "./pages/Auth/AuthPage.jsx";
 import Home from "./pages/Home.jsx";
 import Dashboard from "./pages/Dashboard/Dashboard.jsx";
@@ -9,6 +10,7 @@ import LoyaltyPage from "./pages/LoyaltyPage.jsx";
 
 function App() {
   return (
+    <LanguageProvider>
     <BrowserRouter>
       <Routes>
         <Route
@@ -23,6 +25,7 @@ function App() {
         <Route path="/loyalty" element={<LoyaltyPage />} />
               </Routes>
     </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

@@ -1,8 +1,10 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, X, UploadCloud, FileText, Calendar, MapPin } from 'lucide-react';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext';
 
 const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) => {
+  const { t } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
@@ -54,7 +56,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
       const url = res.data.url || res.data.imageUrl || res.data;
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert('Sekil yuklenmedi');
+      alert('Şəkil yüklənmədi');
     }
     setUploading(false);
   };
@@ -84,7 +86,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714]">Xəbərlər və Yeniliklər</h1>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714]">{t("news_title")}</h1>
           <p className="text-[#1A1714]/70 mt-2 font-medium">Salon xəbərlərini və bloq yazılarını idarə edin</p>
         </div>
         <button
@@ -92,7 +94,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
           className="flex items-center gap-2 bg-[#C9A227] hover:bg-[#B8935A] text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg shadow-[#C9A227]/20"
         >
           <Plus size={20} />
-          <span>Yeni Xəbər</span>
+          <span>{t("news_new")}</span>
         </button>
       </div>
 
@@ -101,15 +103,15 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
           <div className="bg-[#FAF6F0] p-5 rounded-full mb-4 text-[#C9A227] shadow-sm">
             <FileText size={48} strokeWidth={1.5} />
           </div>
-          <h3 className="font-serif text-2xl font-semibold mb-2">Hələ heç bir xəbər yoxdur</h3>
+          <h3 className="font-serif text-2xl font-semibold mb-2">{t("news_no_news")}</h3>
           <p className="text-[#1A1714]/60 text-center max-w-md mb-6">
-            Salonunuzdakı yenilikləri müştərilərinizlə paylaşmaq üçün ilk xəbərinizi yaradın.
+            {t("news_no_news_desc")}
           </p>
           <button
             onClick={handleOpenCreate}
             className="text-[#C9A227] font-semibold hover:text-[#B8935A] flex items-center gap-1 transition-colors"
           >
-            <Plus size={18} /> İlk xəbəri əlavə et
+            <Plus size={18} /> {t("news_add_first")}
           </button>
         </div>
       ) : (
@@ -177,7 +179,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
           <div className="bg-[#FAF6F0] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-[#1A1714]/10 bg-white">
               <h2 className="text-2xl font-serif font-bold text-[#1A1714]">
-                {selectedNews ? 'Xəbəri Redaktə Et' : 'Yeni Xəbər Yarat'}
+                {selectedNews ? 't("news_edit_title")' : 't("news_create_title")'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#1A1714]/50 hover:text-[#1A1714]">
                 <X size={24} />
@@ -187,23 +189,23 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
             <div className="p-6 overflow-y-auto flex-1">
               <form id="newsForm" onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">Başlıq</label>
+                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">{t("news_headline")}</label>
                   <input
                     type="text" required value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-4 py-3 rounded-lg border border-[#1A1714]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all"
-                    placeholder="Mes: Yeni Yay Endirimlerimiz Basladi!"
+                    placeholder="Məs: Yeni Yay Endirimlərimiz Başladı!"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">Aid Oldugu Salon</label>
+                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">{t("news_which_salon")}</label>
                   <select
                     value={formData.salonId}
                     onChange={(e) => setFormData({ ...formData, salonId: e.target.value })}
                     className="w-full px-4 py-3 rounded-lg border border-[#1A1714]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all appearance-none"
                   >
-                    <option value="">Umumi (Butun salonlar)</option>
+                    <option value="">{t("news_all_salons")}</option>
                     {salons.map((salon) => (
                       <option key={salon.id} value={salon.id}>{salon.name}</option>
                     ))}
@@ -218,7 +220,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
                         <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <label className="cursor-pointer bg-white text-[#1A1714] px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
-                            <UploadCloud size={18} /> {uploading ? 'Yuklenir...' : 'Deyisdir'}
+                            <UploadCloud size={18} /> {uploading ? 'Yüklənir...' : t("news_change_image")}
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                           </label>
                         </div>
@@ -228,10 +230,10 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
                         <UploadCloud className="mx-auto h-12 w-12 text-[#C9A227]" />
                         <div className="flex text-sm text-[#1A1714]/70 justify-center">
                           <label className="relative cursor-pointer rounded-md font-semibold text-[#C9A227] hover:text-[#B8935A] focus-within:outline-none">
-                            <span>{uploading ? 'Yuklenir...' : 'Sekil yukle'}</span>
+                            <span>{uploading ? 'Yüklənir...' : t("news_upload_image")}</span>
                             <input type="file" className="sr-only" accept="image/*" onChange={handleImageChange} />
                           </label>
-                          <p className="pl-1">ve ya bura suruklə</p>
+                          <p className="pl-1">və ya bura sürüklə</p>
                         </div>
                         <p className="text-xs text-[#1A1714]/50">PNG, JPG (Max 5MB)</p>
                       </div>
@@ -240,12 +242,12 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">Məzmun</label>
+                  <label className="block text-sm font-semibold text-[#1A1714] mb-2">{t("news_content")}</label>
                   <textarea
                     required rows={6} value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     className="w-full px-4 py-3 rounded-lg border border-[#1A1714]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all resize-none"
-                    placeholder="Xeberin detallarini bura yazin..."
+                    placeholder="Xəbərin detallarını bura yazın..."
                   ></textarea>
                 </div>
               </form>
@@ -253,10 +255,10 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
 
             <div className="p-6 border-t border-[#1A1714]/10 bg-white flex justify-end gap-3 rounded-b-2xl">
               <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 rounded-lg font-semibold text-[#1A1714] hover:bg-[#1A1714]/5 transition-colors">
-                Legv et
+                Ləğv et
               </button>
               <button type="submit" form="newsForm" className="px-6 py-2.5 rounded-lg font-semibold bg-[#C9A227] text-white hover:bg-[#B8935A] shadow-md transition-colors">
-                {selectedNews ? 'Yadda Saxla' : 'Nesr Et'}
+                {selectedNews ? t("news_save") : 'Nəşr Et'}
               </button>
             </div>
           </div>
@@ -269,13 +271,13 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
             <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 size={32} />
             </div>
-            <h3 className="text-xl font-serif font-bold text-[#1A1714] mb-2">Silmek isteyirsiniz?</h3>
+            <h3 className="text-xl font-serif font-bold text-[#1A1714] mb-2">Silmək istəyirsiniz?</h3>
             <p className="text-[#1A1714]/60 mb-6">
-              "<span className="font-semibold text-[#1A1714]">{selectedNews?.title}</span>" xeberi hemiselik silinecek.
+              "<span className="font-semibold text-[#1A1714]">{selectedNews?.title}</span>" xəbəri həmişəlik silinəcək.
             </p>
             <div className="flex justify-center gap-3">
               <button onClick={() => setIsDeleteModalOpen(false)} className="px-5 py-2.5 rounded-lg font-semibold bg-[#FAF6F0] text-[#1A1714] hover:bg-gray-200 transition-colors">
-                Legv et
+                Ləğv et
               </button>
               <button onClick={confirmDelete} className="px-5 py-2.5 rounded-lg font-semibold bg-red-500 text-white hover:bg-red-600 shadow-md transition-colors">
                 Beli, Sil

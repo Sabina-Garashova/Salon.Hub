@@ -1,8 +1,11 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Newspaper, X } from "lucide-react";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
-export default function NewsSection({ limit = 3, title = "Xeberler ve Yenilikler" }) {
+export default function NewsSection({ limit = 3, title }) {
+  const { t } = useLanguage();
+  const displayTitle = title || t("news_title");
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedArticle, setSelectedArticle] = useState(null);
@@ -25,7 +28,7 @@ export default function NewsSection({ limit = 3, title = "Xeberler ve Yenilikler
     <section className="py-10">
       <div className="flex items-center gap-2 mb-6">
         <Newspaper size={22} className="text-[#C9A227]" />
-        <h2 className="text-2xl font-serif font-bold text-[#1A1714]">{title}</h2>
+        <h2 className="text-2xl font-serif font-bold text-[#1A1714]">{displayTitle}</h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {news.map((item) => (

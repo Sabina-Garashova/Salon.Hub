@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useLanguage } from '../context/LanguageContext';
+import { useState, useEffect } from "react";
 import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift } from "lucide-react";
 import api from "../services/api";
 import PaymentMethodSelector from "./PaymentMethodSelector";
@@ -37,11 +38,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
         setEmployees(empRes.data.filter((e) => e.salonId === salonId && e.branchId));
         setLoyaltyBalance(balRes.data);
       })
-      .catch((err) => console.error("Melumat yuklenmedi", err))
+      .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setLoadingOptions(false));
   }, [isOpen, salonId]);
 
-  // Sorgunu tam n?zar?td? saxlayan useEffect
+  // Sorgunu tam nezaretde saxlayan useEffect
   useEffect(() => {
     const fetchAvailableSlots = async () => {
       if (!selectedDate || !selectedEmployee || !selectedService) {
@@ -52,8 +53,6 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
       setIsLoadingSlots(true);
       setSlotsError("");
       
-      // F12-SIZ YOXLAMAQ ÜÇÜN BILDIRIS EKRANI
-      alert(`Backend-e geden tarix: ${selectedDate}\nUsta ID: ${selectedEmployee.id}`);
 
       try {
         const res = await api.get("/Reservation/available-slots", {
@@ -71,7 +70,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
         });
         setAvailableSlots(res.data);
       } catch (err) {
-        setSlotsError(err.response?.data?.message || "Bos saatlari yuklemek olmadi");
+        setSlotsError(err.response?.data?.message || "Boş saatları yükləmək olmadı");
         setAvailableSlots([]);
       } finally {
         setIsLoadingSlots(false);
@@ -117,13 +116,13 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
             reservationId: res.data.id,
           });
         } catch (redeemErr) {
-          console.error("Bal istifade edilerken xeta", redeemErr);
+          console.error("Bal istifadə edilərkən xəta", redeemErr);
         }
       }
-      alert("Rezervasiya ugurla tamamlandi!");
+      alert("Rezervasiya uğurla tamamlandı!");
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || "Xəta baş verdi");
     } finally {
       setSubmitting(false);
     }
@@ -144,10 +143,10 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
 
   const StepIndicator = () => {
     const stepsArr = [
-      { id: 1, label: "Xidmet" },
+      { id: 1, label: "Xidmət" },
       { id: 2, label: "Usta" },
       { id: 3, label: "Tarix & Saat" },
-      { id: 4, label: "Tesdiq" },
+      { id: 4, label: "Təsdiq" },
     ];
     return (
       <div className="flex items-center justify-between w-full mb-8 relative px-4">
@@ -186,7 +185,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
             <Sparkles className="w-5 h-5 text-[#C9A227]" />
             <div>
               <h2 className="text-xl font-serif text-[#F0D68A]">SalonHub</h2>
-              <p className="text-xs text-gray-400 font-sans tracking-wider">{salonName || "ONLAYN REZERVASIYA"}</p>
+              <p className="text-xs text-gray-400 font-sans tracking-wider">{salonName || "ONLAYN REZERVASİYA"}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition">
@@ -205,9 +204,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
             <>
               {step === 1 && (
                 <div className="space-y-4">
-                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Xidmet secin</h3>
+                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Xidmət seçin</h3>
                   {services.length === 0 ? (
-                    <p className="text-sm text-gray-400">Bu salonda hele xidmet elave edilmeyib.</p>
+                    <p className="text-sm text-gray-400">Bu salonda hələ xidmət əlavə edilməyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {services.map((service) => (
@@ -227,7 +226,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                                 <h4 className="font-sans font-semibold text-[#1A1714]">{service.name}</h4>
                                 <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                                   <Clock className="w-3 h-3" />
-                                  <span>{service.durationMinutes} deqiqe</span>
+                                  <span>{service.durationMinutes} {t("bm_minutes")}</span>
                                 </div>
                               </div>
                             </div>
@@ -242,9 +241,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
 
               {step === 2 && (
                 <div className="space-y-4">
-                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Usta secin</h3>
+                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Usta seçin</h3>
                   {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).length === 0 ? (
-                    <p className="text-sm text-gray-400">Bu salonda hele usta elave edilmeyib.</p>
+                    <p className="text-sm text-gray-400">Bu salonda hələ usta əlavə edilməyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).map((employee) => (
@@ -281,7 +280,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
               {step === 3 && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-serif text-[#1A1714] mb-3">Tarix secin</h3>
+                    <h3 className="text-xl font-serif text-[#1A1714] mb-3">Tarix seçin</h3>
                     <input
                       type="date"
                       value={selectedDate}
@@ -293,7 +292,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
 
                   {selectedDate && (
                     <div>
-                      <h3 className="text-xl font-serif text-[#1A1714] mb-3">Movcud saatlar</h3>
+                      <h3 className="text-xl font-serif text-[#1A1714] mb-3">Mövcud saatlar</h3>
                       {isLoadingSlots ? (
                         <div className="flex items-center justify-center py-8">
                           <Loader2 className="w-8 h-8 text-[#C9A227] animate-spin" />
@@ -301,7 +300,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                       ) : slotsError ? (
                         <p className="text-sm text-red-500">{slotsError}</p>
                       ) : availableSlots.length === 0 ? (
-                        <p className="text-sm text-gray-400">Bu tarixde bos saat yoxdur.</p>
+                        <p className="text-sm text-gray-400">Bu tarixdə boş saat yoxdur.</p>
                       ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {availableSlots.map((slot, index) => {
@@ -327,7 +326,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
 
               {step === 4 && (
                 <div className="space-y-4">
-                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Rezervasiya Xulasesi</h3>
+                  <h3 className="text-xl font-serif text-[#1A1714] mb-2">Rezervasiya Xülasəsi</h3>
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                     <div className="p-5 space-y-4">
                       <div className="flex items-start gap-4">
@@ -335,9 +334,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                           <Scissors className="w-6 h-6" />
                         </div>
                         <div>
-                          <span className="text-xs text-gray-400 block font-sans">XIDMET</span>
+                          <span className="text-xs text-gray-400 block font-sans">XİDMƏT</span>
                           <h4 className="text-lg font-sans font-bold text-[#1A1714]">{selectedService?.name}</h4>
-                          <p className="text-xs text-gray-500">{selectedService?.durationMinutes} deqiqe</p>
+                          <p className="text-xs text-gray-500">{selectedService?.durationMinutes} {t("bm_minutes")}</p>
                         </div>
                       </div>
                       <div className="border-t border-dashed border-gray-200 my-2"></div>
@@ -356,7 +355,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                           <Calendar className="w-6 h-6" />
                         </div>
                         <div>
-                          <span className="text-xs text-gray-400 block font-sans">TARIX VE SAAT</span>
+                          <span className="text-xs text-gray-400 block font-sans">TARİX VƏ SAAT</span>
                           <h4 className="text-lg font-sans font-bold text-[#1A1714]">
                             {selectedDate} <span className="text-[#C9A227] ml-2">| {selectedTime}</span>
                           </h4>
@@ -373,7 +372,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                       />
                     </div>
                     <div className="bg-[#1A1714] p-5 flex justify-between items-center">
-                      <span className="text-sm font-sans tracking-wide text-gray-300">YEKUN ODENIS</span>
+                      <span className="text-sm font-sans tracking-wide text-gray-300">YEKUN ÖDƏNİŞ</span>
                       <span className="text-2xl font-serif font-bold text-[#F0D68A]">{selectedService?.price} AZN</span>
                     </div>
                   </div>
@@ -400,7 +399,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                 isNextDisabled() ? "bg-gray-300 cursor-not-allowed shadow-none" : "bg-[#C9A227] hover:bg-[#B8935A]"
               }`}
             >
-              Novbeti <ChevronRight className="w-4 h-4" />
+              Növbəti <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
@@ -408,7 +407,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
               disabled={submitting}
               className="px-6 py-3 rounded-xl font-sans font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition shadow-lg flex items-center gap-2 disabled:opacity-50"
             >
-              <Check className="w-5 h-5" /> {submitting ? "Gonderilir..." : "Rezervasiyani Tesdiqle"}
+              <Check className="w-5 h-5" /> {submitting ? "Göndərilir..." : "Rezervasiyanı Təsdiqlə"}
             </button>
           )}
         </div>

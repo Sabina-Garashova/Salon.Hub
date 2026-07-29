@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   Award, 
   History, 
@@ -24,6 +25,7 @@ export default function LoyaltyProgram({
   onBookNow = () => {},
   reservations = []
 }) {
+  const { t, language } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSalon, setSelectedSalon] = useState(null);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
@@ -50,7 +52,7 @@ export default function LoyaltyProgram({
 
   const handleRedeemSubmit = () => {
     if (!selectedSalon) return;
-    if (!selectedReservationId) { alert('Zehmet olmasa endirimin tetbiq olunacagi rezervasiyani secin.'); return; }
+    if (!selectedReservationId) { alert(t("lp_select_reservation_alert")); return; }
     const aznAmount = calculateAznEquivalent(selectedSalon, pointsToRedeem);
     onRedeem(selectedSalon.salonId, parseFloat(aznAmount), selectedReservationId);
     closeModal();
@@ -83,16 +85,16 @@ export default function LoyaltyProgram({
             <Gift className="w-8 h-8 stroke-[1.5]" />
           </div>
           <h2 className="text-2xl font-bold font-serif text-[#1A1714] mb-3">
-            Hele hec bir baliniz yoxdur
+            {t("lp_no_points_title")}
           </h2>
           <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-            SalonHub partnyor salonlarinda xidmetlerden yararlandiqca kesbek ballari qazanin ve novbeti ziyaretlerinizde ozel endirimlere cevirin!
+            {t("lp_no_points_desc")}
           </p>
           <button 
             onClick={onBookNow}
             className="w-full bg-[#1A1714] text-[#F0D68A] hover:bg-[#2A2420] transition-colors py-3 rounded-xl font-medium tracking-wide shadow-md flex items-center justify-center gap-2 group"
           >
-            <span>Ilk Rezervasiyani Et</span>
+            <span>{t("lp_first_booking")}</span>
             <Sparkles className="w-4 h-4 text-[#C9A227] group-hover:animate-spin" />
           </button>
         </div>
@@ -109,10 +111,10 @@ export default function LoyaltyProgram({
             SalonHub Privilege
           </span>
           <h1 className="text-3xl md:text-4xl font-bold font-serif mt-3 tracking-wide text-[#1A1714]">
-            Sadiqlik Proqrami Balansi
+            {t("lp_program_title")}
           </h1>
           <p className="text-sm text-gray-500 mt-2 max-w-xl">
-            Ziyaret etdiyiniz premium salonlardaki ballarinizi izleyin, onlari real vaxtda naqdsiz endirimlere cevirin.
+            {t("lp_program_sub")}
           </p>
         </div>
 
@@ -149,12 +151,12 @@ export default function LoyaltyProgram({
                     <span className="text-4xl font-extrabold font-serif tracking-tight text-[#F0D68A]">
                       {salon.points}
                     </span>
-                    <span className="text-xs text-gray-300 uppercase font-medium tracking-widest">Bal</span>
+                    <span className="text-xs text-gray-300 uppercase font-medium tracking-widest">{t("lp_points_label")}</span>
                   </div>
 
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-gray-300 relative z-10">
                     <span className="flex items-center gap-1.5 text-gray-400">
-                      <ArrowRightLeft className="w-3.5 h-3.5 text-[#B8935A]" /> Ekvivalent endirim:
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-[#B8935A]" /> {t("lp_equivalent_discount")}
                     </span>
                     <span className="font-bold text-[#F0D68A] text-sm">
                       {salon.equivalentDiscount.toFixed(2)} AZN
@@ -172,7 +174,7 @@ export default function LoyaltyProgram({
                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     )}
                   >
-                    Bal Istifade Et
+                    {t("lp_use_points")}
                   </button>
 
                   <button
@@ -182,7 +184,7 @@ export default function LoyaltyProgram({
                         ? 'bg-[#1A1714] border-[#1A1714] text-[#F0D68A]'
                         : 'bg-white border-gray-200 text-gray-600 hover:bg-[#FAF6F0]'
                     )}
-                    title="Emeliyyat tarixcesi"
+                    title={t("lp_history_tooltip")}
                   >
                     <History className="w-4 h-4" />
                     <span>{isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}</span>
@@ -192,7 +194,7 @@ export default function LoyaltyProgram({
                 {isExpanded && (
                   <div className="bg-[#FAF6F0]/50 border-t border-gray-100 p-5 max-h-[280px] overflow-y-auto transition-all duration-300">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
-                      <History className="w-3.5 h-3.5" /> Emeliyyat Tarixcesi
+                      <History className="w-3.5 h-3.5" /> {t("lp_history_title")}
                     </h4>
                     
                     {history && history.length > 0 ? (
@@ -208,24 +210,24 @@ export default function LoyaltyProgram({
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-semibold text-gray-800 line-clamp-1">
-                                  {item.description || (item.type === 'Earned' ? 'Bal Qazanildi' : 'Bal Istifade Edildi')}
+                                  {item.description || (item.type === 'Earned' ? t("lp_earned") : t("lp_spent"))}
                                 </span>
                                 <span className={"text-xs font-bold whitespace-nowrap " + (
                                   item.type === 'Earned' ? 'text-emerald-600' : 'text-red-600'
                                 )}>
-                                  {item.type === 'Earned' ? '+' + item.points : '-' + item.points} bal
+                                  {item.type === 'Earned' ? '+' + item.points : '-' + item.points} {t("lp_points_suffix")}
                                 </span>
                               </div>
                               <span className="text-[11px] text-gray-400 flex items-center gap-1">
                                 <Calendar className="w-3 h-3" /> 
-                                {new Date(item.createdAt).toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(item.createdAt).toLocaleDateString((language === "en" ? "en-US" : language === "ru" ? "ru-RU" : "az-AZ"), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-center text-gray-400 py-4 italic">Bu salon uzre tarixce tapilmadi.</p>
+                      <p className="text-xs text-center text-gray-400 py-4 italic">{t("lp_no_history")}</p>
                     )}
                   </div>
                 )}
@@ -248,33 +250,33 @@ export default function LoyaltyProgram({
 
               <div className="mb-6">
                 <h3 className="text-xl font-bold font-serif text-[#1A1714] pr-6">
-                  Bal Konvertasiyasi
+                  {t("lp_convert_title")}
                 </h3>
                 <p className="text-xs text-[#B8935A] mt-1 font-medium">{selectedSalon.salonName}</p>
               </div>
 
               <div className="bg-[#FAF6F0] rounded-xl p-4 border border-gray-100 flex items-center justify-between mb-6">
                 <div>
-                  <p className="text-xs text-gray-400">Movcud Balansiniz</p>
-                  <p className="text-xl font-black font-serif text-[#1A1714] mt-0.5">{selectedSalon.points} Bal</p>
+                  <p className="text-xs text-gray-400">{t("lp_current_balance")}</p>
+                  <p className="text-xl font-black font-serif text-[#1A1714] mt-0.5">{selectedSalon.points} {t("lp_points_suffix")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-400">Maksimum Endirim</p>
+                  <p className="text-xs text-gray-400">{t("lp_max_discount")}</p>
                   <p className="text-base font-bold text-emerald-600 mt-1">{selectedSalon.equivalentDiscount.toFixed(2)} AZN</p>
                 </div>
               </div>
 
               <div className="mb-6">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-2">Hansi rezervasiyaya tetbiq olunsun?</label>
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-2">{t("lp_which_reservation")}</label>
                 {salonReservations.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-lg">Bu salonda gozleyen ve ya tesdiqlenmis rezervasiyaniz yoxdur.</p>
+                  <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded-lg">{t("lp_no_pending")}</p>
                 ) : (
                   <select
                     value={selectedReservationId}
                     onChange={(e) => setSelectedReservationId(e.target.value)}
                     className="w-full text-sm p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   >
-                    <option value="">Rezervasiya secin</option>
+                    <option value="">{t("lp_select_reservation")}</option>
                     {salonReservations.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.serviceName} - {r.reservationDate?.split("T")[0]} {r.startTime?.slice(0,5)}
@@ -286,9 +288,9 @@ export default function LoyaltyProgram({
 
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Istifade edilecek bal:</label>
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">{t("lp_points_to_use")}</label>
                   <span className="text-sm font-bold bg-[#1A1714] text-[#F0D68A] px-2.5 py-1 rounded-lg">
-                    {pointsToRedeem} Bal
+                    {pointsToRedeem} {t("lp_points_suffix")}
                   </span>
                 </div>
 
@@ -311,7 +313,7 @@ export default function LoyaltyProgram({
                   </button>
                   
                   <div className="flex-1 bg-amber-50/50 border border-amber-200/60 rounded-xl p-3 text-center">
-                    <p className="text-[11px] text-gray-500 font-medium">Qazanacaginiz Endirim Meblegi</p>
+                    <p className="text-[11px] text-gray-500 font-medium">{t("lp_discount_amount")}</p>
                     <p className="text-lg font-black text-[#C9A227] mt-0.5">
                       {calculateAznEquivalent(selectedSalon, pointsToRedeem)} AZN
                     </p>
@@ -331,15 +333,13 @@ export default function LoyaltyProgram({
                 <button
                   onClick={closeModal}
                   className="flex-1 py-3 px-4 border border-gray-200 text-gray-600 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors text-center"
-                >
-                  Legv et
-                </button>
+                >{t("btn_cancel")}</button>
                 <button
                   onClick={handleRedeemSubmit}
                   disabled={pointsToRedeem <= 0}
                   className="flex-1 py-3 px-4 bg-[#1A1714] text-[#F0D68A] font-bold rounded-xl text-sm hover:bg-[#2A2420] transition-colors text-center shadow-md shadow-black/10"
                 >
-                  Tesdiqle ve Cevir
+                  {t("lp_confirm_convert")}
                 </button>
               </div>
 
