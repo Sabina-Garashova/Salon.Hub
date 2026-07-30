@@ -5,6 +5,7 @@ import api from "../services/api";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 
 export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
   const [employees, setEmployees] = useState([]);

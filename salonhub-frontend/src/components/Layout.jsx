@@ -57,11 +57,23 @@ export default function Layout({ children }) {
 
   const fetchNotifications = async () => {
     try {
-      const res = await api.get("/Notification");
+      const res = await api.get("/Notification/mine");
       setNotifications(res.data || []);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const translateNotifText = (n) => {
+    if (!n?.typeKey) return n?.message || "";
+    let template = t(n.typeKey);
+    try {
+      const params = n.paramsJson ? JSON.parse(n.paramsJson) : {};
+      Object.keys(params).forEach((key) => {
+        template = template.replaceAll("{" + key + "}", params[key]);
+      });
+    } catch {}
+    return template;
   };
 
   const toggleNotifications = () => {
@@ -73,7 +85,7 @@ export default function Layout({ children }) {
 
   const markAsRead = async (id) => {
     try {
-      await api.put(`/Notification/${id}/read`);
+      await api.post(`/Notification/${id}/read`);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
@@ -85,7 +97,7 @@ export default function Layout({ children }) {
 
   const markAllAsRead = async () => {
     try {
-      await api.put("/Notification/read-all");
+      await api.post("/Notification/read-all");
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (e) {
@@ -99,13 +111,11 @@ export default function Layout({ children }) {
     }
   };
 
-  const translateNotifText = (msg) => {
-    return msg || "";
-  };
 
   const formatTime = (dateInput) => {
     if (!dateInput) return "";
-    const date = new Date(dateInput);
+    const utcInput = typeof dateInput === "string" && !dateInput.endsWith("Z") && !dateInput.includes("+") ? dateInput + "Z" : dateInput;
+    const date = new Date(utcInput);
     if (isNaN(date.getTime())) return dateInput;
     const diffSec = Math.floor((new Date() - date) / 1000);
     const diffMin = Math.floor(diffSec / 60);
@@ -242,7 +252,7 @@ export default function Layout({ children }) {
                               <span className="w-1.5 h-1.5 rounded-full bg-[#C9A227] mt-1.5 flex-shrink-0" />
                             )}
                             <div className={`flex-1 min-w-0 ${n.isRead ? "pl-4" : ""}`}>
-                              <p className="text-xs text-gray-700 leading-relaxed">{translateNotifText(n.message)}</p>
+                              <p className="text-xs text-gray-700 leading-relaxed">{translateNotifText(n)}</p>
                               <div className="flex items-center justify-between mt-1">
                                 <span className="text-[10px] text-gray-400">{formatTime(n.createdAt)}</span>
                                 {!n.isRead && (

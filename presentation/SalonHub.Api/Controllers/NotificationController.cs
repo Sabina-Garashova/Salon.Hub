@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.Interfaces.Repositories;
@@ -32,7 +32,9 @@ namespace SalonHub.Api.Controllers
                     n.Id,
                     n.Message,
                     n.IsRead,
-                    n.CreatedAt
+                    n.CreatedAt,
+                    n.TypeKey,
+                    n.ParamsJson
                 });
 
             return Ok(result);
@@ -79,5 +81,6 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 

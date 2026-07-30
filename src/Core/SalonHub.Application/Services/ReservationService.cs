@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace SalonHub.Application.Services
 {
@@ -249,8 +250,10 @@ namespace SalonHub.Application.Services
             await _unitOfWork.Reservations.AddAsync(reservation);
             await _unitOfWork.CompleteAsync();
 
-            await _notificationService.NotifyReservationChangedAsync(dto.CustomerId, $"Rezervasiyaniz qeyde alindi: {service.NameAz}, {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime}. Tesdiq gozlenilir.");
-            await _notificationService.NotifyEmployeeAsync(employee.Id, $"Yeni rezervasiya: {dto.CustomerFullName ?? "Musteri"} sizden {service.NameAz} xidmetini {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime} tarixinde teleb edib.");
+            var custParams1 = JsonSerializer.Serialize(new { service = service.NameAz, date = dto.ReservationDate.ToString("dd.MM.yyyy"), time = dto.StartTime.ToString() });
+            await _notificationService.NotifyReservationChangedAsync(dto.CustomerId, $"Rezervasiyaniz qeyde alindi: {service.NameAz}, {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime}. Tesdiq gozlenilir.", "notif_reservation_created_customer", custParams1);
+            var empParams1 = JsonSerializer.Serialize(new { customer = dto.CustomerFullName ?? "Musteri", service = service.NameAz, date = dto.ReservationDate.ToString("dd.MM.yyyy"), time = dto.StartTime.ToString() });
+            await _notificationService.NotifyEmployeeAsync(employee.Id, $"Yeni rezervasiya: {dto.CustomerFullName ?? "Musteri"} sizden {service.NameAz} xidmetini {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime} tarixinde teleb edib.", "notif_reservation_created_employee", empParams1);
 
             return new ReservationReadDto
             {
@@ -462,7 +465,7 @@ namespace SalonHub.Application.Services
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
 
-            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tesdiqlendi!");
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tesdiqlendi!", "notif_reservation_confirmed");
 
             
 
@@ -548,7 +551,7 @@ namespace SalonHub.Application.Services
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
 
-            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tamamlandi. Tesekkur edirik!");
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tamamlandi. Tesekkur edirik!", "notif_reservation_completed");
 
             await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
 
@@ -846,6 +849,9 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
+
 
 
 

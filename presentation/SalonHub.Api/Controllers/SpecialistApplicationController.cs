@@ -7,6 +7,7 @@ using SalonHub.Application.DTOs.SpecialistApplications;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
+using System.Text.Json;
 
 namespace SalonHub.Api.Controllers
 {
@@ -171,6 +172,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

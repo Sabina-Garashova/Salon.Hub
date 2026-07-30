@@ -3,6 +3,7 @@ using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
+using System.Text.Json;
 
 namespace SalonHub.Application.Services
 {
@@ -137,8 +138,10 @@ namespace SalonHub.Application.Services
                     _unitOfWork.Reservations.Update(linkedReservation);
                     await _unitOfWork.CompleteAsync();
 
-                    await _notificationService.NotifyReservationChangedAsync(customerId, $"{dto.DiscountAmount} AZN meblegi bal ile odendi. Qalan bal: {account.Points}.");
-                    await _notificationService.NotifyEmployeeAsync(linkedReservation.EmployeeId, $"Musteri rezervasiyanin {dto.DiscountAmount} AZN hissesini bal ile odedi.");
+                    var loyCustParams = JsonSerializer.Serialize(new { amount = dto.DiscountAmount, remainingPoints = account.Points });
+                    await _notificationService.NotifyReservationChangedAsync(customerId, $"{dto.DiscountAmount} AZN meblegi bal ile odendi. Qalan bal: {account.Points}.", "notif_loyalty_redeemed_customer", loyCustParams);
+                    var loyEmpParams = JsonSerializer.Serialize(new { amount = dto.DiscountAmount });
+                    await _notificationService.NotifyEmployeeAsync(linkedReservation.EmployeeId, $"Musteri rezervasiyanin {dto.DiscountAmount} AZN hissesini bal ile odedi.", "notif_loyalty_redeemed_employee", loyEmpParams);
                 }
             }
 
@@ -242,6 +245,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

@@ -1,10 +1,12 @@
-﻿using System;
+using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Reservations;
 using SalonHub.Application.Services;
+using Microsoft.AspNetCore.Identity;
 using SalonHub.Persistence.Identity;
 
 namespace SalonHub.Api.Controllers
@@ -15,10 +17,12 @@ namespace SalonHub.Api.Controllers
     public class ReservationController : ControllerBase
     {
         private readonly IReservationService _reservationService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReservationController(IReservationService reservationService)
+        public ReservationController(IReservationService reservationService, UserManager<ApplicationUser> userManager)
         {
             _reservationService = reservationService;
+            _userManager = userManager;
         }
 
         [HttpGet("employee")]
@@ -31,6 +35,16 @@ namespace SalonHub.Api.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll() => Ok(await _reservationService.GetAllAsync());
+        [HttpGet("customer-count")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCustomerCount()
+        {
+            var customers = await _userManager.GetUsersInRoleAsync(Roles.Customer);
+            var employees = await _userManager.GetUsersInRoleAsync(Roles.Employee);
+            var employeeIds = employees.Select(e => e.Id).ToHashSet();
+            var count = customers.Count(c => !employeeIds.Contains(c.Id));
+            return Ok(new { count });
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -119,3 +133,6 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+
+

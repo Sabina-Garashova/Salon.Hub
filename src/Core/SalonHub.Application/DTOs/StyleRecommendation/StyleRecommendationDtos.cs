@@ -19,6 +19,7 @@ namespace SalonHub.Application.DTOs.StyleRecommendation
         public string MakeupRecommendation { get; set; } = string.Empty;
         public string FullExplanation { get; set; } = string.Empty;
         public List<RecommendedImageDto> RecommendedImages { get; set; } = new();
+        public List<string> StyleKeywords { get; set; } = new();
     }
 
     public class RecommendedImageDto
@@ -28,3 +29,4 @@ namespace SalonHub.Application.DTOs.StyleRecommendation
         public string? Description { get; set; }
     }
 }
+

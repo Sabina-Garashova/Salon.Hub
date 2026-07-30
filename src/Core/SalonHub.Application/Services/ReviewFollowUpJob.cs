@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
+using System.Text.Json;
 
 namespace SalonHub.Application.Services
 {
@@ -11,7 +12,7 @@ namespace SalonHub.Application.Services
         private readonly ILogger<ReviewFollowUpJob> _logger;
 
         private const int LowRatingThreshold = 2;
-        private const int DaysToWaitForResponse = 28;
+        private const int DaysToWaitForResponse = 2;
 
         public ReviewFollowUpJob(IUnitOfWork unitOfWork, INotificationService notificationService, ILogger<ReviewFollowUpJob> logger)
         {
@@ -22,7 +23,7 @@ namespace SalonHub.Application.Services
 
         public async Task SendFollowUpsForUnansweredReviews()
         {
-            _logger.LogInformation("Rəy qaytarma yoxlaması başladı: {Date}", DateTime.UtcNow);
+            _logger.LogInformation("RÉ™y qaytarma yoxlamasÄ± baÅŸladÄ±: {Date}", DateTime.UtcNow);
 
             var cutoffDate = DateTime.UtcNow.AddDays(-DaysToWaitForResponse);
 
@@ -38,23 +39,24 @@ namespace SalonHub.Application.Services
             {
                 try
                 {
-                    var message = "Narahatlığınız üçün üzr istəyirik. Xidmətimizlə bağlı fikirlərinizi eşitmək və sizinlə əlaqə saxlamaq istərdik. Zəhmət olmasa bizimlə əlaqə saxlayın.";
-                    await _notificationService.NotifyReservationChangedAsync(review.CustomerId, message);
+                    var message = "NarahatlÄ±ÄŸÄ±nÄ±z Ã¼Ã§Ã¼n Ã¼zr istÉ™yirik. XidmÉ™timizlÉ™ baÄŸlÄ± fikirlÉ™rinizi eÅŸitmÉ™k vÉ™ sizinlÉ™ É™laqÉ™ saxlamaq istÉ™rdik. ZÉ™hmÉ™t olmasa bizimlÉ™ É™laqÉ™ saxlayÄ±n.";
+                    await _notificationService.NotifyReservationChangedAsync(review.CustomerId, message, "notif_review_followup");
 
                     review.FollowUpSent = true;
                     _unitOfWork.Reviews.Update(review);
 
-                    _logger.LogInformation("Rəy qaytarma mesajı göndərildi: ReviewId={ReviewId}, CustomerId={CustomerId}", review.Id, review.CustomerId);
+                    _logger.LogInformation("RÉ™y qaytarma mesajÄ± gÃ¶ndÉ™rildi: ReviewId={ReviewId}, CustomerId={CustomerId}", review.Id, review.CustomerId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Rəy qaytarma mesajı göndərilərkən xəta: ReviewId={ReviewId}", review.Id);
+                    _logger.LogError(ex, "RÉ™y qaytarma mesajÄ± gÃ¶ndÉ™rilÉ™rkÉ™n xÉ™ta: ReviewId={ReviewId}", review.Id);
                 }
             }
 
             await _unitOfWork.CompleteAsync();
 
-            _logger.LogInformation("Rəy qaytarma yoxlaması bitdi. Göndərilən mesaj sayı: {Count}", reviewList.Count);
+            _logger.LogInformation("RÉ™y qaytarma yoxlamasÄ± bitdi. GÃ¶ndÉ™rilÉ™n mesaj sayÄ±: {Count}", reviewList.Count);
         }
     }
 }
+

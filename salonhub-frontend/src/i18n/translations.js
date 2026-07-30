@@ -233,6 +233,7 @@ export const translations = {
     lp_discount_amount: "Qazanacağınız Endirim Məbləği",
     lp_confirm_convert: "Təsdiqlə və Çevir",
     lp_select_reservation_alert: "Zəhmət olmasa endirimin tətbiq olunacağı rezervasiyanı seçin.", role_customer: "Müştəri", role_employee: "İşçi", role_salonadmin: "Salon Admini", role_superadmin: "Baş Admin",
+    style_title: "AI ilə Sizə Uyğun Görünüşü Tapın", style_subtitle: "Süni intellekt üz formanızı analiz edib, sizə ən yaraşan saç düzümü və makyaj tövsiyə edir!", style_upload_btn: "Şəklinizi Yükləyin", style_analyzing: "Analiz edilir...", style_face_shape: "Üz Formanız", style_hair_rec: "Saç Tövsiyəsi", style_makeup_rec: "Makyaj Tövsiyəsi", style_explanation: "Ətraflı İzah", style_recommended_images: "Uyğun Nümunələr", style_try_again: "Yenidən Sına", style_error: "Analiz edilərkən xəta baş verdi, yenidən cəhd edin.", style_select_salon: "Salon seçin", style_login_cta: "Bunu sınamaq üçün daxil olun", style_analysis_complete: "Analiz Tamamlandı", style_book_this: "Bu Stili Rezerv Et", style_upload_hint: "Selfinizi yükləyin və sizə ən uyğun saç və makyaj stilini saniyələr içində öyrənin.", style_analyzing_hint: "Üz cizgiləriniz və dəri tonunuz qiymətləndirilir...", style_inspiration: "İlham Alın", style_keywords_label: "Tövsiyə Edilən Tərzlər",
   },
   en: {
     nav_home: "Home",
@@ -468,6 +469,7 @@ export const translations = {
     lp_discount_amount: "Discount Amount You'll Get",
     lp_confirm_convert: "Confirm and Convert",
     lp_select_reservation_alert: "Please select the reservation the discount should apply to.", role_customer: "Customer", role_employee: "Employee", role_salonadmin: "Salon Admin", role_superadmin: "Super Admin",
+    style_title: "Find Your Perfect Look with AI", style_subtitle: "Our AI analyzes your face shape and recommends the hairstyle and makeup that suits you best!", style_upload_btn: "Upload Your Photo", style_analyzing: "Analyzing...", style_face_shape: "Your Face Shape", style_hair_rec: "Hair Recommendation", style_makeup_rec: "Makeup Recommendation", style_explanation: "Detailed Explanation", style_recommended_images: "Matching Examples", style_try_again: "Try Again", style_error: "An error occurred during analysis, please try again.", style_select_salon: "Select a salon", style_login_cta: "Log in to try this", style_analysis_complete: "Analysis Complete", style_book_this: "Book This Style", style_upload_hint: "Upload your selfie and discover the hairstyle and makeup that suits you best in seconds.", style_analyzing_hint: "Evaluating your facial features and skin tone...", style_inspiration: "Get Inspired", style_keywords_label: "Recommended Styles",
   },
   ru: {
     nav_home: "Главная",
@@ -703,5 +705,6 @@ export const translations = {
     lp_discount_amount: "Сумма Скидки, Которую Вы Получите",
     lp_confirm_convert: "Подтвердить и Конвертировать",
     lp_select_reservation_alert: "Пожалуйста, выберите запись, к которой применить скидку.", role_customer: "Клиент", role_employee: "Сотрудник", role_salonadmin: "Админ Салона", role_superadmin: "Главный Админ",
+    style_title: "Найдите Свой Идеальный Образ с ИИ", style_subtitle: "Наш ИИ анализирует форму вашего лица и рекомендует причёску и макияж, которые вам подходят лучше всего!", style_upload_btn: "Загрузите Ваше Фото", style_analyzing: "Анализ...", style_face_shape: "Форма Вашего Лица", style_hair_rec: "Рекомендация по Причёске", style_makeup_rec: "Рекомендация по Макияжу", style_explanation: "Подробное Объяснение", style_recommended_images: "Подходящие Примеры", style_try_again: "Попробовать Снова", style_error: "Произошла ошибка во время анализа, попробуйте снова.", style_select_salon: "Выберите салон", style_login_cta: "Войдите, чтобы попробовать", style_analysis_complete: "Анализ Завершён", style_book_this: "Забронировать Этот Стиль", style_upload_hint: "Загрузите своё селфи и узнайте, какая причёска и макияж подходят вам лучше всего за считанные секунды.", style_analyzing_hint: "Оцениваются черты вашего лица и тон кожи...", style_inspiration: "Вдохновитесь", style_keywords_label: "Рекомендуемые Стили",
   },
 };

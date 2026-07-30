@@ -4,6 +4,7 @@ import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown
 import BookingModal from "../components/BookingModal";
 import api from "../services/api";
 import NewsSection from "../components/NewsSection";
+import StyleRecommendationWidget from "../components/StyleRecommendationWidget";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
@@ -22,10 +23,12 @@ export default function Home() {
   const [uniqueCustomersCount, setUniqueCustomersCount] = useState(0);
 
   useEffect(() => {
-    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review")])
-      .then(([salonRes, empRes, galleryRes, reviewRes]) => {
-        const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
+    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } }))])
+      .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes]) => {
+        const allReviews = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
+        const withComments = allReviews.filter((r) => r?.comment);
         setReviews(withComments.slice(0, 6));
+        setUniqueCustomersCount(custCountRes.data?.count || 0);
         setSalons(salonRes.data);
         setEmployees(empRes.data);
 
@@ -123,6 +126,26 @@ export default function Home() {
       </section>
 
       <div className="max-w-6xl mx-auto px-6 -mt-10 relative z-10">
+        {localStorage.getItem("token") ? (
+          <StyleRecommendationWidget />
+        ) : (
+          <div className="bg-gradient-to-br from-[#1A1714] to-[#2B2118] rounded-2xl p-6 mb-10 flex items-center justify-between gap-4 border border-[#B8935A]/20">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-6 h-6 text-[#C9A227]" />
+              <div>
+                <p className="text-sm font-bold text-[#F4EDE0]">{t("style_title")}</p>
+                <p className="text-xs text-gray-400">{t("style_subtitle")}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/auth", { state: { tab: "login" } })}
+              className="px-4 py-2 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-xs rounded-xl whitespace-nowrap hover:opacity-95 transition"
+            >
+              {t("style_login_cta")}
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
             <div className="space-y-1">

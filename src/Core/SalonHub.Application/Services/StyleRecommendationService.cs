@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SalonHub.Application.DTOs.StyleRecommendation;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
@@ -24,13 +25,14 @@ public class StyleRecommendationService : IStyleRecommendationService
     public async Task<StyleAnalysisResultDto> AnalyzeAsync(StyleAnalysisRequestDto dto)
     {
         var apiKey = _configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Gemini API açarı konfiqurasiya edilməyib.");
+            ?? throw new InvalidOperationException("Gemini API aÃ§arÄ± konfiqurasiya edilmÉ™yib.");
 
         var promptText =
-            "Bu şəkildəki insanın üz formasını, dəri tonunu və mövcud saç xüsusiyyətlərini analiz et. " +
-            "Ona uyğun saç düzümü və makyaj stilini Azərbaycan dilində tövsiyə et. " +
-            "Cavabı YALNIZ bu JSON formatında ver, başqa heç nə yazma, izahat əlavə etmə: " +
-            "{\"faceShapeAnalysis\": \"...\", \"hairRecommendation\": \"...\", \"makeupRecommendation\": \"...\", \"fullExplanation\": \"...\"}";
+            "Bu ÅŸÉ™kildÉ™ki insanÄ±n Ã¼z formasÄ±nÄ±, dÉ™ri tonunu vÉ™ mÃ¶vcud saÃ§ xÃ¼susiyyÉ™tlÉ™rini analiz et. " +
+            "Ona uyÄŸun saÃ§ dÃ¼zÃ¼mÃ¼ vÉ™ makyaj stilini AzÉ™rbaycan dilindÉ™ tÃ¶vsiyÉ™ et. " +
+            "CavabÄ± YALNIZ bu JSON formatÄ±nda ver, baÅŸqa heÃ§ nÉ™ yazma, izahat É™lavÉ™ etmÉ™: " +
+            "Bu tÃ¶vsiyÉ™lÉ™rÉ™ uyÄŸun 3-4 Ä°ngilis dilindÉ™, qÄ±sa, ÅŸÉ™kil axtarÄ±ÅŸÄ± Ã¼Ã§Ã¼n mÃ¼nasib aÃ§ar sÃ¶z dÉ™ ver (mÉ™sÉ™lÉ™n: \"layered bob haircut\", \"bronze glow makeup\"). " +
+            "{\"faceShapeAnalysis\": \"...\", \"hairRecommendation\": \"...\", \"makeupRecommendation\": \"...\", \"fullExplanation\": \"...\", \"styleKeywords\": [\"...\", \"...\"]}";
 
         var requestBody = new
         {
@@ -63,7 +65,7 @@ public class StyleRecommendationService : IStyleRecommendationService
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"AI analiz xətası: {responseContent}");
+            throw new InvalidOperationException($"AI analiz xÉ™tasÄ±: {responseContent}");
 
         using var doc = JsonDocument.Parse(responseContent);
         var textContent = doc.RootElement
@@ -84,7 +86,8 @@ public class StyleRecommendationService : IStyleRecommendationService
                 FaceShapeAnalysis = parsed.GetProperty("faceShapeAnalysis").GetString() ?? "",
                 HairRecommendation = parsed.GetProperty("hairRecommendation").GetString() ?? "",
                 MakeupRecommendation = parsed.GetProperty("makeupRecommendation").GetString() ?? "",
-                FullExplanation = parsed.GetProperty("fullExplanation").GetString() ?? ""
+                FullExplanation = parsed.GetProperty("fullExplanation").GetString() ?? "",
+                StyleKeywords = ExtractKeywords(parsed)
             };
         }
         catch (Exception)
@@ -95,10 +98,24 @@ public class StyleRecommendationService : IStyleRecommendationService
             };
         }
 
-        var portfolioImages = await _unitOfWork.GalleryImages.FindAsync(img =>
+        var salonPortfolio = await _unitOfWork.GalleryImages.FindAsync(img =>
             img.SalonId == dto.SalonId && img.Type == GalleryImageType.Portfolio);
 
-        result.RecommendedImages = portfolioImages
+        var pool = salonPortfolio.ToList();
+        if (pool.Count == 0)
+        {
+            var allPortfolio = await _unitOfWork.GalleryImages.FindAsync(img => img.Type == GalleryImageType.Portfolio);
+            pool = allPortfolio.ToList();
+        }
+
+        var keywordMatches = result.StyleKeywords.Count > 0
+            ? pool.Where(img => !string.IsNullOrEmpty(img.Description) &&
+                result.StyleKeywords.Any(kw => img.Description.Contains(kw, StringComparison.OrdinalIgnoreCase))).ToList()
+            : new List<SalonHub.Domain.Entities.GalleryImage>();
+
+        var finalPool = keywordMatches.Count > 0 ? keywordMatches : pool;
+
+        result.RecommendedImages = finalPool
             .Take(5)
             .Select(img => new RecommendedImageDto
             {
@@ -108,6 +125,59 @@ public class StyleRecommendationService : IStyleRecommendationService
             })
             .ToList();
 
+        if (result.RecommendedImages.Count == 0 && result.StyleKeywords.Count > 0)
+        {
+            try
+            {
+                var unsplashKey = _configuration["Unsplash:AccessKey"];
+                if (!string.IsNullOrEmpty(unsplashKey))
+                {
+                    var query = Uri.EscapeDataString(string.Join(" ", result.StyleKeywords.Take(2)));
+                    var unsplashUrl = $"https://api.unsplash.com/search/photos?query={query}&per_page=5&client_id={unsplashKey}";
+                    var unsplashResponse = await _httpClient.GetAsync(unsplashUrl);
+                    if (unsplashResponse.IsSuccessStatusCode)
+                    {
+                        var unsplashContent = await unsplashResponse.Content.ReadAsStringAsync();
+                        using var unsplashDoc = JsonDocument.Parse(unsplashContent);
+                        if (unsplashDoc.RootElement.TryGetProperty("results", out var resultsEl))
+                        {
+                            var idx = 0;
+                            foreach (var photo in resultsEl.EnumerateArray())
+                            {
+                                var imgUrl = photo.GetProperty("urls").GetProperty("regular").GetString() ?? "";
+                                var desc = photo.TryGetProperty("alt_description", out var descEl) ? descEl.GetString() : null;
+                                result.RecommendedImages.Add(new RecommendedImageDto
+                                {
+                                    Id = idx++,
+                                    ImageUrl = imgUrl,
+                                    Description = desc ?? string.Join(", ", result.StyleKeywords)
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Unsplash ugursuz olsa, sadece acar sozlerle davam et
+            }
+        }
+
         return result;
     }
+
+    private static List<string> ExtractKeywords(JsonElement parsed)
+    {
+        var keywords = new List<string>();
+        if (parsed.TryGetProperty("styleKeywords", out var kwEl) && kwEl.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var kw in kwEl.EnumerateArray())
+            {
+                var s = kw.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) keywords.Add(s);
+            }
+        }
+        return keywords;
+    }
 }
+

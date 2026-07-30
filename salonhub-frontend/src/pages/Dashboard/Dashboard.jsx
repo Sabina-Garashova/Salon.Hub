@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DollarSign,
@@ -23,6 +23,7 @@ import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
 import NewsSection from "../../components/NewsSection";
+import StyleRecommendationWidget from "../../components/StyleRecommendationWidget";
 import { useLanguage } from "../../context/LanguageContext";
 
 function decodeToken(token) {
@@ -47,15 +48,21 @@ function getFirstName(fullName) {
 
 export default function Dashboard() {
   const { t, language } = useLanguage();
-  const localeMap = { az: "az-AZ", en: "en-US", ru: "ru-RU" };
-  const dateStr = new Date().toLocaleDateString(localeMap[language] || "az-AZ", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
-  const formattedDate = dateStr;
-  const currentDateStr = dateStr;
+  const dateNow = new Date();
+  const weekdaysByLang = {
+    az: ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"],
+    en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+  };
+  const monthsByLang = {
+    az: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr"],
+    en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    ru: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+  };
+  const weekdayArr = weekdaysByLang[language] || weekdaysByLang.az;
+  const monthArr = monthsByLang[language] || monthsByLang.az;
+  const dateStr = weekdayArr[dateNow.getDay()] + ", " + dateNow.getDate() + " " + monthArr[dateNow.getMonth()] + " " + dateNow.getFullYear();
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -65,6 +72,7 @@ export default function Dashboard() {
   const [employees, setEmployees] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [reviewModalSalon, setReviewModalSalon] = useState(null);
+  const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -85,41 +93,10 @@ export default function Dashboard() {
       setCheckInResult(resp.data.reservation || null);
       setQrCode("");
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || "Xəta baş verdi");
     } finally {
       setScanning(false);
     }
-  };
-
-  const handleScanSubmit = async (e) => {
-    e.preventDefault();
-    await performCheckIn(qrCode);
-  };
-
-  const handleQrImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const result = jsQR(imageData.data, imageData.width, imageData.height);
-        if (result?.data) {
-          performCheckIn(result.data);
-        } else {
-          alert("QR kod tapilmadi, sekli aydin cekib yenidan yukleyin.");
-        }
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   const handleSubmitReview = async (e) => {
@@ -128,13 +105,16 @@ export default function Dashboard() {
     try {
       await api.post("/Review", {
         salonId: reviewModalSalon.id,
+        employeeId: reviewEmployeeId || null,
         rating: reviewRating,
         comment: reviewComment,
       });
-      alert("Reyiniz ucun tesekkur edirik!");
+      alert("Rəyiniz üçün təşəkkür edirik!");
       setReviewModalSalon(null);
+      setReviewComment("");
+      setReviewEmployeeId("");
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      alert(err.response?.data?.message || "Xəta baş verdi");
     } finally {
       setSubmittingReview(false);
     }
@@ -159,6 +139,7 @@ export default function Dashboard() {
   const hour = now.getHours();
   const greeting =
     hour < 6 ? t("dash_good_night") : hour < 12 ? t("dash_good_morning") : hour < 18 ? t("dash_good_day") : t("dash_good_evening");
+
   useEffect(() => {
     Promise.all([api.get("/salon"), api.get("/GalleryImage"), api.get("/Employee"), api.get("/Review")])
       .then(([salonRes, galleryRes, empRes, reviewRes]) => {
@@ -174,17 +155,15 @@ export default function Dashboard() {
         const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
         setReviews(withComments.slice(0, 6));
       })
-      .catch((err) => console.error("Melumat yuklenmedi", err))
+      .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setSalonsLoading(false));
   }, []);
 
-
-
-
   const [allReservations, setAllReservations] = useState([]);
   const [globalReservations, setGlobalReservations] = useState([]);
+  const [customerCountFromApi, setCustomerCountFromApi] = useState(0);
   const activeSessionsCount = globalReservations.filter((r) => r.status === "Pending" || r.status === "Confirmed").length;
-  const uniqueCustomersCount = new Set(globalReservations.map((r) => r.customerId)).size;
+  const uniqueCustomersCount = customerCountFromApi;
   const avgSalonRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
   const totalRevenue = globalReservations.filter((r) => r.status === "Completed").reduce((sum, r) => sum + (r.price || 0), 0);
 
@@ -210,8 +189,9 @@ export default function Dashboard() {
         }
         setAllReservations(list);
         setGlobalReservations(res.data);
+        api.get("/Reservation/customer-count").then((cc) => setCustomerCountFromApi(cc.data?.count || 0)).catch(() => {});
       })
-      .catch((err) => console.error("Rezervasiyalar yuklenmedi", err));
+      .catch((err) => console.error("Rezervasiyalar yüklənmədi", err));
   }, [role, employees]);
 
   const nowForToday = new Date();
@@ -219,7 +199,7 @@ export default function Dashboard() {
   const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
 
   const statusLabel = (s) =>
-    s === "Confirmed" ? "Tesdiqlenib" : s === "Completed" ? "Tamamlanıb" : s === "Cancelled" ? "Legv edilib" : "Gozlenilir";
+    s === "Confirmed" ? "Təsdiqlənib" : s === "Completed" ? "Tamamlanıb" : s === "Cancelled" ? "Ləğv edilib" : "Gözlənilir";
 
   const serviceStats = (() => {
     const completed = globalReservations.filter((r) => r.status === "Completed");
@@ -260,6 +240,7 @@ export default function Dashboard() {
         <div className="absolute top-[40%] right-[30%] w-[300px] h-[300px] bg-[#F0D68A]/10 blur-[90px] rounded-full animate-orb-3 pointer-events-none z-0" />
 
         <div className="relative z-10 space-y-6 max-w-7xl mx-auto">
+          {/* 1. Salamlama və Cari Tarix Bloku */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-[#B8935A] uppercase tracking-widest block mb-1">
@@ -280,35 +261,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {role === "Customer" && (
-          <div className="relative overflow-hidden rounded-2xl bg-[#1A1714] text-white p-6 md:p-8 border border-[#B8935A]/20 shadow-xl transition-all duration-300 hover:shadow-[#1A1714]/10 hover:shadow-2xl group">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#C9A227]/20 to-transparent blur-[60px] pointer-events-none rounded-full transition-transform duration-500 group-hover:scale-110" />
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#F0D68A] text-[10px] font-bold uppercase tracking-widest">
-                  <Sparkles className="w-3 h-3 text-[#C9A227]" />
-                  Karyera İmkanı
-                </div>
-                <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#FAF6F0] leading-tight">
-                  {t("dash_career_question")}
-                </h2>
-                <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light">
-                  {t("dash_career_desc")}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setShowApplicationModal(true)}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-sm rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#B8935A]/10 whitespace-nowrap group/btn"
-              >
-                Müraciət Et
-                <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-              </button>
-            </div>
-          </div>
-          )}
-
+          {/* 2. Statistika Kartları (İndi tam Tarix hissəsinin altında yerləşir) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((stat) => {
               const IconComponent = stat.icon;
@@ -335,6 +288,40 @@ export default function Dashboard() {
             })}
           </div>
 
+          {/* 3. Karyera İmkanı Banneri */}
+          {role === "Customer" && (
+            <div className="relative overflow-hidden rounded-2xl bg-[#1A1714] text-white p-6 md:p-8 border border-[#B8935A]/20 shadow-xl transition-all duration-300 hover:shadow-[#1A1714]/10 hover:shadow-2xl group">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#C9A227]/20 to-transparent blur-[60px] pointer-events-none rounded-full transition-transform duration-500 group-hover:scale-110" />
+
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="space-y-3 max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#F0D68A] text-[10px] font-bold uppercase tracking-widest">
+                    <Sparkles className="w-3 h-3 text-[#C9A227]" />
+                    Karyera İmkanı
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#FAF6F0] leading-tight">
+                    {t("dash_career_question")}
+                  </h2>
+                  <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light">
+                    {t("dash_career_desc")}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowApplicationModal(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-sm rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#B8935A]/10 whitespace-nowrap group/btn"
+                >
+                  Müraciət Et
+                  <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 4. AI Stil Tövsiyəsi Vidceti */}
+          {role === "Customer" && <StyleRecommendationWidget />}
+
+          {/* 5. Salonlarımız Bölməsi */}
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
@@ -348,9 +335,9 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {salonsLoading ? (
-                <p className="text-sm text-gray-400 col-span-full">Yuklenir...</p>
+                <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
               ) : salons.length === 0 ? (
-                <p className="text-sm text-gray-400 col-span-full">Hele salon elave edilmeyib.</p>
+                <p className="text-sm text-gray-400 col-span-full">Hələ salon əlavə edilməyib.</p>
               ) : (
                 salons.map((salon) => (
                   <div
@@ -367,7 +354,7 @@ export default function Dashboard() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                       {salon.isMonthlyTopSalon && (
-                        <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title="Ayin en yaxsi salonu">
+                        <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title="Ayın ən yaxşı salonu">
                           <Crown className="w-4 h-4 fill-[#C9A227]" />
                         </div>
                       )}
@@ -388,7 +375,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-1 text-[#C9A227] font-bold">
                           <Star className="w-3.5 h-3.5 fill-current" />
                           <span>{salon.averageRating.toFixed(1)}</span>
-                          <span className="text-gray-400 font-normal">({salon.reviewCount} rey)</span>
+                          <span className="text-gray-400 font-normal">({salon.reviewCount} rəy)</span>
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); setBookingSalon(salon); }}
@@ -404,7 +391,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-
+          {/* Ustalarımız Bölməsi */}
           <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
             <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_masters")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -431,32 +418,36 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Xəbərlər */}
           <NewsSection limit={3} />
 
+          {/* Rəylər */}
           {reviews.length > 0 && (
-          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
-            <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_customer_reviews")}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {reviews.map((rev) => {
-                const s = salons.find((sal) => sal.id === rev.salonId);
-                return (
-                  <div key={rev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
-                    <p className="text-sm text-gray-600 italic line-clamp-3">"{rev.comment}"</p>
-                    <p className="text-xs font-semibold text-[#1A1714]">{rev.customerFullName}</p>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={"w-3 h-3 " + (i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200")} />
-                        ))}
+            <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
+              <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_customer_reviews")}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {reviews.map((rev) => {
+                  const s = salons.find((sal) => sal.id === rev.salonId);
+                  return (
+                    <div key={rev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-2">
+                      <p className="text-sm text-gray-600 italic line-clamp-3">"{rev.comment}"</p>
+                      <p className="text-xs font-semibold text-[#1A1714]">{rev.customerFullName}</p>
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={"w-3 h-3 " + (i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200")} />
+                          ))}
+                        </div>
+                        {s && <span className="text-xs text-gray-400 truncate max-w-[50%]">{s.name}</span>}
                       </div>
-                      {s && <span className="text-xs text-gray-400 truncate max-w-[50%]">{s.name}</span>}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
           )}
+
+          {/* Günlük Görüşlər və Populyar Xidmətlər */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -473,7 +464,7 @@ export default function Dashboard() {
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
-                      {role !== "Customer" && <th className="py-3 font-medium">Musteri</th>}
+                      {role !== "Customer" && <th className="py-3 font-medium">Müştəri</th>}
                       {role !== "Employee" && <th className="py-3 font-medium">Usta</th>}
                       <th className="py-3 font-medium">Xidmət</th>
                       <th className="py-3 font-medium">Saat</th>
@@ -484,45 +475,45 @@ export default function Dashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-[#1A1714]">
                     {todaysAppointments.length === 0 ? (
-                      <tr><td colSpan="5" className="py-8 text-center text-gray-400 text-sm">Bu gun ucun rezervasiya yoxdur.</td></tr>
+                      <tr><td colSpan="6" className="py-8 text-center text-gray-400 text-sm">Bu gün üçün rezervasiya yoxdur.</td></tr>
                     ) : (
-                    todaysAppointments.map((appt) => (
-                      <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
-                        {role !== "Customer" && <td className="py-3.5 font-medium">{appt.customerFullName || "Musteri"}</td>}
-                        {role !== "Employee" && <td className="py-3.5 text-gray-600">{appt.employeeName}</td>}
-                        <td className="py-3.5 text-gray-500">
-                          <span className="inline-flex items-center gap-1">
-                            <Scissors className="w-3.5 h-3.5 text-gray-400" />
-                            {appt.serviceName}
-                          </span>
-                        </td>
-                        <td className="py-3.5 font-mono text-gray-600">{appt.startTime?.slice(0, 5)}</td>
-                        <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price} AZN</td>
-                        <td className="py-3.5 text-right">
-                          <span className={"inline-block px-2.5 py-1 rounded-full text-xs font-medium " + (
-                            appt.status === "Confirmed"
-                              ? "bg-green-50 text-green-700 border border-green-200"
-                              : appt.status === "Completed"
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
-                              : appt.status === "Cancelled"
-                              ? "bg-red-50 text-red-700 border border-red-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          )}>
-                            {statusLabel(appt.status)}
-                          </span>
-                        </td>
-                        {role === "Customer" && (
-                          <td className="py-3.5 text-right">
-                            <button
-                              onClick={() => setQrModalAppt(appt)}
-                              className="text-[10px] font-bold text-[#C9A227] hover:text-[#B8935A] border border-[#C9A227]/30 rounded-lg px-2 py-1"
-                            >
-                              QR
-                            </button>
+                      todaysAppointments.map((appt) => (
+                        <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
+                          {role !== "Customer" && <td className="py-3.5 font-medium">{appt.customerFullName || "Müştəri"}</td>}
+                          {role !== "Employee" && <td className="py-3.5 text-gray-600">{appt.employeeName}</td>}
+                          <td className="py-3.5 text-gray-500">
+                            <span className="inline-flex items-center gap-1">
+                              <Scissors className="w-3.5 h-3.5 text-gray-400" />
+                              {appt.serviceName}
+                            </span>
                           </td>
-                        )}
-                      </tr>
-                    ))
+                          <td className="py-3.5 font-mono text-gray-600">{appt.startTime?.slice(0, 5)}</td>
+                          <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price} AZN</td>
+                          <td className="py-3.5 text-right">
+                            <span className={"inline-block px-2.5 py-1 rounded-full text-xs font-medium " + (
+                              appt.status === "Confirmed"
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : appt.status === "Completed"
+                                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                : appt.status === "Cancelled"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                            )}>
+                              {statusLabel(appt.status)}
+                            </span>
+                          </td>
+                          {role === "Customer" && (
+                            <td className="py-3.5 text-right">
+                              <button
+                                onClick={() => setQrModalAppt(appt)}
+                                className="text-[10px] font-bold text-[#C9A227] hover:text-[#B8935A] border border-[#C9A227]/30 rounded-lg px-2 py-1"
+                              >
+                                QR
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
@@ -537,7 +528,7 @@ export default function Dashboard() {
 
               <div className="space-y-4 pt-1">
                 {serviceStats.length === 0 ? (
-                  <p className="text-xs text-gray-400">Hele tamamlanmis xidmet yoxdur.</p>
+                  <p className="text-xs text-gray-400">Hələ tamamlanmış xidmət yoxdur.</p>
                 ) : (
                   serviceStats.map((stat, idx) => (
                     <div key={idx} className="space-y-1.5">
@@ -556,32 +547,33 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
       <CraftsmanApplicationModal isOpen={showApplicationModal} onClose={() => setShowApplicationModal(false)} />
 
       {reviewModalSalon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rey yaz</h3>
+              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rəy yaz</h3>
               <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleSubmitReview} className="p-6 space-y-4">
               <div>
-              <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Hansi usta ile isledin? (Konullu)</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Hansı usta ilə işlədin? (Könüllü)</label>
                 <select
                   value={reviewEmployeeId}
                   onChange={(e) => setReviewEmployeeId(e.target.value)}
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 >
-                  <option value="">Sadece salona rey ver</option>
+                  <option value="">Sadece salona rəy ver</option>
                   {employees.filter((e) => e.salonId === reviewModalSalon?.id).map((e) => (
                     <option key={e.id} value={e.id}>{e.fullName}</option>
                   ))}
                 </select>
               </div>
+              <div>
                 <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reytinq</label>
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -592,24 +584,23 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reyiniz</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Rəyiniz</label>
                 <textarea
                   rows={4}
                   required
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Tecrubenizi bizimle paylasin..."
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                  placeholder="Fikirlərinizi bölüşün..."
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setReviewModalSalon(null)} className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600">
-                  Imtina
-                </button>
-                <button type="submit" disabled={submittingReview} className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white rounded-xl text-sm font-bold disabled:opacity-50">
-                  <Send className="w-3.5 h-3.5" /> {submittingReview ? "Gonderilir..." : "Gonder"}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="w-full py-3 bg-gradient-to-r from-[#C9A227] to-[#B8935A] text-[#1A1714] font-bold rounded-xl shadow-md hover:opacity-95 transition"
+              >
+                {submittingReview ? "Göndərilir..." : "Rəyi Göndər"}
+              </button>
             </form>
           </div>
         </div>
@@ -618,68 +609,10 @@ export default function Dashboard() {
       {bookingSalon && (
         <BookingModal
           isOpen={!!bookingSalon}
+          salon={bookingSalon}
           onClose={() => setBookingSalon(null)}
-          salonId={bookingSalon.id}
-          salonName={bookingSalon.name}
         />
-      )}
-
-      {qrModalAppt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-6 text-center">
-            <img
-              src={"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qrModalAppt.checkInCode)}
-              alt="QR Kod"
-              className="mx-auto rounded-xl border border-gray-100"
-            />
-            <button
-              onClick={() => setQrModalAppt(null)}
-              className="mt-4 w-full py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold text-gray-600"
-            >
-              Bagla
-            </button>
-          </div>
-        </div>
       )}
     </Layout>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
