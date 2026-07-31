@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Layout from "./Layout";
 import jsQR from "jsqr";
 import ReviewsManagement from "./admin/ReviewsManagement";
@@ -471,7 +471,7 @@ export default function EmployeeDashboard() {
                                   {app?.status === "Completed" && (
                                     <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700">{t("emp_completed")}</span>
                                   )}
-                                  {(app?.status === "Pending" || app?.status === "Gözləmədə") && (
+                                  {(app?.status === "Pending" || app?.status === "GÃ¶zlÉ™mÉ™dÉ™") && (
                                     <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700">{t("emp_pending")}</span>
                                   )}
 
@@ -568,3 +568,5 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
+

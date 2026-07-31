@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import BookingModal from "../components/BookingModal";
@@ -69,17 +69,33 @@ export default function SalonDetail() {
             const userId =
               decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
               decoded?.sub;
-            const myCompleted = resvRes.data.filter(
-              (r) => r.customerId === userId && r.status === "Completed" && r.salonId === salonId
-            );
+                                    console.log("=== DEBUG MƏLUMATLARI ===");
+            console.log("1. Tokendən gələn userId:", userId);
+            console.log("2. URL-dən gələn salonId:", salonId);
+            
+            const myCompleted = resvRes.data.filter((r) => {
+              const isCustomer = String(r.customerId) === String(userId);
+              const isSalon = String(r.salonId) === String(salonId);
+              
+              if (isCustomer && isSalon) {
+                 console.log("-> Bu istifadəçinin bu salonda rezervasiyası tapıldı! Statusu:", r.status, " | Usta ID:", r.employeeId);
+              }
+              
+              return isCustomer && r.status === "Completed" && isSalon;
+            });
+            
+            console.log("3. Filtrlənmiş (Completed) rezervasiyalar:", myCompleted);
             setCanReview(myCompleted.length > 0);
-            const uniqueEmployeeIds = [...new Set(myCompleted.map((r) => r.employeeId))];
-            const myEmployees = empRes.data.filter((e) => uniqueEmployeeIds.includes(e.id));
+            
+            const uniqueEmployeeIds = [...new Set(myCompleted.map((r) => String(r.employeeId)))];
+            const myEmployees = empRes.data.filter((e) => uniqueEmployeeIds.includes(String(e.id)));
+            console.log("4. Nəhayət tapılan ustalar (Dropdown üçün):", myEmployees);
+            
             setReviewableEmployees(myEmployees);
           });
         }
       })
-      .catch((err) => console.error("Salon məlumatı yüklənmədi", err))
+      .catch((err) => console.error("Salon mÉ™lumatÄ± yÃ¼klÉ™nmÉ™di", err))
       .finally(() => setLoading(false));
   }, [salonId, token]);
 
@@ -95,7 +111,7 @@ export default function SalonDetail() {
     setShowBooking(true);
   };
 
-  const handleSubmitReview = async ({ rating, comment }) => {
+  const handleSubmitReview = async ({ rating, comment, employeeId }) => {
     if (!token) {
       navigate("/auth", { state: { tab: "login" } });
       return;
@@ -103,7 +119,7 @@ export default function SalonDetail() {
 
     setSubmittingReview(true);
     try {
-      await api.post("/Review", { salonId, rating, comment });
+      await api.post("/Review", { salonId, rating, comment, employeeId: employeeId || null });
       alert(t("home_review_thanks"));
       const revRes = await api.get("/Review");
       setReviews(revRes.data.filter((r) => r.salonId === salonId));
@@ -124,6 +140,7 @@ export default function SalonDetail() {
         employees={employees}
         reviews={reviews}
         canReview={canReview}
+        reviewableEmployees={reviewableEmployees}
         loading={loading}
         isSubmittingReview={submittingReview}
         onBack={() => navigate(-1)}
@@ -144,6 +161,10 @@ export default function SalonDetail() {
 
   return token ? <Layout>{content}</Layout> : content;
 }
+
+
+
+
 
 
 

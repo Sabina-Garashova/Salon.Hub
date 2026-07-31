@@ -1,6 +1,5 @@
-﻿import React, { useState, useMemo } from 'react';
-import {
-  Star,
+﻿import React, { useState, useEffect, useMemo } from 'react';
+import { Star,
   MessageSquare,
   Clock,
   AlertCircle,
@@ -18,9 +17,37 @@ import {
 
 export default function ReviewsManagement({
   reviews = [],
+  employees = [],
   onRespond,
   showSalonName = false
 }) {
+  const [fetchedEmployees, setFetchedEmployees] = useState([]);
+
+  useEffect(() => {
+    const fetchEmps = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("https://localhost:7289/api/Employee", {
+          headers: { Authorization: token ? `Bearer ${token}` : "" }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFetchedEmployees(data || []);
+        }
+      } catch (e) {
+        console.error("Employee fetch error:", e);
+      }
+    };
+    fetchEmps();
+  }, []);
+
+  const getEmployeeName = (r) => {
+    if (r.employeeFullName) return r.employeeFullName;
+    if (!r.employeeId) return null;
+    const list = (employees && employees.length > 0) ? employees : fetchedEmployees;
+    const found = list.find(e => String(e.id) === String(r.employeeId));
+    return found ? (found.fullName || (found.firstName ? `${found.firstName} ${found.lastName || ''}` : null)) : null;
+  };
   const [selectedRating, setSelectedRating] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,7 +89,7 @@ export default function ReviewsManagement({
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchCustomer = r.customerFullName?.toLowerCase().includes(q);
-          const matchEmployee = r.employeeFullName?.toLowerCase().includes(q);
+          const matchEmployee = getEmployeeName(r)?.toLowerCase().includes(q);
           const matchSalon = r.salonName?.toLowerCase().includes(q);
           const matchComment = r.comment?.toLowerCase().includes(q);
           return matchCustomer || matchEmployee || matchSalon || matchComment;
@@ -339,12 +366,7 @@ export default function ReviewsManagement({
                         </h4>
 
                         <div className="flex flex-wrap items-center gap-2 mt-1">
-                          {review.employeeFullName && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FAF6F0] text-[#B8935A] border border-[#E5DFD5]">
-                              <Scissors className="w-3 h-3 text-[#C9A227]" />
-                              Usta: {review.employeeFullName}
-                            </span>
-                          )}
+                          { (getEmployeeName(review) || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName) && ( <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FAF6F0] text-[#B8935A] border border-[#E5DFD5]"> <Scissors className="w-3 h-3 text-[#C9A227]" /> Usta: {getEmployeeName(review) || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName} </span> ) }
 
                           {showSalonName && review.salonName && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#1A1714] text-[#F0D68A]">
@@ -478,3 +500,10 @@ export default function ReviewsManagement({
     </div>
   );
 }
+
+
+
+
+
+
+

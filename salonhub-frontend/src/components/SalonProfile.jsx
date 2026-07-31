@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import {
   ArrowLeft,
@@ -319,7 +319,7 @@ export default function SalonProfile({
                             </span>
                             <StarRating rating={review.rating} size="sm" />
                           </div>
-                          {review.employeeFullName && (<p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {review.employeeFullName}</p>)}
+                          { (review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName) && (<p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName}</p>) }
                           <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
                           {review.response && (
                             <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
@@ -399,6 +399,7 @@ export default function SalonProfile({
     </div>
   );
 }
+
 
 
 
