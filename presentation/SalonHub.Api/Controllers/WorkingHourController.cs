@@ -28,7 +28,7 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Create(WorkingHourCreateDto dto)
         {
             var created = await _workingHourService.CreateAsync(dto);
@@ -36,7 +36,7 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Update(int id, WorkingHourUpdateDto dto)
         {
             await _workingHourService.UpdateAsync(id, dto);
@@ -44,7 +44,7 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Delete(int id)
         {
             await _workingHourService.DeleteAsync(id);
@@ -52,3 +52,5 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+

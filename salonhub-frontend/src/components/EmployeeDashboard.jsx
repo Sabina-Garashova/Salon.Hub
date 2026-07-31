@@ -1,11 +1,12 @@
-﻿import { useState, useEffect } from "react";
+import WorkingHoursManager from "./WorkingHoursManager";
+import { useState, useEffect } from "react";
 import Layout from "./Layout";
 import jsQR from "jsqr";
 import ReviewsManagement from "./admin/ReviewsManagement";
 import NewsManagement from "./admin/NewsManagement";
 import { useLanguage } from "../context/LanguageContext";
 import api from "../services/api";
-import { Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper, DollarSign, RefreshCw } from "lucide-react";
+import { Clock,  Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper, DollarSign, RefreshCw  } from "lucide-react";
 
 function decodeToken(token) {
   try {
@@ -324,6 +325,13 @@ export default function EmployeeDashboard() {
               <Newspaper className="w-5 h-5 mr-2" />
               {t("emp_tab_news")}
             </button>
+                    <button
+            onClick={() => setActiveTab("workingHours")}
+            className={"flex items-center px-6 py-4 font-medium transition-colors whitespace-nowrap " + (activeTab === "workingHours" ? "text-[#C9A227] border-b-2 border-[#C9A227] bg-white" : "text-gray-500 hover:text-[#1A1714] hover:bg-white")}
+          >
+            <Clock className="w-4 h-4" />
+            İş Saatları
+          </button>
           </div>
 
           <div className="p-6">
@@ -552,7 +560,10 @@ export default function EmployeeDashboard() {
                 )}
               </div>
             )}
-            {activeTab === "news" && (
+            {activeTab === "workingHours" && (
+        <WorkingHoursManager />
+      )}
+      {activeTab === "news" && (
               <NewsManagement
                 news={news}
                 salons={salons}

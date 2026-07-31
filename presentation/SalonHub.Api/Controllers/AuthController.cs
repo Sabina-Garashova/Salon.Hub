@@ -177,6 +177,14 @@ namespace SalonHub.Api.Controllers
             return Ok(new { message = "Tələbiniz SuperAdmin-ə göndərildi." });
         }
 
+        [HttpGet("whoami")]
+        [Authorize]
+        public IActionResult WhoAmI()
+        {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(claims);
+        }
+
         [HttpPost("fix-fullname")]
         [Authorize(Roles = Roles.SuperAdmin)]
         public async Task<IActionResult> FixFullName([FromBody] FixFullNameDto dto)
@@ -253,6 +261,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

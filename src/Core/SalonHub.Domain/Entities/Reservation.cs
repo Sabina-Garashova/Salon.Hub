@@ -42,6 +42,8 @@ namespace SalonHub.Domain.Entities
         public int SalonId { get; set; }
         public string PaymentMethod { get; set; } = "Card";
         public decimal? LoyaltyDiscountApplied { get; set; }
+        public string? ReferenceImageUrl { get; set; }
     }
 }
+
 

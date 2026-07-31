@@ -4,7 +4,14 @@ import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star
 import api from "../services/api";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 
-export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
+export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, showAllSalons = false }) {
+  const getMatchingServiceIds = (svcName) => services.filter((s) => s.name === svcName).map((s) => s.id);
+  const getActualServiceId = () => {
+    if (!selectedEmployee || !selectedService) return selectedService?.id;
+    const matchingIds = getMatchingServiceIds(selectedService.name);
+    const employeeMatch = selectedEmployee.serviceIds?.find((id) => matchingIds.includes(id));
+    return employeeMatch || selectedService.id;
+  };
   const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
@@ -35,8 +42,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
 
     Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
       .then(([servRes, empRes, balRes]) => {
-        setServices(servRes.data.filter((s) => s.salonId === salonId));
-        setEmployees(empRes.data.filter((e) => e.salonId === salonId && e.branchId));
+        setServices(servRes.data.filter((s) => showAllSalons || s.salonId === salonId));
+        setEmployees(empRes.data.filter((e) => e.branchId && (showAllSalons || e.salonId === salonId)));
         setLoyaltyBalance(balRes.data);
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
@@ -59,7 +66,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
         const res = await api.get("/Reservation/available-slots", {
           params: { 
             employeeId: selectedEmployee.id, 
-            serviceId: selectedService.id, 
+            serviceId: getActualServiceId(), 
             date: selectedDate,
             _t: Date.now() 
           },
@@ -100,11 +107,12 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
     try {
       const startTime = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
       const res = await api.post("/Reservation", {
-        serviceId: selectedService.id,
+        serviceId: getActualServiceId(),
         employeeId: selectedEmployee.id,
         branchId: selectedEmployee.branchId,
         reservationDate: selectedDate,
         startTime,
+        referenceImageUrl: initialReferenceImage || null,
         paymentMethod: paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod,
       });
 
@@ -210,7 +218,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
                     <p className="text-sm text-gray-400">Bu salonda hələ xidmət əlavə edilməyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {services.map((service) => (
+                      {Array.from(new Map(services.map((s) => [s.name, s])).values()).map((service) => (
                         <div
                           key={service.id}
                           onClick={() => setSelectedService(service)}
@@ -243,11 +251,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName }) {
               {step === 2 && (
                 <div className="space-y-4">
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Usta seçin</h3>
-                  {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).length === 0 ? (
+                  {employees.filter((e) => e.serviceIds?.some((id) => getMatchingServiceIds(selectedService?.name).includes(id))).length === 0 ? (
                     <p className="text-sm text-gray-400">Bu salonda hələ usta əlavə edilməyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {employees.filter((e) => e.serviceIds?.includes(selectedService?.id)).map((employee) => (
+                      {employees.filter((e) => e.serviceIds?.some((id) => getMatchingServiceIds(selectedService?.name).includes(id))).map((employee) => (
                         <div
                           key={employee.id}
                           onClick={() => setSelectedEmployee(employee)}

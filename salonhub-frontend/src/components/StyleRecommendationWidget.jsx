@@ -1,13 +1,15 @@
-﻿import { useState } from "react";
+import { useState } from "react";
+import { Sparkles, Upload, Loader2, RefreshCw } from "lucide-react";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
+import BookingModal from "./BookingModal";
 
 export default function StyleRecommendationWidget({ salonId }) {
   const { t } = useLanguage();
-  const [status, setStatus] = useState("idle"); // idle, loading, result, error
+  const [status, setStatus] = useState("idle");
   const [selectedImage, setSelectedImage] = useState(null);
   const [result, setResult] = useState(null);
-  const [zoomImage, setZoomImage] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -38,7 +40,6 @@ export default function StyleRecommendationWidget({ salonId }) {
     setStatus("idle");
     setSelectedImage(null);
     setResult(null);
-    setZoomImage(null);
   };
 
   return (
@@ -101,11 +102,8 @@ export default function StyleRecommendationWidget({ salonId }) {
         {status === "result" && result && (
           <div className="mt-2">
             <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-[#1A1714] border border-[#C9A227]/20 shadow-inner">
-              <div 
-                className="relative cursor-pointer group"
-                onClick={() => setZoomImage(selectedImage)}
-              >
-                <img src={selectedImage} alt="Uploaded" className="w-16 h-16 rounded-xl object-cover shadow-md border border-[#B8935A]/30 group-hover:scale-105 transition-transform" />
+              <div className="relative">
+                <img src={selectedImage} alt="Uploaded" className="w-16 h-16 rounded-xl object-cover shadow-md border border-[#B8935A]/30" />
                 <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-[#C9A227] to-[#B8935A] w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#1A1714]">
                   <svg className="w-3 h-3 text-[#1A1714]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 </div>
@@ -138,23 +136,12 @@ export default function StyleRecommendationWidget({ salonId }) {
               <div className="mb-8">
                 <h4 className="text-xs text-[#F0D68A] uppercase tracking-wider mb-3">{t("style_inspiration")}</h4>
                 <div className="flex overflow-x-auto gap-3 pb-2">
-                  {result.recommendedImages.map((img, idx) => {
-                    const imgUrl = typeof img === "string" ? img : (img.imageUrl || img.url || "");
-                    const imgDesc = typeof img === "object" ? img.description : "";
-                    return (
-                      <div 
-                        key={img.id || idx} 
-                        onClick={() => setZoomImage(imgUrl)}
-                        className="shrink-0 relative group rounded-xl overflow-hidden border border-[#2B2118] cursor-pointer"
-                      >
-                        <img src={imgUrl} alt={imgDesc || "Inspiration"} className="w-24 h-32 object-cover transition-transform duration-500 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1714] via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity"></div>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                          <svg className="w-6 h-6 text-[#F0D68A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {result.recommendedImages.map((img) => (
+                    <div key={img.id} className="shrink-0 relative group rounded-xl overflow-hidden border border-[#2B2118]">
+                      <img src={img.imageUrl} alt={img.description || ""} className="w-24 h-32 object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1A1714] via-transparent to-transparent opacity-80"></div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : result.styleKeywords && result.styleKeywords.length > 0 ? (
@@ -180,7 +167,10 @@ export default function StyleRecommendationWidget({ salonId }) {
               >
                 {t("style_try_again")}
               </button>
-              <button className="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#B8935A] text-[#1A1714] font-medium text-sm shadow-[0_4px_15px_rgba(201,162,39,0.3)] hover:shadow-[0_4px_20px_rgba(201,162,39,0.5)] transition-shadow">
+              <button
+                onClick={() => setShowBooking(true)}
+                className="flex-[2] py-3 px-4 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#B8935A] text-[#1A1714] font-medium text-sm shadow-[0_4px_15px_rgba(201,162,39,0.3)] hover:shadow-[0_4px_20px_rgba(201,162,39,0.5)] transition-shadow"
+              >
                 {t("style_book_this")}
               </button>
             </div>
@@ -188,26 +178,16 @@ export default function StyleRecommendationWidget({ salonId }) {
         )}
       </div>
 
-      {zoomImage && (
-        <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-          onClick={() => setZoomImage(null)}
-        >
-          <div 
-            className="relative max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-[#C9A227]/40 bg-[#1A1714] p-2 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              onClick={() => setZoomImage(null)}
-              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-[#1A1714]/80 text-[#F0D68A] border border-[#C9A227]/40 flex items-center justify-center hover:bg-[#C9A227] hover:text-[#1A1714] text-xl font-bold transition-all shadow-md"
-            >
-              &times;
-            </button>
-            <img src={zoomImage} alt="Enlarged preview" className="w-full max-h-[80vh] object-contain rounded-xl" />
-          </div>
-        </div>
+      {showBooking && (
+        <BookingModal
+          isOpen={showBooking}
+          onClose={() => setShowBooking(false)}
+          salonId={salonId || 1}
+          salonName=""
+          initialReferenceImage={result?.recommendedImages?.[0]?.imageUrl || null}
+          showAllSalons={true}
+        />
       )}
-
     </div>
   );
 }

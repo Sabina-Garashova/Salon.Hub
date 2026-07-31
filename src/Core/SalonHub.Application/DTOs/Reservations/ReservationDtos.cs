@@ -1,4 +1,4 @@
-﻿namespace SalonHub.Application.DTOs.Reservations
+namespace SalonHub.Application.DTOs.Reservations
 {
     public class ReservationCreateDto
     {
@@ -9,6 +9,7 @@
         public int BranchId { get; set; }
         public DateTime ReservationDate { get; set; }
         public TimeSpan StartTime { get; set; }
+        public string? ReferenceImageUrl { get; set; }
         public string? PaymentMethod { get; set; }
     }
 
@@ -28,6 +29,7 @@
         public DateTime ReservationDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+        public string? ReferenceImageUrl { get; set; }
         public string Status { get; set; } = string.Empty;
     }
 
@@ -56,3 +58,4 @@
         public List<MultiServiceItemDto> Services { get; set; } = new();
     }
 }
+

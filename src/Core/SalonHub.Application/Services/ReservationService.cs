@@ -1,4 +1,4 @@
-﻿using SalonHub.Domain.Entities;
+using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
 using SalonHub.Application.DTOs.Dashboard;
 using SalonHub.Application.DTOs.Reservations;
@@ -244,6 +244,7 @@ namespace SalonHub.Application.Services
                 StartTime = dto.StartTime,
                 EndTime = endTime,
                 Status = ReservationStatus.Pending,
+                ReferenceImageUrl = dto.ReferenceImageUrl,
                 SalonId = service.SalonId
             };
 
@@ -270,8 +271,8 @@ namespace SalonHub.Application.Services
                 EmployeeName = employee.FullName,
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
-                EndTime = reservation.EndTime,
-                Status = reservation.Status.ToString()
+                Status = reservation.Status.ToString(),
+                ReferenceImageUrl = reservation.ReferenceImageUrl
             };
         }
 
