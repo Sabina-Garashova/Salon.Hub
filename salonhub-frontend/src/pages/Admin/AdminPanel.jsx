@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import WorkingHoursView from "../../components/admin/WorkingHoursView";
 import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
@@ -56,6 +57,8 @@ export default function AdminPanel() {
   const [salons, setSalons] = useState([]);
   const [allReservations, setAllReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [workingHoursData, setWorkingHoursData] = useState([]);
+  const [whSearchTerm, setWhSearchTerm] = useState("");
   const [equipment, setEquipment] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [tags, setTags] = useState([]);
@@ -73,6 +76,7 @@ export default function AdminPanel() {
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
     { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
     { id: "Employees", name: "Iscilerim", icon: Users },
+    { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
     { id: "Tags", name: "Tag-lar", icon: Hash },
@@ -88,6 +92,7 @@ export default function AdminPanel() {
     { id: "AllSalons", name: "Butun Salonlar", icon: Building2 },
     { id: "AllReservations", name: "Butun Rezervasiyalar", icon: Calendar },
     { id: "Employees", name: "Iscilerim", icon: Users },
+    { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
     { id: "Tags", name: "Tag-lar", icon: Hash },
@@ -117,6 +122,13 @@ export default function AdminPanel() {
         if (activeTab === "Employees" || activeTab === "Dashboard" || activeTab === "Equipment") {
           const res = await api.get("/Employee");
           setEmployees(res.data);
+        }
+        if (activeTab === "WorkingHours") {
+          const whRes = await api.get("/WorkingHour");
+          const whAll = Array.isArray(whRes.data) ? whRes.data : (whRes.data?.$values || []);
+          setWorkingHoursData(whAll);
+          const empRes2 = await api.get("/Employee");
+          setEmployees(empRes2.data);
         }
         if (activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
           const [servRes, catRes] = await Promise.all([api.get("/Service"), api.get("/Category")]);
@@ -664,6 +676,27 @@ export default function AdminPanel() {
                 </div>
               )}
 
+              {activeTab === "WorkingHours" && (
+                <div className="space-y-4">
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Ustalarin Is Saatlari</h3>
+                  <input
+                    type="text"
+                    value={whSearchTerm}
+                    onChange={(e) => setWhSearchTerm(e.target.value)}
+                    placeholder="Ad ile axtar..."
+                    className="w-full max-w-sm px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {employees.filter((emp) => (emp.fullName || "").toLowerCase().includes(whSearchTerm.toLowerCase())).map((emp) => (
+                      <div key={emp.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <p className="font-semibold text-[#1A1714] mb-3">{emp.fullName}</p>
+                        <WorkingHoursView workingHours={workingHoursData.filter((h) => h && String(h.employeeId) === String(emp.id))} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {activeTab === "Services" && (
                 <ServicesManagement
                   services={services}
@@ -776,6 +809,7 @@ export default function AdminPanel() {
           branches={branches}
           services={services}
           isEditMode={!!editItem}
+          employeeId={editItem?.id}
           onChange={(field, value) => setEmpForm((prev) => ({ ...prev, [field]: value }))}
           onSubmit={() => handleSave({ preventDefault: () => {} })}
           onClose={() => setIsModalOpen(false)}
@@ -784,6 +818,10 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
 
 
 

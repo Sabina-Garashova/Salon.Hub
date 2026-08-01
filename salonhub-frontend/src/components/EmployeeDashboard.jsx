@@ -109,7 +109,16 @@ export default function EmployeeDashboard() {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const result = jsQR(imageData.data, imageData.width, imageData.height);
         if (result?.data) {
-          performCheckIn(result.data);
+          let codeToUse = result.data;
+          try {
+            const parsed = JSON.parse(result.data);
+            if (parsed?.code) {
+              codeToUse = parsed.code;
+            }
+          } catch {
+            // Kohne novde QR (sade kod), oldugu kimi istifade et
+          }
+          performCheckIn(codeToUse);
         } else {
           alert(t("emp_qr_not_found"));
         }
@@ -245,15 +254,14 @@ export default function EmployeeDashboard() {
     api.get("/News").then((res) => setNews(res.data)).catch(() => {});
     api.get("/salon").then((res) => setSalons(res.data)).catch(() => {});
   }, []);
-
   const totalRevenue = appointments
-    .filter(app => app?.status === "Completed" || app?.status === "Confirmed")
+    .filter(app => app?.paymentMethod === "Cash" ? app?.status === "Completed" : (app?.status === "Completed" || app?.status === "Confirmed"))
     .reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
-
   const activeBookings = appointments.filter(app => app?.status === "Pending" || app?.status === "Confirmed").length;
 
   const completedApps = appointments.filter((app) => app?.status === "Completed");
-  const cardRevenue = completedApps.filter((app) => app?.paymentMethod !== "LoyaltyPoints").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
+  const cardRevenue = completedApps.filter((app) => app?.paymentMethod === "Card").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
+  const cashRevenue = completedApps.filter((app) => app?.paymentMethod === "Cash").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
   const loyaltyRevenue = completedApps.filter((app) => app?.paymentMethod === "LoyaltyPoints").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
 
   const getEquipmentStatusBadge = (status) => {
@@ -330,7 +338,7 @@ export default function EmployeeDashboard() {
             className={"flex items-center px-6 py-4 font-medium transition-colors whitespace-nowrap " + (activeTab === "workingHours" ? "text-[#C9A227] border-b-2 border-[#C9A227] bg-white" : "text-gray-500 hover:text-[#1A1714] hover:bg-white")}
           >
             <Clock className="w-4 h-4" />
-            İş Saatları
+            {t("wh_tab")}
           </button>
           </div>
 
@@ -393,6 +401,7 @@ export default function EmployeeDashboard() {
                     </div>
                     <div className="flex items-center gap-2 mt-2 text-[10px]">
                       <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{t("emp_by_card")}: {cardRevenue} AZN</span>
+                      <span className="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">{t("emp_cash")}: {cashRevenue} AZN</span>
                       <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">{t("emp_by_points")}: {loyaltyRevenue} AZN</span>
                     </div>
                   </div>
@@ -460,6 +469,11 @@ export default function EmployeeDashboard() {
                             <div className="text-left lg:text-right min-w-[100px]">
                               <span className="text-xs text-gray-400 block font-semibold tracking-wider">{t("emp_service_fee")}</span>
                               <span className="text-lg font-serif font-bold text-[#C9A227]">{app?.price || 0} AZN</span>
+                              {app?.loyaltyDiscountApplied > 0 && (
+                                <div className="text-[10px] text-purple-600 mt-0.5">
+                                  Bal ile: {app.loyaltyDiscountApplied} AZN | Qalan: {(Number(app?.price || 0) - Number(app.loyaltyDiscountApplied)).toFixed(2)} AZN
+                                </div>
+                              )}
                               <span className={"mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full " + (app?.paymentMethod === "LoyaltyPoints" ? "bg-purple-50 text-purple-700" : "bg-gray-100 text-gray-600")}>
                                 {app?.paymentMethod === "LoyaltyPoints" ? t("emp_by_points") : app?.paymentMethod === "Cash" ? t("emp_cash") : t("emp_by_card")}
                               </span>
@@ -561,7 +575,7 @@ export default function EmployeeDashboard() {
               </div>
             )}
             {activeTab === "workingHours" && (
-        <WorkingHoursManager />
+        <WorkingHoursManager employeeId={myEmployeeId} />
       )}
       {activeTab === "news" && (
               <NewsManagement
@@ -579,5 +593,10 @@ export default function EmployeeDashboard() {
     </Layout>
   );
 }
+
+
+
+
+
 
 

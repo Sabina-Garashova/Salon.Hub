@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, X, UploadCloud, FileText, Calendar, MapPin } from 'lucide-react';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
@@ -87,7 +87,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714]">{t("news_title")}</h1>
-          <p className="text-[#1A1714]/70 mt-2 font-medium">Salon xəbərlərini və bloq yazılarını idarə edin</p>
+          <p className="text-[#1A1714]/70 mt-2 font-medium">{t("news_admin_subtitle")}</p>
         </div>
         <button
           onClick={handleOpenCreate}
@@ -291,5 +291,6 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
 };
 
 export default NewsManagement;
+
 
 

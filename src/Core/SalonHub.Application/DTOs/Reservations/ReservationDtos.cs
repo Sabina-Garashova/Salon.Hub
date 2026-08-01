@@ -31,6 +31,7 @@ namespace SalonHub.Application.DTOs.Reservations
         public TimeSpan EndTime { get; set; }
         public string? ReferenceImageUrl { get; set; }
         public string Status { get; set; } = string.Empty;
+        public decimal? LoyaltyDiscountApplied { get; set; }
     }
 
     public class ReservationUpdateDto
@@ -58,4 +59,5 @@ namespace SalonHub.Application.DTOs.Reservations
         public List<MultiServiceItemDto> Services { get; set; } = new();
     }
 }
+
 

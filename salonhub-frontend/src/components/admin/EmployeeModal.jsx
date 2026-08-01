@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -11,6 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import api from '../../services/api';
+import WorkingHoursView from './WorkingHoursView';
 
 export default function EmployeeModal({
   formData = {
@@ -28,10 +29,23 @@ export default function EmployeeModal({
   isEditMode = false,
   onChange = () => {},
   onSubmit = () => {},
-  onClose = () => {}
+  onClose = () => {},
+  employeeId = null
 }) {
   
   const [uploading, setUploading] = useState(false);
+  const [workingHours, setWorkingHours] = useState([]);
+
+  useEffect(() => {
+    if (employeeId) {
+      api.get('/WorkingHour').then((res) => {
+        const all = Array.isArray(res.data) ? res.data : (res.data?.$values || []);
+        setWorkingHours(all.filter((h) => h && String(h.employeeId) === String(employeeId)));
+      }).catch(() => setWorkingHours([]));
+    } else {
+      setWorkingHours([]);
+    }
+  }, [employeeId]);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -265,6 +279,12 @@ export default function EmployeeModal({
             </div>
 
           </form>
+
+          {employeeId && (
+            <div className="px-6 pb-6">
+              <WorkingHoursView workingHours={workingHours} />
+            </div>
+          )}
         </div>
 
         <div className="bg-white border-t border-gray-200 px-6 py-5 flex items-center justify-end gap-3 shrink-0">
@@ -288,6 +308,7 @@ export default function EmployeeModal({
     </div>
   );
 }
+
 
 
 

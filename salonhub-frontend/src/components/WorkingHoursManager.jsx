@@ -1,15 +1,16 @@
 ﻿import { useState, useEffect } from "react";
 import { Clock, Save, CheckCircle, AlertCircle, RefreshCw, Sun, Moon } from "lucide-react";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
 
-const DAYS = [
-  { id: 1, nameAz: "Bazar ertəsi", shortAz: "B.E." },
-  { id: 2, nameAz: "Çərşənbə axşamı", shortAz: "Ç.A." },
-  { id: 3, nameAz: "Çərşənbə", shortAz: "Çərş." },
-  { id: 4, nameAz: "Cümə axşamı", shortAz: "C.A." },
-  { id: 5, nameAz: "Cümə", shortAz: "Cümə" },
-  { id: 6, nameAz: "Şənbə", shortAz: "Şənbə" },
-  { id: 0, nameAz: "Bazar", shortAz: "Bazar" },
+const DAY_KEYS = [
+  { id: 1, nameKey: "day_mon", shortKey: "day_mon_short" },
+  { id: 2, nameKey: "day_tue", shortKey: "day_tue_short" },
+  { id: 3, nameKey: "day_wed", shortKey: "day_wed_short" },
+  { id: 4, nameKey: "day_thu", shortKey: "day_thu_short" },
+  { id: 5, nameKey: "day_fri", shortKey: "day_fri_short" },
+  { id: 6, nameKey: "day_sat", shortKey: "day_sat_short" },
+  { id: 0, nameKey: "day_sun", shortKey: "day_sun_short" },
 ];
 
 const toArray = (val) => {
@@ -19,6 +20,9 @@ const toArray = (val) => {
 };
 
 export default function WorkingHoursManager({ employeeId: propEmpId }) {
+  const { t } = useLanguage();
+  const DAYS = DAY_KEYS.map((d) => ({ id: d.id, nameAz: t(d.nameKey), shortAz: t(d.shortKey) }));
+
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,7 +54,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
       const rawHours = toArray(res.data);
       const myHours = empId ? rawHours.filter((h) => h && String(h.employeeId) === String(empId)) : rawHours;
 
-      const fullSchedule = DAYS.map((d) => {
+      const fullSchedule = DAY_KEYS.map((d) => {
         const existing = myHours.find((h) => h && Number(h.dayOfWeek) === d.id);
         let start = "09:00";
         let end = "18:00";
@@ -109,12 +113,12 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
         }
       }
 
-      setMessage({ type: "success", text: "İş saatları uğurla saxlanıldı!" });
+      setMessage({ type: "success", text: t("wh_success") });
       await fetchWorkingHours();
     } catch (err) {
       console.error("Yadda saxlayarkən xəta:", err.response || err);
       const details = err.response?.data?.title || err.response?.data || err.message;
-      setMessage({ type: "error", text: `Xəta: ${typeof details === "object" ? JSON.stringify(details) : details}` });
+      setMessage({ type: "error", text: `${t("wh_error")}: ${typeof details === "object" ? JSON.stringify(details) : details}` });
     } finally {
       setSaving(false);
     }
@@ -124,7 +128,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
     return (
       <div className="p-12 flex items-center justify-center text-gray-500">
         <RefreshCw className="w-6 h-6 animate-spin text-[#C9A227] mr-3" />
-        <span className="font-medium">İş qrafiki yüklənir...</span>
+        <span className="font-medium">{t("wh_loading")}</span>
       </div>
     );
   }
@@ -135,9 +139,9 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
         <div>
           <h2 className="text-xl font-serif text-[#1A1714] flex items-center gap-2">
             <Clock className="w-5 h-5 text-[#C9A227]" />
-            İş Saatları və Qrafik
+            {t("wh_title")}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Həftəlik iş vaxtlarınızı təyin edin və istirahət günlərinizi seçin.</p>
+          <p className="text-sm text-gray-500 mt-1">{t("wh_subtitle")}</p>
         </div>
         <button
           onClick={handleSave}
@@ -145,7 +149,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
           className="flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A227] to-[#B8935A] hover:shadow-lg active:scale-95 text-[#1A1714] px-5 py-2.5 rounded-xl font-semibold transition shadow-sm disabled:opacity-50"
         >
           {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Yadda Saxla
+          {t("wh_save")}
         </button>
       </div>
 
@@ -186,7 +190,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
                       isOff ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"
                     }`}
                   >
-                    {isOff ? "İstirahət Günü" : "İş Günü"}
+                    {isOff ? t("wh_day_off") : t("wh_work_day")}
                   </span>
                 </div>
               </div>
@@ -199,7 +203,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
                     isOff ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-[#C9A227]/10 text-[#8a6d1f] border-[#C9A227]/30 hover:bg-[#C9A227]/20"
                   }`}
                 >
-                  {isOff ? "İş Günü Et" : "İstirahət Qoy"}
+                  {isOff ? t("wh_make_workday") : t("wh_make_dayoff")}
                 </button>
 
                 {!isOff ? (
@@ -226,7 +230,7 @@ export default function WorkingHoursManager({ employeeId: propEmpId }) {
                   </div>
                 ) : (
                   <div className="text-xs font-medium text-gray-400 bg-gray-100 px-4 py-2 rounded-xl border border-gray-200/50">
-                    Bu gün iş saatı təyin olunmayıb
+                    {t("wh_no_hours")}
                   </div>
                 )}
               </div>

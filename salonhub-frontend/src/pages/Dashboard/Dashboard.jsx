@@ -22,6 +22,7 @@ import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModa
 import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
+import QRCode from "qrcode";
 import NewsSection from "../../components/NewsSection";
 import StyleRecommendationWidget from "../../components/StyleRecommendationWidget";
 import { useLanguage } from "../../context/LanguageContext";
@@ -71,6 +72,7 @@ export default function Dashboard() {
   const [galleryBySalon, setGalleryBySalon] = useState({});
   const [employees, setEmployees] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [allReviewsForRating, setAllReviewsForRating] = useState([]);
   const [reviewModalSalon, setReviewModalSalon] = useState(null);
   const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -78,9 +80,30 @@ export default function Dashboard() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [bookingSalon, setBookingSalon] = useState(null);
   const [qrModalAppt, setQrModalAppt] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
   const [checkInResult, setCheckInResult] = useState(null);
+
+  useEffect(() => {
+    if (qrModalAppt?.checkInCode) {
+      const qrPayload = JSON.stringify({
+        code: qrModalAppt.checkInCode,
+        customer: qrModalAppt.customerFullName || "",
+        service: qrModalAppt.serviceName || "",
+        employee: qrModalAppt.employeeName || "",
+        time: qrModalAppt.startTime || "",
+      });
+      QRCode.toDataURL(qrPayload, { width: 260, margin: 2 })
+        .then(setQrDataUrl)
+        .catch((err) => {
+          console.error("QR generasiya xetasi:", err);
+          setQrDataUrl("");
+        });
+    } else {
+      setQrDataUrl("");
+    }
+  }, [qrModalAppt]);
 
   const performCheckIn = async (code) => {
     const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
@@ -152,8 +175,9 @@ export default function Dashboard() {
         });
         setGalleryBySalon(map);
 
-        const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
-        setReviews(withComments.slice(0, 6));
+        const allRevs = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
+        setAllReviewsForRating(allRevs);
+        const withComments = allRevs.filter((r) => r?.comment);
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setSalonsLoading(false));
@@ -164,14 +188,14 @@ export default function Dashboard() {
   const [customerCountFromApi, setCustomerCountFromApi] = useState(0);
   const activeSessionsCount = globalReservations.filter((r) => r.status === "Pending" || r.status === "Confirmed").length;
   const uniqueCustomersCount = customerCountFromApi;
-  const avgSalonRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1) : "0.0";
+  const avgSalonRating = allReviewsForRating.length > 0 ? (allReviewsForRating.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviewsForRating.length).toFixed(1) : "0.0";
   const totalRevenue = globalReservations.filter((r) => r.status === "Completed").reduce((sum, r) => sum + (r.price || 0), 0);
 
   const allStats = [
     { id: 1, name: t("dash_total_earnings"), value: totalRevenue.toFixed(2) + " AZN", change: t("dash_completed"), icon: DollarSign, color: "#C9A227", adminOnly: true },
     { id: 2, name: t("dash_active_sessions"), value: activeSessionsCount + " " + t("emp_sessions"), change: t("dash_current_status"), icon: Calendar, color: "#B8935A" },
     { id: 3, name: t("dash_customers"), value: uniqueCustomersCount + " " + t("dash_people"), change: t("dash_total"), icon: Users, color: "#1A1714" },
-    { id: 4, name: t("dash_salon_rating"), value: avgSalonRating + " / 5.0", change: reviews.length + " " + t("dash_reviews_count"), icon: Star, color: "#C9A227" },
+    { id: 4, name: t("dash_salon_rating"), value: avgSalonRating + " / 5.0", change: allReviewsForRating.length + " " + t("dash_reviews_count"), icon: Star, color: "#C9A227" },
     { id: 5, name: t("dash_masters"), value: employees.length + " " + t("dash_people"), change: t("dash_total"), icon: Scissors, color: "#B8935A" },
   ];
   const stats = allStats.filter((s) => !s.adminOnly || canSeeRevenue);
@@ -518,6 +542,31 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+
+            {qrModalAppt && (
+              <div
+                onClick={() => setQrModalAppt(null)}
+                className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-6"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-3 max-h-[90vh] overflow-y-auto"
+                >
+                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">Check-in QR Kodu</h3>
+                  {qrDataUrl ? (
+                    <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl border border-gray-100" />
+                  ) : (
+                    <p className="text-sm text-gray-400 py-10">QR kodu yuklenir...</p>
+                  )}
+                  <button
+                    onClick={() => setQrModalAppt(null)}
+                    className="w-full py-2.5 rounded-xl bg-[#1A1714] text-white font-medium text-sm hover:bg-[#2B2118]"
+                  >
+                    Bagla
+                  </button>
+                </div>
+              </div>
+            )}
             </div>
 
             <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 space-y-4">
@@ -616,3 +665,10 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
+
+
+
+
+
+

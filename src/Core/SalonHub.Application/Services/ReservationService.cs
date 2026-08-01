@@ -1,4 +1,4 @@
-using SalonHub.Domain.Entities;
+﻿using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
 using SalonHub.Application.DTOs.Dashboard;
 using SalonHub.Application.DTOs.Reservations;
@@ -45,6 +45,12 @@ namespace SalonHub.Application.Services
 
     public class ReservationService : IReservationService
     {
+        private static string GenerateCheckInCode()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var rnd = new Random();
+            return new string(Enumerable.Range(0, 6).Select(_ => chars[rnd.Next(chars.Length)]).ToArray());
+        }
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
         private readonly ILoyaltyService _loyaltyService;
@@ -152,6 +158,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -244,6 +251,7 @@ namespace SalonHub.Application.Services
                 StartTime = dto.StartTime,
                 EndTime = endTime,
                 Status = ReservationStatus.Pending,
+                CheckInCode = GenerateCheckInCode(),
                 ReferenceImageUrl = dto.ReferenceImageUrl,
                 SalonId = service.SalonId
             };
@@ -263,6 +271,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -398,6 +407,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -435,6 +445,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -480,6 +491,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -521,6 +533,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -568,6 +581,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -612,6 +626,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -788,6 +803,7 @@ namespace SalonHub.Application.Services
                     CustomerId = reservation.CustomerId,
                     SalonId = reservation.SalonId,
                     CheckInCode = reservation.CheckInCode,
+                    LoyaltyDiscountApplied = reservation.LoyaltyDiscountApplied,
                     IsCheckedIn = reservation.IsCheckedIn,
                     PaymentMethod = reservation.PaymentMethod,
                     EmployeeId = reservation.EmployeeId,
@@ -850,6 +866,8 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 
 
 

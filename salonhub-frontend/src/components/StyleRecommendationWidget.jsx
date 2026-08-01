@@ -10,6 +10,7 @@ export default function StyleRecommendationWidget({ salonId }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [result, setResult] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
@@ -137,7 +138,11 @@ export default function StyleRecommendationWidget({ salonId }) {
                 <h4 className="text-xs text-[#F0D68A] uppercase tracking-wider mb-3">{t("style_inspiration")}</h4>
                 <div className="flex overflow-x-auto gap-3 pb-2">
                   {result.recommendedImages.map((img) => (
-                    <div key={img.id} className="shrink-0 relative group rounded-xl overflow-hidden border border-[#2B2118]">
+                    <div
+                      key={img.id}
+                      onClick={() => setLightboxImage(img.imageUrl)}
+                      className="shrink-0 relative group rounded-xl overflow-hidden border border-[#2B2118] cursor-pointer"
+                    >
                       <img src={img.imageUrl} alt={img.description || ""} className="w-24 h-32 object-cover transition-transform duration-500 group-hover:scale-110" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1A1714] via-transparent to-transparent opacity-80"></div>
                     </div>
@@ -178,6 +183,25 @@ export default function StyleRecommendationWidget({ salonId }) {
         )}
       </div>
 
+      {lightboxImage && (
+        <div
+          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <img
+            src={lightboxImage}
+            alt="Böyüdülmüş görünüş"
+            className="max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {showBooking && (
         <BookingModal
           isOpen={showBooking}
