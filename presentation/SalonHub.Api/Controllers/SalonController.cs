@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using SalonHub.Application.Interfaces.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Salons;
 using SalonHub.Application.Services;
@@ -9,13 +11,17 @@ namespace SalonHub.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SalonController : ControllerBase
+        public class SalonController : ControllerBase
     {
         private readonly ISalonService _salonService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SalonController(ISalonService salonService)
+        public SalonController(ISalonService salonService, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
         {
             _salonService = salonService;
+            _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
 
         private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
@@ -49,12 +55,33 @@ namespace SalonHub.Api.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+                [HttpDelete("{id}")]
         [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var salon = await _unitOfWork.Salons.GetByIdAsync(id);
+            var ownerId = salon?.OwnerId;
+
             await _salonService.DeleteAsync(id, GetRequesterId(), IsSuperAdmin());
+
+            if (!string.IsNullOrWhiteSpace(ownerId))
+            {
+                var owner = await _userManager.FindByIdAsync(ownerId);
+                if (owner is not null && await _userManager.IsInRoleAsync(owner, Roles.SalonAdmin))
+                {
+                    // Yalnız aktiv (silinməmiş) salonları axtarırıq
+                    var otherSalons = await _unitOfWork.Salons.FindAsync(s => s.OwnerId == ownerId && s.Id != id && !s.IsDeleted);
+                    
+                    if (!otherSalons.Any())
+                    {
+                        await _userManager.RemoveFromRoleAsync(owner, Roles.SalonAdmin);
+                        await _userManager.UpdateSecurityStampAsync(owner); // Tokeni etibarsız etmək üçün
+                    }
+                }
+            }
+
             return NoContent();
         }
     }
 }
+

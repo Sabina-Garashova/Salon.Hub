@@ -21,11 +21,13 @@ namespace SalonHub.Application.Interfaces.Repositories
         IGenericRepository<TimeBlock> TimeBlocks { get; }
         IGenericRepository<NewsArticle> NewsArticles { get; }
         IGenericRepository<SpecialistApplication> SpecialistApplications { get; }
+        IGenericRepository<SalonApplication> SalonApplications { get; }
         IGenericRepository<Notification> Notifications { get; }
 
         Task<int> CompleteAsync();
     }
 }
+
 
 
 

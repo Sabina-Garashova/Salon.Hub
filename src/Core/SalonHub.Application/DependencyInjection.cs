@@ -29,10 +29,12 @@ namespace SalonHub.Application
             services.AddScoped<ReviewFollowUpJob>();
             services.AddScoped<INewsService, NewsService>();
             services.AddScoped<ISpecialistApplicationService, SpecialistApplicationService>();
+            services.AddScoped<ISalonApplicationService, SalonApplicationService>();
             return services;
         }
     }
 }
+
 
 
 

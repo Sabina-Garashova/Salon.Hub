@@ -1,6 +1,7 @@
 ﻿using SalonHub.Application.Common;
 using SalonHub.Application.DTOs.Salons;
 using SalonHub.Application.Interfaces.Repositories;
+using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
 
 namespace SalonHub.Application.Services
@@ -17,10 +18,12 @@ namespace SalonHub.Application.Services
     public class SalonService : ISalonService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
 
-        public SalonService(IUnitOfWork unitOfWork)
+        public SalonService(IUnitOfWork unitOfWork, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
         }
 
         public async Task<IReadOnlyList<SalonReadDto>> GetAllAsync(string? language = null)
@@ -99,9 +102,19 @@ namespace SalonHub.Application.Services
             if (!isSuperAdmin && salon.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Bu salonu silmək icazəniz yoxdur.");
 
+            var ownerId = salon.OwnerId;
+            var salonName = salon.NameAz;
+
             salon.IsDeleted = true;
             _unitOfWork.Salons.Update(salon);
             await _unitOfWork.CompleteAsync();
+
+            if (!string.IsNullOrWhiteSpace(ownerId))
+            {
+                await _notificationService.NotifyReservationChangedAsync(
+                    ownerId,
+                    $"Salonunuz (\"{salonName}\") sistem administratoru terefinden silindi.");
+            }
         }
 
         private async Task<SalonReadDto> MapToReadDtoAsync(Salon salon, string? language)
@@ -127,5 +140,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 
 

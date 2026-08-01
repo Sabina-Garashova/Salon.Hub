@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DollarSign,
@@ -19,6 +19,7 @@ import {
 import { ImageOff, Quote, CalendarPlus } from "lucide-react";
 import Layout from "../../components/Layout";
 import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
+import SalonApplicationModal from "../../components/SalonApplicationModal";
 import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
@@ -67,6 +68,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showSalonApplicationModal, setShowSalonApplicationModal] = useState(false);
   const [salons, setSalons] = useState([]);
   const [salonsLoading, setSalonsLoading] = useState(true);
   const [galleryBySalon, setGalleryBySalon] = useState({});
@@ -338,6 +340,13 @@ export default function Dashboard() {
                   Müraciət Et
                   <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                 </button>
+
+                <button
+                  onClick={() => setShowSalonApplicationModal(true)}
+                  className="mt-3 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-[#C9A227]/30 text-[#1A1714] font-semibold text-sm rounded-xl hover:bg-[#FAF6F0] transition-all whitespace-nowrap"
+                >
+                  Öz Salonunuzu Qoşun
+                </button>
               </div>
             </div>
           )}
@@ -598,6 +607,7 @@ export default function Dashboard() {
       </div>
 
       <CraftsmanApplicationModal isOpen={showApplicationModal} onClose={() => setShowApplicationModal(false)} />
+      <SalonApplicationModal isOpen={showSalonApplicationModal} onClose={() => setShowSalonApplicationModal(false)} />
 
       {reviewModalSalon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -665,6 +675,7 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
 
 
 

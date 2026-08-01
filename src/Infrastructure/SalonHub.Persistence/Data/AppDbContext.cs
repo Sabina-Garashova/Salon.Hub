@@ -37,6 +37,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
     public DbSet<NewsArticle> NewsArticles => Set<NewsArticle>();
     public DbSet<SpecialistApplication> SpecialistApplications => Set<SpecialistApplication>();
+    public DbSet<SalonApplication> SalonApplications => Set<SalonApplication>();
     public DbSet<SpecialistApplicationImage> SpecialistApplicationImages => Set<SpecialistApplicationImage>();
     public DbSet<Notification> Notifications => Set<Notification>();
 
@@ -116,6 +117,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         return await base.SaveChangesAsync(cancellationToken);
     }
 }
+
 
 
 

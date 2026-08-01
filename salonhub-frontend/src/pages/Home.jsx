@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
 import BookingModal from "../components/BookingModal";
+import SalonApplicationModal from "../components/SalonApplicationModal";
 import api from "../services/api";
 import NewsSection from "../components/NewsSection";
 import StyleRecommendationWidget from "../components/StyleRecommendationWidget";
@@ -19,6 +20,7 @@ export default function Home() {
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [bookingSalon, setBookingSalon] = useState(null);
+  const [showSalonApplicationModal, setShowSalonApplicationModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uniqueCustomersCount, setUniqueCustomersCount] = useState(0);
 
@@ -48,6 +50,11 @@ export default function Home() {
       return false;
     }
     return true;
+  };
+
+  const openSalonApplicationModal = () => {
+    if (!requireLogin()) return;
+    setShowSalonApplicationModal(true);
   };
 
   const openBookingModal = (e, salon) => {
@@ -354,6 +361,8 @@ export default function Home() {
         </div>
       )}
 
+      <SalonApplicationModal isOpen={showSalonApplicationModal} onClose={() => setShowSalonApplicationModal(false)} />
+
       {bookingSalon && (
         <BookingModal
           isOpen={!!bookingSalon}
@@ -365,6 +374,7 @@ export default function Home() {
     </div>
   );
 }
+
 
 
 

@@ -27,6 +27,7 @@ namespace SalonHub.Persistence.Repositories
             TimeBlocks = new GenericRepository<TimeBlock>(_context);
             NewsArticles = new GenericRepository<NewsArticle>(_context);
             SpecialistApplications = new GenericRepository<SpecialistApplication>(_context);
+            SalonApplications = new GenericRepository<SalonApplication>(_context);
             Notifications = new GenericRepository<Notification>(_context);
         }
 
@@ -47,6 +48,7 @@ namespace SalonHub.Persistence.Repositories
         public IGenericRepository<TimeBlock> TimeBlocks { get; }
         public IGenericRepository<NewsArticle> NewsArticles { get; }
         public IGenericRepository<SpecialistApplication> SpecialistApplications { get; }
+        public IGenericRepository<SalonApplication> SalonApplications { get; }
         public IGenericRepository<Notification> Notifications { get; }
 
         public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
@@ -54,6 +56,7 @@ namespace SalonHub.Persistence.Repositories
         public void Dispose() => _context.Dispose();
     }
 }
+
 
 
 

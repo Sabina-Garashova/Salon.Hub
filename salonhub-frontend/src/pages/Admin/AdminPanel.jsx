@@ -58,6 +58,7 @@ export default function AdminPanel() {
   const [allReservations, setAllReservations] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [workingHoursData, setWorkingHoursData] = useState([]);
+  const [salonApplications, setSalonApplications] = useState([]);
   const [whSearchTerm, setWhSearchTerm] = useState("");
   const [equipment, setEquipment] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -118,6 +119,8 @@ export default function AdminPanel() {
         if (activeTab === "Applications" || activeTab === "Dashboard") {
           const res = await api.get("/SpecialistApplication/pending");
           setApplications(res.data);
+          const salonAppRes = await api.get("/SalonApplication/pending");
+          setSalonApplications(salonAppRes.data);
         }
         if (activeTab === "Employees" || activeTab === "Dashboard" || activeTab === "Equipment") {
           const res = await api.get("/Employee");
@@ -180,6 +183,27 @@ export default function AdminPanel() {
       const res = await api.post(`/SpecialistApplication/${id}/approve`, payload);
       alert(res.data.message);
       setApplications(applications.filter((a) => a.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    }
+  };
+
+  const handleApproveSalonApplication = async (id) => {
+    try {
+      const res = await api.post(`/SalonApplication/${id}/approve`);
+      alert(res.data.message);
+      setSalonApplications(salonApplications.filter((a) => a.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    }
+  };
+
+  const handleRejectSalonApplication = async (id) => {
+    const reason = prompt("Redd sebebi (opsional):");
+    try {
+      const res = await api.post(`/SalonApplication/${id}/reject`, { reason });
+      alert(res.data.message);
+      setSalonApplications(salonApplications.filter((a) => a.id !== id));
     } catch (err) {
       alert(err.response?.data?.message || "Xeta bas verdi");
     }
@@ -418,6 +442,10 @@ export default function AdminPanel() {
         await api.delete(`/Employee/${id}`);
         setEmployees(employees.filter((e) => e.id !== id));
       }
+      if (type === "salon") {
+        await api.delete(`/salon/${id}`);
+        setSalons(salons.filter((s) => s.id !== id));
+      }
     } catch (err) {
       alert(err.response?.data?.message || "Xeta bas verdi");
     }
@@ -633,6 +661,44 @@ export default function AdminPanel() {
                 </div>
               )}
 
+
+              {activeTab === "Applications" && (
+                <div className="space-y-3 mt-6">
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">Gozleyen Salon Muracietleri</h3>
+                  {salonApplications.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-xs">
+                      Yeni salon muracieti tapilmadi.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                      {salonApplications.map((app) => (
+                        <div key={app.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col justify-between space-y-4 shadow-sm">
+                          <div className="flex items-start gap-3">
+                            {app.logoImageUrl ? (
+                              <img src={app.logoImageUrl} alt={app.proposedSalonName} className="w-12 h-12 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold flex-shrink-0">
+                                {app.proposedSalonName?.slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-serif font-bold text-base text-[#1A1714]">{app.proposedSalonName}</h4>
+                              <p className="text-xs text-gray-400 font-mono mt-0.5">{app.applicantFullName} - {app.applicantEmail}</p>
+                              <p className="text-xs text-gray-400 font-mono">{app.phoneNumber}</p>
+                              <p className="text-xs text-gray-500 mt-1">Unvan: <b>{app.address}</b></p>
+                              {app.description && <p className="text-xs text-gray-500 mt-1">{app.description}</p>}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 pt-3 border-t border-gray-100">
+                            <button onClick={() => handleApproveSalonApplication(app.id)} className="flex-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl py-2 text-xs font-bold hover:bg-emerald-100 transition">Tesdiqle</button>
+                            <button onClick={() => handleRejectSalonApplication(app.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 rounded-xl py-2 text-xs font-bold hover:bg-red-100 transition">Redd Et</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               {activeTab === "Employees" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -784,8 +850,16 @@ export default function AdminPanel() {
                         <h4 className="font-serif font-bold text-base text-[#1A1714]">{salon.name}</h4>
                         <p className="text-xs text-gray-500">{salon.address}</p>
                         <p className="text-xs text-gray-400">{salon.phoneNumber}</p>
-                        <div className="flex items-center gap-1 text-[#C9A227] font-bold text-xs pt-2 border-t border-gray-100">
+                        <div className="flex items-center justify-between gap-1 pt-2 border-t border-gray-100">
+                          <div className="flex items-center gap-1 text-[#C9A227] font-bold text-xs">
                           <Star className="w-3.5 h-3.5 fill-current" /> {salon.averageRating.toFixed(1)} ({salon.reviewCount} rey)
+                          </div>
+                          <button
+                            onClick={() => handleDelete("salon", salon.id)}
+                            className="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 border border-red-100"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -818,6 +892,8 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
 
 
 
