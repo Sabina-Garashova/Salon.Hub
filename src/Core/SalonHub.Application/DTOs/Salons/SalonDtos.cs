@@ -1,4 +1,4 @@
-﻿namespace SalonHub.Application.DTOs.Salons
+namespace SalonHub.Application.DTOs.Salons
 {
     public class SalonReadDto
     {
@@ -9,6 +9,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
+        public string OwnerId { get; set; } = string.Empty;
         public bool IsMonthlyTopSalon { get; set; }
     }
 
@@ -36,4 +37,5 @@
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }
+
 

@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.Common;
+using SalonHub.Application.Common;
 using SalonHub.Application.DTOs.Services;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface IServiceCrudService
     {
-        Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null);
+        Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null, string? requesterId = null, bool isSuperAdmin = true);
         Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null);
         Task<ServiceReadDto> CreateAsync(ServiceCreateDto dto, string requesterId, bool isSuperAdmin);
         Task UpdateAsync(int id, ServiceUpdateDto dto, string requesterId, bool isSuperAdmin);
@@ -25,12 +25,22 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null)
+        public async Task<IReadOnlyList<ServiceReadDto>> GetAllAsync(string? language = null, string? requesterId = null, bool isSuperAdmin = true)
         {
             var services = await _unitOfWork.Services.GetAllAsync();
             var allServiceTags = await _unitOfWork.ServiceTags.GetAllAsync();
             var tagsByService = allServiceTags.GroupBy(st => st.ServiceId).ToDictionary(g => g.Key, g => g.Select(st => st.TagId).ToList());
-            return services.Select(s => MapToReadDto(s, language, tagsByService.TryGetValue(s.Id, out var tagIds) ? tagIds : new List<int>())).ToList();
+            var result = new List<ServiceReadDto>();
+            foreach (var s in services)
+            {
+                if (!isSuperAdmin && requesterId != null)
+                {
+                    var salon = await _unitOfWork.Salons.GetByIdAsync(s.SalonId);
+                    if (salon is null || salon.OwnerId != requesterId) continue;
+                }
+                result.Add(MapToReadDto(s, language, tagsByService.TryGetValue(s.Id, out var tagIds) ? tagIds : new List<int>()));
+            }
+            return result;
         }
 
         public async Task<ServiceReadDto?> GetByIdAsync(int id, string? language = null)

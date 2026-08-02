@@ -83,8 +83,13 @@ export default function AdminServicesSection({
 
   const resetCreateForm = () => {
     setForm(emptyForm);
-    setSelectedSalonIds([]);
-    setApplyToAll(false);
+    if (salons.length === 1) {
+      setSelectedSalonIds([salons[0].id]);
+      setApplyToAll(false);
+    } else {
+      setSelectedSalonIds([]);
+      setApplyToAll(false);
+    }
   };
 
   const openCreate = () => {
@@ -413,41 +418,50 @@ export default function AdminServicesSection({
                   Hansi salon(lar) ucun?
                 </label>
 
-                <label className="flex items-center gap-2 p-3 bg-[#FAF6F0] border border-[#C9A227]/30 rounded-xl cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={applyToAll}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setApplyToAll(checked);
-                      if (checked) setSelectedSalonIds(allSalonIds);
-                      else setSelectedSalonIds([]);
-                    }}
-                    className="rounded border-gray-300 text-[#C9A227] focus:ring-[#C9A227]"
-                  />
-                  <span className="font-semibold text-[#1A1714]">Butun salonlara tetbiq et</span>
-                </label>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
-                  {salons.map((salon) => (
-                    <label
-                      key={salon.id}
-                      className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${
-                        selectedSalonIds.includes(salon.id)
-                          ? "border-[#C9A227]/50 bg-[#C9A227]/5"
-                          : "border-gray-200 bg-gray-50 hover:border-gray-300"
-                      }`}
-                    >
+                {salons.length === 1 ? (
+                  <div className="flex items-center gap-2 p-3 bg-[#FAF6F0] border border-[#C9A227]/30 rounded-xl">
+                    <span className="font-semibold text-[#1A1714]">{salons[0].name}</span>
+                    <span className="text-xs text-gray-500">(avtomatik teyin edilib)</span>
+                  </div>
+                ) : (
+                  <>
+                    <label className="flex items-center gap-2 p-3 bg-[#FAF6F0] border border-[#C9A227]/30 rounded-xl cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={selectedSalonIds.includes(salon.id)}
-                        onChange={() => toggleSalon(salon.id)}
+                        checked={applyToAll}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setApplyToAll(checked);
+                          if (checked) setSelectedSalonIds(allSalonIds);
+                          else setSelectedSalonIds([]);
+                        }}
                         className="rounded border-gray-300 text-[#C9A227] focus:ring-[#C9A227]"
                       />
-                      <span className="font-medium text-[#1A1714] truncate">{salon.name}</span>
+                      <span className="font-semibold text-[#1A1714]">Butun salonlara tetbiq et</span>
                     </label>
-                  ))}
-                </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
+                      {salons.map((salon) => (
+                        <label
+                          key={salon.id}
+                          className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition ${
+                            selectedSalonIds.includes(salon.id)
+                              ? "border-[#C9A227]/50 bg-[#C9A227]/5"
+                              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSalonIds.includes(salon.id)}
+                            onChange={() => toggleSalon(salon.id)}
+                            className="rounded border-gray-300 text-[#C9A227] focus:ring-[#C9A227]"
+                          />
+                          <span className="font-medium text-[#1A1714] truncate">{salon.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                )}
 
                 {salons.length === 0 && (
                   <p className="text-gray-400 text-center py-2">Salon siyahisi bosdur.</p>

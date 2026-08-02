@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.SalonApplications;
+using SalonHub.Application.DTOs.SalonApplications;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 
@@ -78,6 +78,41 @@ namespace SalonHub.Application.Services
             };
             await _unitOfWork.Salons.AddAsync(salon);
             await _unitOfWork.CompleteAsync();
+
+            var templateServices = await _unitOfWork.Services.FindAsync(s => s.SalonId == 1);
+            foreach (var template in templateServices)
+            {
+                var copy = new Service
+                {
+                    NameAz = template.NameAz,
+                    NameRu = template.NameRu,
+                    NameEn = template.NameEn,
+                    DescriptionAz = template.DescriptionAz,
+                    DescriptionRu = template.DescriptionRu,
+                    DescriptionEn = template.DescriptionEn,
+                    Price = template.Price,
+                    DurationMinutes = template.DurationMinutes,
+                    CategoryId = template.CategoryId,
+                    SalonId = salon.Id,
+                    DiscountPercent = template.DiscountPercent,
+                    OriginalPrice = template.OriginalPrice
+                };
+                await _unitOfWork.Services.AddAsync(copy);
+            }
+            await _unitOfWork.CompleteAsync();
+
+            var templateImage = (await _unitOfWork.GalleryImages.FindAsync(g => g.SalonId == 1)).FirstOrDefault();
+            if (templateImage is not null)
+            {
+                await _unitOfWork.GalleryImages.AddAsync(new GalleryImage
+                {
+                    ImageUrl = templateImage.ImageUrl,
+                    Description = templateImage.Description,
+                    Type = templateImage.Type,
+                    SalonId = salon.Id
+                });
+                await _unitOfWork.CompleteAsync();
+            }
 
             application.Status = SalonApplicationStatus.Approved;
             application.ReviewedAt = DateTime.UtcNow;

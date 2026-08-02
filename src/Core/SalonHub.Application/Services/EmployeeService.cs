@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.Employees;
+using SalonHub.Application.DTOs.Employees;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface IEmployeeService
     {
-        Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync();
+        Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync(string requesterId, bool isSuperAdmin);
         Task<EmployeeReadDto?> GetByIdAsync(int id);
         Task<EmployeeReadDto> CreateAsync(EmployeeCreateDto dto, string requesterId, bool isSuperAdmin);
         Task UpdateAsync(int id, EmployeeUpdateDto dto, string requesterId, bool isSuperAdmin);
@@ -27,12 +27,19 @@ namespace SalonHub.Application.Services
             _userLookupService = userLookupService;
         }
 
-        public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync(string requesterId, bool isSuperAdmin)
         {
             var employees = await _unitOfWork.Employees.GetAllAsync();
             var result = new List<EmployeeReadDto>();
             foreach (var employee in employees)
+            {
+                if (!isSuperAdmin)
+                {
+                    var salon = await _unitOfWork.Salons.GetByIdAsync(employee.SalonId);
+                    if (salon is null || salon.OwnerId != requesterId) continue;
+                }
                 result.Add(await MapToReadDtoAsync(employee));
+            }
             return result;
         }
 
@@ -223,6 +230,7 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
 
 
 

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import WorkingHoursView from "../../components/admin/WorkingHoursView";
+import BranchManagement from "../../components/admin/BranchManagement";
 import { useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
@@ -44,6 +45,7 @@ export default function AdminPanel() {
     decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
     "Customer";
   const isSuperAdmin = role === "SuperAdmin";
+  const currentUserId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
 
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.tab || "Dashboard");
@@ -78,31 +80,34 @@ export default function AdminPanel() {
     { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
-    { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Services", name: "Xidmetlerim", icon: Scissors },
+    { id: "Equipment", name: "Avadanliq", icon: Wrench },
+    { id: "News", name: "Xeberler", icon: Newspaper },
+    { id: "Branches", name: "Filiallar", icon: Building2 },
     { id: "Tags", name: "Tag-lar", icon: Hash },
     { id: "Reviews", name: "Reyler", icon: Star },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
-    { id: "Equipment", name: "Avadanliq", icon: Wrench },
   ];
 
   const superAdminTabs = [
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
     { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
     { id: "AllSalons", name: "Butun Salonlar", icon: Building2 },
+    { id: "Branches", name: "Filiallar", icon: Building2 },
     { id: "AllReservations", name: "Butun Rezervasiyalar", icon: Calendar },
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
-    { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
+    { id: "Services", name: "Xidmetlerim", icon: Scissors },
+    { id: "Equipment", name: "Avadanliq", icon: Wrench },
     { id: "Tags", name: "Tag-lar", icon: Hash },
     { id: "Reviews", name: "Reyler", icon: Star },
+    { id: "News", name: "Xeberler", icon: Newspaper },
     { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
-    { id: "Equipment", name: "Avadanliq", icon: Wrench },
     { id: "AuditLogs", name: "Audit Loglari", icon: FileClock },
-    { id: "News", name: "Xeberler", icon: Newspaper },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -119,22 +124,24 @@ export default function AdminPanel() {
         if (activeTab === "Applications" || activeTab === "Dashboard") {
           const res = await api.get("/SpecialistApplication/pending");
           setApplications(res.data);
-          const salonAppRes = await api.get("/SalonApplication/pending");
+          if (isSuperAdmin) {
+            const salonAppRes = await api.get("/SalonApplication/pending");
           setSalonApplications(salonAppRes.data);
+          }
         }
         if (activeTab === "Employees" || activeTab === "Dashboard" || activeTab === "Equipment") {
-          const res = await api.get("/Employee");
+          const res = await api.get("/Employee?scoped=true");
           setEmployees(res.data);
         }
         if (activeTab === "WorkingHours") {
           const whRes = await api.get("/WorkingHour");
           const whAll = Array.isArray(whRes.data) ? whRes.data : (whRes.data?.$values || []);
           setWorkingHoursData(whAll);
-          const empRes2 = await api.get("/Employee");
+          const empRes2 = await api.get("/Employee?scoped=true");
           setEmployees(empRes2.data);
         }
         if (activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
-          const [servRes, catRes] = await Promise.all([api.get("/Service"), api.get("/Category")]);
+          const [servRes, catRes] = await Promise.all([api.get("/Service?scoped=true"), api.get("/Category")]);
           setServices(servRes.data);
           setCategories(catRes.data);
         }
@@ -143,11 +150,11 @@ export default function AdminPanel() {
           setSalons(salonRes.data);
         }
         if (activeTab === "Reviews" || activeTab === "Dashboard") {
-          const revRes = await api.get("/Review");
+          const revRes = await api.get("/Review?scoped=true");
           setReviews(revRes.data);
         }
-        if (activeTab === "Equipment" || activeTab === "Employees" || activeTab === "Services") {
-          const [eqRes, branchRes, salonRes] = await Promise.all([api.get("/Equipment"), api.get("/Branch"), api.get("/salon")]);
+        if (activeTab === "Equipment" || activeTab === "Employees" || activeTab === "Services" || activeTab === "Branches") {
+          const [eqRes, branchRes, salonRes] = await Promise.all([api.get("/Equipment?scoped=true"), api.get("/Branch?scoped=true"), api.get("/salon")]);
           setEquipment(eqRes.data);
           setBranches(branchRes.data);
           setSalons(salonRes.data);
@@ -247,7 +254,7 @@ export default function AdminPanel() {
         })
       )
     );
-    const res = await api.get("/Service");
+    const res = await api.get("/Service?scoped=true");
     setServices(res.data);
   };
 
@@ -271,7 +278,7 @@ export default function AdminPanel() {
       ...tagsToAdd.map((tid) => api.post("/Service/" + id + "/tags/" + tid).catch(() => {})),
       ...tagsToRemove.map((tid) => api.delete("/Service/" + id + "/tags/" + tid).catch(() => {})),
     ]);
-    const res = await api.get("/Service");
+    const res = await api.get("/Service?scoped=true");
     setServices(res.data);
   };
 
@@ -361,6 +368,19 @@ export default function AdminPanel() {
     await api.delete(`/Equipment/${id}`);
     setEquipment((prev) => prev.filter((eq) => eq.id !== id));
   };
+  const handleCreateBranch = async (data) => {
+    const res = await api.post("/Branch", data);
+    setBranches((prev) => [...prev, res.data]);
+  };
+  const handleUpdateBranch = async (id, data) => {
+    await api.put(`/Branch/${id}`, data);
+    setBranches((prev) => prev.map((b) => (b.id === id ? { ...b, ...data } : b)));
+  };
+  const handleDeleteBranch = async (id) => {
+    if (!window.confirm("Silmek isteyirsiniz?")) return;
+    await api.delete(`/Branch/${id}`);
+    setBranches((prev) => prev.filter((b) => b.id !== id));
+  };
   const handleMoveServiceCategory = async (serviceIds, newCategoryId) => {
     const ids = Array.isArray(serviceIds) ? serviceIds : [serviceIds];
     await Promise.all(
@@ -376,7 +396,7 @@ export default function AdminPanel() {
         });
       })
     );
-    const res = await api.get("/Service");
+    const res = await api.get("/Service?scoped=true");
     setServices(res.data);
   };
 
@@ -392,7 +412,7 @@ export default function AdminPanel() {
         })
       )
     );
-    const res = await api.get("/Service");
+    const res = await api.get("/Service?scoped=true");
     setServices(res.data);
   };
 
@@ -426,7 +446,7 @@ export default function AdminPanel() {
           ...toAdd.map((sid) => api.post(`/Employee/${empId}/services/${sid}`)),
           ...toRemove.map((sid) => api.delete(`/Employee/${empId}/services/${sid}`)),
         ]);
-        const res = await api.get("/Employee");
+        const res = await api.get("/Employee?scoped=true");
         setEmployees(res.data);
       }
       setIsModalOpen(false);
@@ -552,7 +572,9 @@ export default function AdminPanel() {
                   role: a.specialty,
                   date: a.createdAt ? a.createdAt.split("T")[0] : "",
                 }));
-                const completedRes = allReservations.filter((r) => r.status === "Completed");
+                const myOwnSalonId = salons.find((s) => s.ownerId === currentUserId)?.id;
+                const scopedReservations = isSuperAdmin ? allReservations : allReservations.filter((r) => r.salonId === myOwnSalonId);
+                const completedRes = scopedReservations.filter((r) => r.status === "Completed");
                 const serviceCounts = {};
                 completedRes.forEach((r) => {
                   if (!serviceCounts[r.serviceName]) serviceCounts[r.serviceName] = { name: r.serviceName, count: 0, price: r.price };
@@ -561,9 +583,9 @@ export default function AdminPanel() {
                 const topServices = Object.values(serviceCounts).sort((a, b) => b.count - a.count).slice(0, 5);
                 const nowForToday = new Date();
                 const todayStr = nowForToday.getFullYear() + "-" + String(nowForToday.getMonth() + 1).padStart(2, "0") + "-" + String(nowForToday.getDate()).padStart(2, "0");
-                const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
+                const todaysAppointments = scopedReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
                 const adminName = decoded?.name || decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Admin";
-                const salonName = isSuperAdmin ? "Butun Salonlar" : (salons[0]?.name || "Salon");
+                const salonName = isSuperAdmin ? "Butun Salonlar" : (salons.find((s) => s.ownerId === currentUserId)?.name || "Salon");
                 return (
                   <DashboardOverview
                     adminName={adminName}
@@ -572,7 +594,7 @@ export default function AdminPanel() {
                     employeeCount={employees.length}
                     uniqueServiceCount={uniqueServiceCount}
                     avgRating={avgRating}
-                    salonCount={salons.length}
+                    salonCount={isSuperAdmin ? salons.length : salons.filter((s) => s.ownerId === currentUserId).length}
                     recentApplications={recentApplications}
                     topServices={topServices}
                     todaysAppointments={todaysAppointments}
@@ -662,7 +684,7 @@ export default function AdminPanel() {
               )}
 
 
-              {activeTab === "Applications" && (
+              {activeTab === "Applications" && isSuperAdmin && (
                 <div className="space-y-3 mt-6">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">Gozleyen Salon Muracietleri</h3>
                   {salonApplications.length === 0 ? (
@@ -763,10 +785,14 @@ export default function AdminPanel() {
                 </div>
               )}
 
+              {activeTab === "Branches" && (
+                <BranchManagement branches={branches} salons={salons} onCreate={handleCreateBranch} onUpdate={handleUpdateBranch} onDelete={handleDeleteBranch} />
+              )}
+
               {activeTab === "Services" && (
                 <ServicesManagement
                   services={services}
-                  salons={salons}
+                  salons={isSuperAdmin ? salons : salons.filter((s) => s.ownerId === currentUserId)}
                   categories={categories}
                   equipment={equipment}
                   tags={tags}
@@ -828,8 +854,8 @@ export default function AdminPanel() {
               {activeTab === "Equipment" && (
                 <EquipmentManagement
                   equipment={equipment}
-                  branches={branches}
-                  salons={salons}
+                  branches={isSuperAdmin ? branches : branches.filter((b) => salons.some((s) => s.id === b.salonId))}
+                  salons={isSuperAdmin ? salons : salons.filter((s) => s.ownerId === currentUserId)}
                   employees={employees}
                   onCreate={handleCreateEquipment}
                   onUpdate={handleUpdateEquipment}
@@ -892,6 +918,17 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

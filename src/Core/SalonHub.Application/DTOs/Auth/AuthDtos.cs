@@ -41,10 +41,15 @@ public class LoginDto
         public string Email { get; set; } = string.Empty;
         public string NewFullName { get; set; } = string.Empty;
     }
+    public class RemoveRoleDto
+    {
+        public string Role { get; set; } = string.Empty;
+    }
     public class ReferralCodeDto
     {
         public string ReferralCode { get; set; } = string.Empty;
     }
 }
+
 
 

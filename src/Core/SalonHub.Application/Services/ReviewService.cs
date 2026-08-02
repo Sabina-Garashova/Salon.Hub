@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.Reviews;
+using SalonHub.Application.DTOs.Reviews;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 
@@ -6,7 +6,7 @@ namespace SalonHub.Application.Services
 {
     public interface IReviewService
     {
-        Task<IReadOnlyList<ReviewReadDto>> GetAllAsync();
+        Task<IReadOnlyList<ReviewReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<ReviewReadDto?> GetByIdAsync(int id);
         Task<ReviewReadDto> CreateAsync(ReviewCreateDto dto, string customerId);
         Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isAdmin);
@@ -23,10 +23,20 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<ReviewReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<ReviewReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true)
         {
             var reviews = await _unitOfWork.Reviews.GetAllAsync();
-            return reviews.Select(MapToReadDto).ToList();
+            var result = new List<ReviewReadDto>();
+            foreach (var r in reviews)
+            {
+                if (!isSuperAdmin && requesterId != null)
+                {
+                    var salon = await _unitOfWork.Salons.GetByIdAsync(r.SalonId);
+                    if (salon is null || salon.OwnerId != requesterId) continue;
+                }
+                result.Add(MapToReadDto(r));
+            }
+            return result;
         }
 
         public async Task<ReviewReadDto?> GetByIdAsync(int id)

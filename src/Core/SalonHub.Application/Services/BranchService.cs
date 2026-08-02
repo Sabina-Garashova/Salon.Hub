@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.Branches;
+using SalonHub.Application.DTOs.Branches;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 
@@ -6,7 +6,7 @@ namespace SalonHub.Application.Services
 {
     public interface IBranchService
     {
-        Task<IReadOnlyList<BranchReadDto>> GetAllAsync();
+        Task<IReadOnlyList<BranchReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<BranchReadDto?> GetByIdAsync(int id);
         Task<BranchReadDto> CreateAsync(BranchCreateDto dto, string requesterId, bool isSuperAdmin);
         Task UpdateAsync(int id, BranchUpdateDto dto, string requesterId, bool isSuperAdmin);
@@ -22,10 +22,20 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<BranchReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<BranchReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true)
         {
             var branches = await _unitOfWork.Branches.GetAllAsync();
-            return branches.Select(MapToReadDto).ToList();
+            var result = new List<BranchReadDto>();
+            foreach (var b in branches)
+            {
+                if (!isSuperAdmin && requesterId != null)
+                {
+                    var salon = await _unitOfWork.Salons.GetByIdAsync(b.SalonId);
+                    if (salon is null || salon.OwnerId != requesterId) continue;
+                }
+                result.Add(MapToReadDto(b));
+            }
+            return result;
         }
 
         public async Task<BranchReadDto?> GetByIdAsync(int id)

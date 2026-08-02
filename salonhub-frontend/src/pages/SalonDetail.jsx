@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import BookingModal from "../components/BookingModal";
@@ -69,27 +69,21 @@ export default function SalonDetail() {
             const userId =
               decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
               decoded?.sub;
-                                    console.log("=== DEBUG MƏLUMATLARI ===");
-            console.log("1. Tokendən gələn userId:", userId);
-            console.log("2. URL-dən gələn salonId:", salonId);
             
             const myCompleted = resvRes.data.filter((r) => {
               const isCustomer = String(r.customerId) === String(userId);
               const isSalon = String(r.salonId) === String(salonId);
               
               if (isCustomer && isSalon) {
-                 console.log("-> Bu istifadəçinin bu salonda rezervasiyası tapıldı! Statusu:", r.status, " | Usta ID:", r.employeeId);
               }
               
               return isCustomer && r.status === "Completed" && isSalon;
             });
             
-            console.log("3. Filtrlənmiş (Completed) rezervasiyalar:", myCompleted);
             setCanReview(myCompleted.length > 0);
             
             const uniqueEmployeeIds = [...new Set(myCompleted.map((r) => String(r.employeeId)))];
             const myEmployees = empRes.data.filter((e) => uniqueEmployeeIds.includes(String(e.id)));
-            console.log("4. Nəhayət tapılan ustalar (Dropdown üçün):", myEmployees);
             
             setReviewableEmployees(myEmployees);
           });

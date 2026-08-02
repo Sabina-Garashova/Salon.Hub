@@ -18,7 +18,13 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _galleryImageService.GetAllAsync());
+        public async Task<IActionResult> GetAll([FromQuery] bool scoped = false)
+        {
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            var isSalonAdminOnly = scoped && isAuthenticated && User.IsInRole(Roles.SalonAdmin) && !User.IsInRole(Roles.SuperAdmin);
+            var requesterId = isAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            return Ok(await _galleryImageService.GetAllAsync(requesterId, !isSalonAdminOnly));
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -58,3 +64,4 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+

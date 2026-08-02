@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DollarSign,
@@ -20,6 +20,10 @@ import { ImageOff, Quote, CalendarPlus } from "lucide-react";
 import Layout from "../../components/Layout";
 import CraftsmanApplicationModal from "../../components/CraftsmanApplicationModal";
 import SalonApplicationModal from "../../components/SalonApplicationModal";
+import { TodayAppointmentsTable, TopServicesChart } from "../../components/DashboardCards";
+import DashboardStatsSection from "../../components/DashboardStatsSection";
+import { EmployeeCard, SalonCard } from "../../components/HomeCards";
+import { HomeCTASection } from "../../components/HomeSections";
 import BookingModal from "../../components/BookingModal";
 import api from "../../services/api";
 import jsQR from "jsqr";
@@ -212,13 +216,16 @@ export default function Dashboard() {
           list = list.filter((r) => r.customerId === userId);
         } else if (role === "Employee") {
           list = list.filter((r) => r.employeeId && employees.some((e) => e.id === r.employeeId && e.applicationUserId === userId));
+        } else if (role === "SalonAdmin") {
+          const mySalonIds = salons.filter((s) => s.ownerId === userId).map((s) => s.id);
+          list = list.filter((r) => mySalonIds.includes(r.salonId));
         }
         setAllReservations(list);
         setGlobalReservations(res.data);
         api.get("/Reservation/customer-count").then((cc) => setCustomerCountFromApi(cc.data?.count || 0)).catch(() => {});
       })
       .catch((err) => console.error("Rezervasiyalar yüklənmədi", err));
-  }, [role, employees]);
+  }, [role, employees, salons]);
 
   const nowForToday = new Date();
   const todayStr = nowForToday.getFullYear() + "-" + String(nowForToday.getMonth() + 1).padStart(2, "0") + "-" + String(nowForToday.getDate()).padStart(2, "0");
@@ -265,7 +272,7 @@ export default function Dashboard() {
         <div className="absolute bottom-[20%] right-[10%] w-[450px] h-[450px] bg-[#B8935A]/6 blur-[120px] rounded-full animate-orb-2 pointer-events-none z-0" />
         <div className="absolute top-[40%] right-[30%] w-[300px] h-[300px] bg-[#F0D68A]/10 blur-[90px] rounded-full animate-orb-3 pointer-events-none z-0" />
 
-        <div className="relative z-10 space-y-6 max-w-7xl mx-auto">
+        <div className="relative z-10 space-y-6 max-w-[1900px] mx-auto">
           {/* 1. Salamlama və Cari Tarix Bloku */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -287,70 +294,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 2. Statistika Kartları (İndi tam Tarix hissəsinin altında yerləşir) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((stat) => {
-              const IconComponent = stat.icon;
-              return (
-                <div
-                  key={stat.id}
-                  className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group"
-                >
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{stat.name}</span>
-                    <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{stat.value}</h3>
-                    <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md inline-block">
-                      {stat.change}
-                    </span>
-                  </div>
-                  <div
-                    className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                    style={{ backgroundColor: `${stat.color}10`, color: stat.color }}
-                  >
-                    <IconComponent className="w-5 h-5" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {/* 2. Statistika Kartları */}
+          <DashboardStatsSection stats={stats} />
 
-          {/* 3. Karyera İmkanı Banneri */}
+          {/* 3. Karyera Imkani (Usta + Salon CTA) */}
           {role === "Customer" && (
-            <div className="relative overflow-hidden rounded-2xl bg-[#1A1714] text-white p-6 md:p-8 border border-[#B8935A]/20 shadow-xl transition-all duration-300 hover:shadow-[#1A1714]/10 hover:shadow-2xl group">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-[#C9A227]/20 to-transparent blur-[60px] pointer-events-none rounded-full transition-transform duration-500 group-hover:scale-110" />
+            <HomeCTASection
+              onApplySpecialist={() => setShowApplicationModal(true)}
+              onApplySalon={() => setShowSalonApplicationModal(true)}
+            />
 
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div className="space-y-3 max-w-2xl">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#F0D68A] text-[10px] font-bold uppercase tracking-widest">
-                    <Sparkles className="w-3 h-3 text-[#C9A227]" />
-                    Karyera İmkanı
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#FAF6F0] leading-tight">
-                    {t("dash_career_question")}
-                  </h2>
-                  <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light">
-                    {t("dash_career_desc")}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setShowApplicationModal(true)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-[#F0D68A] to-[#B8935A] text-[#1A1714] font-bold text-sm rounded-xl hover:opacity-95 active:scale-[0.98] transition-all shadow-lg shadow-[#B8935A]/10 whitespace-nowrap group/btn"
-                >
-                  Müraciət Et
-                  <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
-                </button>
-
-                <button
-                  onClick={() => setShowSalonApplicationModal(true)}
-                  className="mt-3 inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-[#C9A227]/30 text-[#1A1714] font-semibold text-sm rounded-xl hover:bg-[#FAF6F0] transition-all whitespace-nowrap"
-                >
-                  Öz Salonunuzu Qoşun
-                </button>
-              </div>
-            </div>
           )}
-
           {/* 4. AI Stil Tövsiyəsi Vidceti */}
           {role === "Customer" && <StyleRecommendationWidget />}
 
@@ -373,52 +327,12 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-400 col-span-full">Hələ salon əlavə edilməyib.</p>
               ) : (
                 salons.map((salon) => (
-                  <div
+                  <SalonCard
                     key={salon.id}
+                    salon={{ ...salon, imageUrl: galleryBySalon[salon.id] }}
                     onClick={() => navigate(`/salon/${salon.id}`)}
-                    className="bg-white rounded-xl border border-gray-100/70 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md hover:border-[#C9A227]/20 relative group cursor-pointer"
-                  >
-                    <div className="h-32 bg-gradient-to-br from-[#1A1714] to-[#3A2E22] relative overflow-hidden">
-                      <img
-                        src={galleryBySalon[salon.id] || "/craftsman-modal-bg.png"}
-                        alt={salon.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.src = "/craftsman-modal-bg.png"; }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      {salon.isMonthlyTopSalon && (
-                        <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title="Ayın ən yaxşı salonu">
-                          <Crown className="w-4 h-4 fill-[#C9A227]" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-5 space-y-3">
-                      <h4 className="font-serif font-bold text-base text-[#1A1714] group-hover:text-[#C9A227] transition-colors">
-                        {salon.name}
-                      </h4>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-                        <span>{salon.address}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <Phone className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-                        <span className="font-mono">{salon.phoneNumber}</span>
-                      </div>
-                      <div className="pt-2 border-t border-gray-50 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1 text-[#C9A227] font-bold">
-                          <Star className="w-3.5 h-3.5 fill-current" />
-                          <span>{salon.averageRating.toFixed(1)}</span>
-                          <span className="text-gray-400 font-normal">({salon.reviewCount} rəy)</span>
-                        </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setBookingSalon(salon); }}
-                          className="flex items-center gap-1 text-[10px] font-bold text-white bg-[#C9A227] hover:bg-[#B8935A] px-2.5 py-1 rounded-lg transition"
-                        >
-                          <CalendarPlus className="w-3 h-3" /> Rezervasiya
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    onBook={() => setBookingSalon(salon)}
+                  />
                 ))
               )}
             </div>
@@ -429,24 +343,7 @@ export default function Dashboard() {
             <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_masters")}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {employees.map((emp) => (
-                <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:shadow-md transition">
-                  {emp.profileImageUrl ? (
-                    <img
-                      src={emp.profileImageUrl}
-                      alt={emp.fullName}
-                      className="w-28 h-28 rounded-full object-cover mx-auto mb-2 border-2 border-[#C9A227]/30"
-                    />
-                  ) : (
-                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center mx-auto mb-2 text-[#1A1714] font-bold text-xl">
-                      {emp.fullName?.slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                  <h5 className="font-serif font-bold text-sm text-[#1A1714] truncate">{emp.fullName}</h5>
-                  <div className="flex items-center justify-center gap-1 mt-1 text-xs text-[#C9A227]">
-                    <Star className="w-3 h-3 fill-[#C9A227]" />
-                    <span>{emp.averageRating.toFixed(1)}</span>
-                  </div>
-                </div>
+                <EmployeeCard key={emp.id} employee={emp} />
               ))}
             </div>
           </div>
@@ -480,129 +377,47 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Günlük Görüşlər və Populyar Xidmətlər */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div>
-                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">{t("dash_todays_appointments")}</h3>
-                  <p className="text-xs text-gray-400">{t("dash_todays_appointments_sub")}</p>
-                </div>
-                <button className="text-xs font-semibold text-[#C9A227] hover:text-[#B8935A] inline-flex items-center gap-0.5 transition">
-                  Hamısına bax <ArrowUpRight className="w-3.5 h-3.5" />
+            <div className="lg:col-span-2">
+              <TodayAppointmentsTable
+                appointments={todaysAppointments.map((appt) => ({
+                  ...appt,
+                  time: appt.startTime?.slice(0, 5),
+                  price: appt.price + " AZN",
+                  status: statusLabel(appt.status),
+                }))}
+                onShowQr={(appt) => setQrModalAppt(appt)}
+                role={role}
+              />
+            </div>
+
+            <TopServicesChart services={serviceStats} />
+          </div>
+
+          {qrModalAppt && (
+            <div
+              onClick={() => setQrModalAppt(null)}
+              className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-6"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-3 max-h-[90vh] overflow-y-auto"
+              >
+                <h3 className="text-lg font-serif font-bold text-[#1A1714]">Check-in QR Kodu</h3>
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl border border-gray-100" />
+                ) : (
+                  <p className="text-sm text-gray-400 py-10">QR kodu yuklenir...</p>
+                )}
+                <button
+                  onClick={() => setQrModalAppt(null)}
+                  className="w-full py-2.5 rounded-xl bg-[#1A1714] text-white font-medium text-sm hover:bg-[#2B2118]"
+                >
+                  Bagla
                 </button>
               </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
-                      {role !== "Customer" && <th className="py-3 font-medium">Müştəri</th>}
-                      {role !== "Employee" && <th className="py-3 font-medium">Usta</th>}
-                      <th className="py-3 font-medium">Xidmət</th>
-                      <th className="py-3 font-medium">Saat</th>
-                      <th className="py-3 font-medium">Qiymət</th>
-                      <th className="py-3 font-medium text-right">Status</th>
-                      {role === "Customer" && <th className="py-3 font-medium text-right">QR</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-[#1A1714]">
-                    {todaysAppointments.length === 0 ? (
-                      <tr><td colSpan="6" className="py-8 text-center text-gray-400 text-sm">Bu gün üçün rezervasiya yoxdur.</td></tr>
-                    ) : (
-                      todaysAppointments.map((appt) => (
-                        <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
-                          {role !== "Customer" && <td className="py-3.5 font-medium">{appt.customerFullName || "Müştəri"}</td>}
-                          {role !== "Employee" && <td className="py-3.5 text-gray-600">{appt.employeeName}</td>}
-                          <td className="py-3.5 text-gray-500">
-                            <span className="inline-flex items-center gap-1">
-                              <Scissors className="w-3.5 h-3.5 text-gray-400" />
-                              {appt.serviceName}
-                            </span>
-                          </td>
-                          <td className="py-3.5 font-mono text-gray-600">{appt.startTime?.slice(0, 5)}</td>
-                          <td className="py-3.5 font-semibold text-[#1A1714]">{appt.price} AZN</td>
-                          <td className="py-3.5 text-right">
-                            <span className={"inline-block px-2.5 py-1 rounded-full text-xs font-medium " + (
-                              appt.status === "Confirmed"
-                                ? "bg-green-50 text-green-700 border border-green-200"
-                                : appt.status === "Completed"
-                                ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                : appt.status === "Cancelled"
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-amber-50 text-amber-700 border border-amber-200"
-                            )}>
-                              {statusLabel(appt.status)}
-                            </span>
-                          </td>
-                          {role === "Customer" && (
-                            <td className="py-3.5 text-right">
-                              <button
-                                onClick={() => setQrModalAppt(appt)}
-                                className="text-[10px] font-bold text-[#C9A227] hover:text-[#B8935A] border border-[#C9A227]/30 rounded-lg px-2 py-1"
-                              >
-                                QR
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-            {qrModalAppt && (
-              <div
-                onClick={() => setQrModalAppt(null)}
-                className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-6"
-              >
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-3 max-h-[90vh] overflow-y-auto"
-                >
-                  <h3 className="text-lg font-serif font-bold text-[#1A1714]">Check-in QR Kodu</h3>
-                  {qrDataUrl ? (
-                    <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl border border-gray-100" />
-                  ) : (
-                    <p className="text-sm text-gray-400 py-10">QR kodu yuklenir...</p>
-                  )}
-                  <button
-                    onClick={() => setQrModalAppt(null)}
-                    className="w-full py-2.5 rounded-xl bg-[#1A1714] text-white font-medium text-sm hover:bg-[#2B2118]"
-                  >
-                    Bagla
-                  </button>
-                </div>
-              </div>
-            )}
             </div>
-
-            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 space-y-4">
-              <div className="border-b border-gray-100 pb-3">
-                <h3 className="text-lg font-serif font-bold text-[#1A1714]">{t("dash_top_services")}</h3>
-                <p className="text-xs text-gray-400">{t("dash_top_services_sub")}</p>
-              </div>
-
-              <div className="space-y-4 pt-1">
-                {serviceStats.length === 0 ? (
-                  <p className="text-xs text-gray-400">Hələ tamamlanmış xidmət yoxdur.</p>
-                ) : (
-                  serviceStats.map((stat, idx) => (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-medium">
-                        <span className="text-[#1A1714]">{stat.name}</span>
-                        <span className="text-gray-500">{stat.percentage}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-[#F0D68A] to-[#C9A227] rounded-full" style={{ width: stat.percentage + "%" }} />
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -668,13 +483,24 @@ export default function Dashboard() {
       {bookingSalon && (
         <BookingModal
           isOpen={!!bookingSalon}
-          salon={bookingSalon}
+          salonId={bookingSalon.id}
+          salonName={bookingSalon.name}
           onClose={() => setBookingSalon(null)}
         />
       )}
     </Layout>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

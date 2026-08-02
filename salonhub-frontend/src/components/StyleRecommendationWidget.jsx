@@ -3,6 +3,7 @@ import { Sparkles, Upload, Loader2, RefreshCw } from "lucide-react";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import BookingModal from "./BookingModal";
+import AIStyleRecommendationIdle from "./AIStyleRecommendationIdle";
 
 export default function StyleRecommendationWidget({ salonId }) {
   const { t } = useLanguage();
@@ -15,6 +16,10 @@ export default function StyleRecommendationWidget({ salonId }) {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    processFile(file);
+  };
+
+  const processFile = (file) => {
     const imageUrl = URL.createObjectURL(file);
     setSelectedImage(imageUrl);
     setStatus("loading");
@@ -34,7 +39,6 @@ export default function StyleRecommendationWidget({ salonId }) {
       }
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   const resetWidget = () => {
@@ -42,6 +46,8 @@ export default function StyleRecommendationWidget({ salonId }) {
     setSelectedImage(null);
     setResult(null);
   };
+
+  if (status === "idle") return <AIStyleRecommendationIdle onImageUpload={processFile} />;
 
   return (
     <div className="w-full mx-auto rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-gradient-to-br from-[#1A1714] to-[#2B2118] border border-[#B8935A]/20 font-sans mb-10">
@@ -57,23 +63,6 @@ export default function StyleRecommendationWidget({ salonId }) {
 
       <div className="px-6 pb-8">
 
-        {status === "idle" && (
-          <div className="mt-4 flex flex-col items-center justify-center py-10 border-2 border-dashed border-[#B8935A]/30 rounded-2xl bg-[#1A1714]/40 hover:bg-[#1A1714]/60 transition-colors">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#1A1714] to-[#B8935A]/20 flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(201,162,39,0.15)]">
-              <svg className="w-8 h-8 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </div>
-            <p className="text-[#F4EDE0] mb-6 text-center px-4 font-light text-sm">{t("style_upload_hint")}</p>
-
-            <label className="relative cursor-pointer group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#C9A227] via-[#F0D68A] to-[#B8935A] rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
-              <div className="relative flex items-center gap-2 bg-gradient-to-r from-[#2B2118] to-[#1A1714] border border-[#C9A227]/50 px-8 py-3 rounded-full text-[#F0D68A] text-sm tracking-wide shadow-lg group-hover:scale-[1.02] transition-transform">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                {t("style_upload_btn")}
-              </div>
-              <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-            </label>
-          </div>
-        )}
 
         {status === "loading" && (
           <div className="mt-4 flex flex-col items-center justify-center py-16 text-center">
@@ -215,3 +204,4 @@ export default function StyleRecommendationWidget({ salonId }) {
     </div>
   );
 }
+

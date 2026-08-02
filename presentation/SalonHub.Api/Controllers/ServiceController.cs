@@ -23,7 +23,13 @@ namespace SalonHub.Api.Controllers
         private bool IsSuperAdmin() => User.IsInRole(Roles.SuperAdmin);
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _serviceCrudService.GetAllAsync(GetLanguage()));
+        public async Task<IActionResult> GetAll([FromQuery] bool scoped = false)
+        {
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            var isSalonAdminOnly = scoped && isAuthenticated && User.IsInRole(Roles.SalonAdmin) && !User.IsInRole(Roles.SuperAdmin);
+            var requesterId = isAuthenticated ? GetRequesterId() : null;
+            return Ok(await _serviceCrudService.GetAllAsync(GetLanguage(), requesterId, !isSalonAdminOnly));
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -73,3 +79,5 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
+

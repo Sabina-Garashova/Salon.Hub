@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.GalleryImages;
+using SalonHub.Application.DTOs.GalleryImages;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface IGalleryImageService
     {
-        Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync();
+        Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<GalleryImageReadDto?> GetByIdAsync(int id);
         Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto, string requesterId, bool isSuperAdmin);
         Task UpdateAsync(int id, GalleryImageUpdateDto dto, string requesterId, bool isSuperAdmin);
@@ -23,10 +23,20 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true)
         {
             var images = await _unitOfWork.GalleryImages.GetAllAsync();
-            return images.Select(MapToReadDto).ToList();
+            var result = new List<GalleryImageReadDto>();
+            foreach (var img in images)
+            {
+                if (!isSuperAdmin && requesterId != null)
+                {
+                    var salon = await _unitOfWork.Salons.GetByIdAsync(img.SalonId);
+                    if (salon is null || salon.OwnerId != requesterId) continue;
+                }
+                result.Add(MapToReadDto(img));
+            }
+            return result;
         }
 
         public async Task<GalleryImageReadDto?> GetByIdAsync(int id)

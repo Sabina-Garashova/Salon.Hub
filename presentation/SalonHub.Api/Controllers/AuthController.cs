@@ -185,6 +185,22 @@ namespace SalonHub.Api.Controllers
             return Ok(claims);
         }
 
+        [HttpPost("users/{id}/remove-role")]
+        [Authorize(Roles = Roles.SuperAdmin)]
+        public async Task<IActionResult> RemoveRole(string id, [FromBody] RemoveRoleDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(id)
+                ?? throw new KeyNotFoundException("Istifadeci tapilmadi.");
+
+            if (await _userManager.IsInRoleAsync(user, dto.Role))
+            {
+                await _userManager.RemoveFromRoleAsync(user, dto.Role);
+                await _userManager.UpdateSecurityStampAsync(user);
+            }
+
+            return Ok(new { message = "Rol silindi." });
+        }
+
         [HttpPost("fix-fullname")]
         [Authorize(Roles = Roles.SuperAdmin)]
         public async Task<IActionResult> FixFullName([FromBody] FixFullNameDto dto)
@@ -261,6 +277,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

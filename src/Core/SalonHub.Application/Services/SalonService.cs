@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.Common;
+using SalonHub.Application.Common;
 using SalonHub.Application.DTOs.Salons;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
@@ -135,7 +135,8 @@ namespace SalonHub.Application.Services
                 PhoneNumber = salon.PhoneNumber,
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
                 ReviewCount = reviewList.Count,
-                IsMonthlyTopSalon = salon.IsMonthlyTopSalon
+                IsMonthlyTopSalon = salon.IsMonthlyTopSalon,
+                OwnerId = salon.OwnerId
             };
         }
     }

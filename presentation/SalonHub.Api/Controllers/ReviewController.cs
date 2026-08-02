@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,9 +22,12 @@ namespace SalonHub.Api.Controllers
             _notificationService = notificationService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] bool scoped = false)
         {
-            var reviews = await _reviewService.GetAllAsync();
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            var isSalonAdminOnly = scoped && isAuthenticated && User.IsInRole(Roles.SalonAdmin) && !User.IsInRole(Roles.SuperAdmin);
+            var requesterId = isAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            var reviews = await _reviewService.GetAllAsync(requesterId, !isSalonAdminOnly);
             foreach (var r in reviews)
             {
                 var user = await _userManager.FindByIdAsync(r.CustomerId);
@@ -92,3 +95,4 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+

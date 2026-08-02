@@ -1,8 +1,11 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
 import BookingModal from "../components/BookingModal";
 import SalonApplicationModal from "../components/SalonApplicationModal";
+import { HomeStatsSection, HomeCTASection } from "../components/HomeSections";
+import { SalonCard, EmployeeCard, NewsCard, ReviewCard } from "../components/HomeCards";
+import CraftsmanApplicationModal from "../components/CraftsmanApplicationModal";
 import api from "../services/api";
 import NewsSection from "../components/NewsSection";
 import StyleRecommendationWidget from "../components/StyleRecommendationWidget";
@@ -23,13 +26,16 @@ export default function Home() {
   const [showSalonApplicationModal, setShowSalonApplicationModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uniqueCustomersCount, setUniqueCustomersCount] = useState(0);
+  const [allReviewsForRating, setAllReviewsForRating] = useState([]);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   useEffect(() => {
     Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } }))])
       .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes]) => {
         const allReviews = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
+        setAllReviewsForRating(allReviews);
         const withComments = allReviews.filter((r) => r?.comment);
-        setReviews(withComments.slice(0, 6));
+        setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
         setUniqueCustomersCount(custCountRes.data?.count || 0);
         setSalons(salonRes.data);
         setEmployees(empRes.data);
@@ -83,7 +89,7 @@ export default function Home() {
       setReviewModalSalon(null);
       const reviewRes = await api.get("/Review");
       const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
-      setReviews(withComments.slice(0, 6));
+      setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
     } catch (err) {
       alert(err.response?.data?.message || t("home_review_error"));
     } finally {
@@ -132,7 +138,13 @@ export default function Home() {
         </p>
       </section>
 
-      <div className="max-w-6xl mx-auto px-6 -mt-10 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 mt-10">
+        <HomeStatsSection stats={{ salonCount: salons.length, employeeCount: employees.length, avgRating: allReviewsForRating.length > 0 ? (allReviewsForRating.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviewsForRating.length).toFixed(1) : "0.0", customerCount: uniqueCustomersCount }} />
+      </section>
+
+      <HomeCTASection onApplySpecialist={() => { if (requireLogin()) setShowApplicationModal(true); }} onApplySalon={openSalonApplicationModal} />
+
+      <div className="max-w-6xl mx-auto px-6 mt-10 relative z-10">
         {localStorage.getItem("token") ? (
           <StyleRecommendationWidget />
         ) : (
@@ -153,52 +165,6 @@ export default function Home() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_salons")}</span>
-              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{salons.length}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_in_network")}</span>
-            </div>
-            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
-              <Building2 className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_masters")}</span>
-              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{employees.length}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_professional_masters")}</span>
-            </div>
-            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#B8935A10", color: "#B8935A" }}>
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_avg_rating")}</span>
-              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">
-                {reviews.length > 0
-                  ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-                  : "0.0"}
-              </h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_out_of_5")}</span>
-            </div>
-            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#1A171410", color: "#1A1714" }}>
-              <Star className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-white/60 flex items-center justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-[#C9A227]/30 group">
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{t("home_customers")}</span>
-              <h3 className="text-2xl font-bold text-[#1A1714] tracking-tight">{uniqueCustomersCount}</h3>
-              <span className="text-[11px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md inline-block">{t("home_trust_us")}</span>
-            </div>
-            <div className="p-3.5 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110" style={{ backgroundColor: "#C9A22710", color: "#C9A227" }}>
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
 
         <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_our_salons")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
@@ -208,45 +174,12 @@ export default function Home() {
             <p className="text-sm text-gray-400 col-span-full">{t("home_no_salons")}</p>
           ) : (
             salons.map((salon) => (
-              <div
+              <SalonCard
                 key={salon.id}
+                salon={{ ...salon, imageUrl: galleryBySalon[salon.id] }}
                 onClick={() => navigate(`/salon/${salon.id}`)}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition relative cursor-pointer"
-              >
-                <div className="h-40 bg-gradient-to-br from-[#1A1714] to-[#3A2E22] relative overflow-hidden">
-                  <img
-                    src={galleryBySalon[salon.id] || "/craftsman-modal-bg.png"}
-                    alt={salon.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.src = "/craftsman-modal-bg.png"; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  {salon.isMonthlyTopSalon && (
-                    <div className="absolute top-3 right-3 text-[#C9A227] bg-white/90 rounded-full p-1.5" title={t("home_top_salon_badge")}>
-                      <Crown className="w-4 h-4 fill-[#C9A227]" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-5 space-y-3">
-                  <h4 className="font-serif font-bold text-base text-[#1A1714]">{salon.name}</h4>
-                  {salon.description && <p className="text-xs text-gray-500 line-clamp-2">{salon.description}</p>}
-                  <div className="space-y-1 text-xs text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#C9A227]" />
-                      {salon.address}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-[#C9A227]" />
-                      {salon.phoneNumber}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 pt-2 border-t border-gray-100">
-                    <Star className="w-3.5 h-3.5 text-[#C9A227] fill-[#C9A227]" />
-                    <span className="text-sm font-semibold text-[#1A1714]">{salon.averageRating.toFixed(1)}</span>
-                    <span className="text-xs text-gray-400">({salon.reviewCount} rəy)</span>
-                  </div>
-                </div>
-              </div>
+                onBook={() => { if (!requireLogin()) return; setBookingSalon(salon); }}
+              />
             ))
           )}
         </div>
@@ -259,24 +192,7 @@ export default function Home() {
             <p className="text-sm text-gray-400 col-span-full">{t("home_no_masters")}</p>
           ) : (
             employees.map((emp) => (
-              <div key={emp.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:shadow-md transition">
-                {emp.profileImageUrl ? (
-                  <img
-                    src={emp.profileImageUrl}
-                    alt={emp.fullName}
-                    className="w-24 h-24 rounded-full object-cover mx-auto mb-3 border-2 border-[#C9A227]/30"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center mx-auto mb-3 text-[#1A1714] font-bold text-xl">
-                    {getInitials(emp.fullName)}
-                  </div>
-                )}
-                <h5 className="font-serif font-bold text-sm text-[#1A1714] truncate">{emp.fullName}</h5>
-                <div className="flex items-center justify-center gap-1 mt-1 text-xs text-[#C9A227]">
-                  <Star className="w-3 h-3 fill-[#C9A227]" />
-                  <span>{emp.averageRating.toFixed(1)}</span>
-                </div>
-              </div>
+              <EmployeeCard key={emp.id} employee={emp} />
             ))
           )}
         </div>
@@ -286,27 +202,12 @@ export default function Home() {
           <>
             <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_customer_reviews")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-16">
-              {reviews.map((rev) => {
-                const salonName = salons.find((s) => s.id === rev.salonId)?.name;
-                return (
-                  <div key={rev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
-                    <Quote className="w-6 h-6 text-[#C9A227]/30" />
-                    <p className="text-sm text-gray-600 italic leading-relaxed line-clamp-4">"{rev.comment}"</p>
-                    <p className="text-xs font-semibold text-[#1A1714]">{rev.customerFullName}</p>
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3.5 h-3.5 ${i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200"}`}
-                          />
-                        ))}
-                      </div>
-                      {salonName && <span className="text-xs text-gray-400 font-medium truncate max-w-[50%]">{salonName}</span>}
-                    </div>
-                  </div>
-                );
-              })}
+                {reviews.map((rev) => (
+                  <ReviewCard
+                    key={rev.id}
+                    review={{ comment: rev.comment, customerName: rev.customerFullName, salonName: salons.find((s) => s.id === rev.salonId)?.name, rating: rev.rating }}
+                  />
+                ))}
             </div>
           </>
         )}
@@ -362,6 +263,7 @@ export default function Home() {
       )}
 
       <SalonApplicationModal isOpen={showSalonApplicationModal} onClose={() => setShowSalonApplicationModal(false)} />
+      <CraftsmanApplicationModal isOpen={showApplicationModal} onClose={() => setShowApplicationModal(false)} />
 
       {bookingSalon && (
         <BookingModal
@@ -374,6 +276,14 @@ export default function Home() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.DTOs.Equipments;
+using SalonHub.Application.DTOs.Equipments;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 using SalonHub.Domain.Enums;
@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface IEquipmentService
     {
-        Task<IReadOnlyList<EquipmentReadDto>> GetAllAsync();
+        Task<IReadOnlyList<EquipmentReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<EquipmentReadDto?> GetByIdAsync(int id);
         Task<EquipmentReadDto> CreateAsync(EquipmentCreateDto dto, string requesterId, bool isSuperAdmin);
         Task UpdateAsync(int id, EquipmentUpdateDto dto, string requesterId, bool isSuperAdmin);
@@ -23,10 +23,16 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<EquipmentReadDto>> GetAllAsync()
+        public async Task<IReadOnlyList<EquipmentReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true)
         {
             var equipments = await _unitOfWork.Equipments.GetAllAsync();
-            return equipments.Select(MapToReadDto).ToList();
+            var result = new List<EquipmentReadDto>();
+            foreach (var eq in equipments)
+            {
+                if (!isSuperAdmin && requesterId != null && !await IsOwnerOfBranchAsync(eq.BranchId, requesterId)) continue;
+                result.Add(MapToReadDto(eq));
+            }
+            return result;
         }
 
         public async Task<EquipmentReadDto?> GetByIdAsync(int id)
