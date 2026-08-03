@@ -114,6 +114,16 @@ namespace SalonHub.Api.Controllers
 
             if (!string.IsNullOrWhiteSpace(application.Specialty))
             {
+                var allServices = await _serviceCrudService.GetAllAsync(null, null, true);
+                var matchedService = allServices.FirstOrDefault(s => s.SalonId == application.SalonId && s.Name == application.Specialty);
+                if (matchedService is not null)
+                {
+                    await _employeeService.AssignServiceAsync(createdEmployee.Id, matchedService.Id, GetRequesterId(), isSuperAdmin: true);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(application.Specialty))
+            {
                 var salonServices = await _serviceCrudService.GetAllAsync(null);
                 var matchingServices = salonServices.Where(s =>
                     s.SalonId == application.SalonId &&
@@ -172,6 +182,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

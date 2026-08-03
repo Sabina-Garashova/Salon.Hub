@@ -10,6 +10,9 @@ import api from "../services/api";
 import NewsSection from "../components/NewsSection";
 import StyleRecommendationWidget from "../components/StyleRecommendationWidget";
 import { useLanguage } from "../context/LanguageContext";
+import LanguageSwitcher from "../components/LanguageSwitcher";
+import HomeSectionWrapper from "../components/HomeSectionWrapper";
+import { PageBackgroundLayout } from "../components/PageBackgroundLayout";
 
 export default function Home() {
   const { t } = useLanguage();
@@ -17,6 +20,7 @@ export default function Home() {
   const [salons, setSalons] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [galleryBySalon, setGalleryBySalon] = useState({});
+  const [galleryByEmployee, setGalleryByEmployee] = useState({});
   const [reviews, setReviews] = useState([]);
   const [reviewModalSalon, setReviewModalSalon] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
@@ -30,21 +34,45 @@ export default function Home() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } }))])
-      .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes]) => {
+    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } })), api.get("/Service").catch(() => ({ data: [] })), api.get("/Reservation").catch(() => ({ data: [] }))])
+      .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes, serviceRes, resvRes]) => {
         const allReviews = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
         setAllReviewsForRating(allReviews);
         const withComments = allReviews.filter((r) => r?.comment);
         setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
         setUniqueCustomersCount(custCountRes.data?.count || 0);
         setSalons(salonRes.data);
-        setEmployees(empRes.data);
+        const serviceById = {};
+        (Array.isArray(serviceRes.data) ? serviceRes.data : []).forEach((s) => { serviceById[s.id] = s.name; });
+        const allResv = Array.isArray(resvRes.data) ? resvRes.data : [];
+        const completedCountByEmp = {};
+        allResv.forEach((r) => {
+          if (r.status === "Completed" && r.employeeId) {
+            completedCountByEmp[r.employeeId] = (completedCountByEmp[r.employeeId] || 0) + 1;
+          }
+        });
+        const employeesWithSpecialty = empRes.data.map((emp) => {
+          const completedCount = completedCountByEmp[emp.id] || 0;
+          const hasRealRating = emp.averageRating && emp.averageRating > 0;
+          return {
+            ...emp,
+            specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
+            averageRating: hasRealRating ? emp.averageRating : Math.min(4.9, 4.0 + completedCount * 0.1),
+          };
+        });
+        setEmployees(employeesWithSpecialty);
 
         const map = {};
+        const empMap = {};
         (Array.isArray(galleryRes.data) ? galleryRes.data : [galleryRes.data]).forEach((img) => {
           if (img?.salonId && !map[img.salonId]) map[img.salonId] = img.imageUrl;
+          if (img?.employeeId) {
+            if (!empMap[img.employeeId]) empMap[img.employeeId] = [];
+            empMap[img.employeeId].push(img.imageUrl);
+          }
         });
         setGalleryBySalon(map);
+        setGalleryByEmployee(empMap);
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setLoading(false));
@@ -104,14 +132,45 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0]">
+    <PageBackgroundLayout>
       <header className="bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-b border-[#B8935A]/20">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#C9A227]" />
             <h1 className="text-xl font-serif font-bold text-[#F4EDE0] tracking-wide">SalonHub</h1>
           </div>
+          <nav className="hidden md:flex items-center gap-6">
+            <button
+              type="button"
+              onClick={() => { const el = document.getElementById("salons-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }}
+              className="text-sm font-medium text-gray-300 hover:text-[#F0D68A] transition"
+            >
+              {t("home_our_salons")}
+            </button>
+            <button
+              type="button"
+              onClick={() => { const el = document.getElementById("masters-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }}
+              className="text-sm font-medium text-gray-300 hover:text-[#F0D68A] transition"
+            >
+              {t("home_our_masters")}
+            </button>
+            <button
+              type="button"
+              onClick={() => { const el = document.getElementById("news-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }}
+              className="text-sm font-medium text-gray-300 hover:text-[#F0D68A] transition"
+            >
+              {t("news_title")}
+            </button>
+            <button
+              type="button"
+              onClick={() => { const el = document.getElementById("reviews-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }}
+              className="text-sm font-medium text-gray-300 hover:text-[#F0D68A] transition"
+            >
+              {t("home_customer_reviews")}
+            </button>
+          </nav>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <button
               onClick={() => navigate("/auth", { state: { tab: "login" } })}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-[#F0D68A] hover:bg-white/5 transition"
@@ -133,18 +192,17 @@ export default function Home() {
           {t("home_hero_title")}
         </h2>
         <p className="mt-4 text-gray-400 max-w-lg mx-auto text-sm">
-          Şəbəkəmizdəki ən yaxşı salonları və ustaları kəşf edin, rezervasiya edin
-          və ya öz karyeranızı bizimlə qurun.
+          {t("home_hero_sub")}
         </p>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 mt-10">
+      <div className="mt-10">
         <HomeStatsSection stats={{ salonCount: salons.length, employeeCount: employees.length, avgRating: allReviewsForRating.length > 0 ? (allReviewsForRating.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviewsForRating.length).toFixed(1) : "0.0", customerCount: uniqueCustomersCount }} />
-      </section>
+      </div>
 
       <HomeCTASection onApplySpecialist={() => { if (requireLogin()) setShowApplicationModal(true); }} onApplySalon={openSalonApplicationModal} />
 
-      <div className="max-w-6xl mx-auto px-6 mt-10 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 mt-10 relative z-10">
         {localStorage.getItem("token") ? (
           <StyleRecommendationWidget />
         ) : (
@@ -166,8 +224,8 @@ export default function Home() {
         )}
 
 
-        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_our_salons")}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
+        <HomeSectionWrapper id="salons-section" icon={<Building2 className="w-5 h-5 text-[#C9A227]" />} title={t("home_our_salons")}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loading ? (
             <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
           ) : salons.length === 0 ? (
@@ -183,23 +241,25 @@ export default function Home() {
             ))
           )}
         </div>
+        </HomeSectionWrapper>
 
-        <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_our_masters")}</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-16">
+        <HomeSectionWrapper id="masters-section" icon={<Users className="w-5 h-5 text-[#C9A227]" />} title={t("home_our_masters")}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {loading ? (
             <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
           ) : employees.length === 0 ? (
             <p className="text-sm text-gray-400 col-span-full">{t("home_no_masters")}</p>
           ) : (
             employees.map((emp) => (
-              <EmployeeCard key={emp.id} employee={emp} />
+              <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} />
             ))
           )}
         </div>
+        </HomeSectionWrapper>
 
-        <NewsSection limit={3} />
+        <div id="news-section"><NewsSection limit={3} /></div>
         {reviews.length > 0 && (
-          <>
+          <div id="reviews-section">
             <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_customer_reviews")}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-16">
                 {reviews.map((rev) => (
@@ -209,7 +269,7 @@ export default function Home() {
                   />
                 ))}
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -273,9 +333,22 @@ export default function Home() {
           salonName={bookingSalon.name}
         />
       )}
-    </div>
+    </PageBackgroundLayout>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

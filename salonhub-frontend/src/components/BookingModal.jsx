@@ -1,4 +1,4 @@
-import { useLanguage } from '../context/LanguageContext';
+﻿import { useLanguage } from '../context/LanguageContext';
 import { useState, useEffect } from "react";
 import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift } from "lucide-react";
 import api from "../services/api";
@@ -9,7 +9,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   const getActualServiceId = () => {
     if (!selectedEmployee || !selectedService) return selectedService?.id;
     const matchingIds = getMatchingServiceIds(selectedService.name);
-    const employeeMatch = selectedEmployee.serviceIds?.find((id) => matchingIds.includes(id));
+    const employeeMatch = selectedEmployee.serviceIds?.find((id) => {
+      if (!matchingIds.includes(id)) return false;
+      const matchedService = services.find((s) => s.id === id);
+      return matchedService && matchedService.salonId === selectedService.salonId;
+    });
     return employeeMatch || selectedService.id;
   };
   const { t } = useLanguage();
@@ -424,6 +428,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     </div>
   );
 }
+
 
 
 

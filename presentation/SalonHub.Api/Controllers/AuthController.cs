@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -213,7 +213,7 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpGet("search-users")]
-        [Authorize(Roles = Roles.SuperAdmin)]
+        [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.SalonAdmin}")]
         public IActionResult SearchUsers([FromQuery] string name)
         {
             var matches = _userManager.Users
@@ -277,6 +277,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

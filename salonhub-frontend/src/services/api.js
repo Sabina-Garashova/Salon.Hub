@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://localhost:7289/api",
@@ -19,11 +19,16 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/auth";
+      const protectedPaths = ["/dashboard", "/admin", "/employee-dashboard", "/loyalty"];
+      const isOnProtectedPage = protectedPaths.some((p) => window.location.pathname.startsWith(p));
+      if (isOnProtectedPage) {
+        window.location.href = "/auth";
+      }
     }
     return Promise.reject(error);
   }
 );
 
 export default api;
+
 

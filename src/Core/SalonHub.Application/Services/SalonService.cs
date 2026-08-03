@@ -19,7 +19,6 @@ namespace SalonHub.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
-
         public SalonService(IUnitOfWork unitOfWork, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
@@ -141,6 +140,8 @@ namespace SalonHub.Application.Services
         }
     }
 }
+
+
 
 
 

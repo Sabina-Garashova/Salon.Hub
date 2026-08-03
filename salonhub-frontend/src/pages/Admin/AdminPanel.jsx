@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import WorkingHoursView from "../../components/admin/WorkingHoursView";
 import BranchManagement from "../../components/admin/BranchManagement";
 import { useLocation } from "react-router-dom";
@@ -74,20 +74,54 @@ export default function AdminPanel() {
   const [editItem, setEditItem] = useState(null);
 
   const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [] });
+  const [mySalonForm, setMySalonForm] = useState({ name: "", address: "", phoneNumber: "", description: "" });
+  const [savingMySalon, setSavingMySalon] = useState(false);
+  const [isEditingMySalon, setIsEditingMySalon] = useState(false);
+  const mySalon = salons.find((s) => s.ownerId === currentUserId);
+
+  useEffect(() => {
+    if (mySalon) {
+      setMySalonForm({
+        name: mySalon.name || "",
+        address: mySalon.address || "",
+        phoneNumber: mySalon.phoneNumber || "",
+        description: mySalon.description || "",
+      });
+    }
+  }, [mySalon?.id]);
+
+  const handleSaveMySalon = async () => {
+    if (!mySalon) return;
+    setSavingMySalon(true);
+    try {
+      await api.put(`/salon/${mySalon.id}`, {
+        nameAz: mySalonForm.name,
+        address: mySalonForm.address,
+        phoneNumber: mySalonForm.phoneNumber,
+        descriptionAz: mySalonForm.description,
+      });
+      setSalons(salons.map((s) => (s.id === mySalon.id ? { ...s, ...mySalonForm } : s)));
+      alert("Salon melumatlari yenilendi.");
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    } finally {
+      setSavingMySalon(false);
+    }
+  };
 
   const salonAdminTabs = [
     { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
     { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
+    { id: "MySalon", name: "Salonum", icon: Building2 },
+    { id: "Branches", name: "Filiallar", icon: Building2 },
     { id: "Employees", name: "Iscilerim", icon: Users },
     { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
     { id: "Categories", name: "Kateqoriyalar", icon: Tag },
     { id: "Services", name: "Xidmetlerim", icon: Scissors },
     { id: "Equipment", name: "Avadanliq", icon: Wrench },
     { id: "News", name: "Xeberler", icon: Newspaper },
-    { id: "Branches", name: "Filiallar", icon: Building2 },
     { id: "Tags", name: "Tag-lar", icon: Hash },
     { id: "Reviews", name: "Reyler", icon: Star },
-    { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
     { id: "Analytics", name: "Analitika", icon: TrendingUp },
   ];
 
@@ -466,6 +500,21 @@ export default function AdminPanel() {
         await api.delete(`/salon/${id}`);
         setSalons(salons.filter((s) => s.id !== id));
       }
+    } catch (err) {
+      alert(err.response?.data?.message || "Xeta bas verdi");
+    }
+  };
+
+  const handleRenameSalon = async (salon) => {
+    const newName = window.prompt("Yeni salon adi:", salon.name);
+    if (!newName || newName.trim() === "" || newName === salon.name) return;
+    try {
+      await api.put(`/salon/${salon.id}`, {
+        nameAz: newName,
+        address: salon.address,
+        phoneNumber: salon.phoneNumber,
+      });
+      setSalons(salons.map((s) => (s.id === salon.id ? { ...s, name: newName } : s)));
     } catch (err) {
       alert(err.response?.data?.message || "Xeta bas verdi");
     }
@@ -867,6 +916,110 @@ export default function AdminPanel() {
                 <AuditLogsPanel logs={auditLogs} loading={isLoading} />
               )}
 
+              {activeTab === "MySalon" && !isSuperAdmin && (
+                <div className="max-w-2xl space-y-4">
+                  {mySalon ? (
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 shadow-sm">
+                      {!isEditingMySalon ? (
+                        <>
+                          <div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Salon Adi</span>
+                            <p className="text-base text-[#1A1714] mt-1">{mySalon.name}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unvan</span>
+                            <p className="text-base text-[#1A1714] mt-1">{mySalon.address}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Telefon</span>
+                            <p className="text-base text-[#1A1714] mt-1">{mySalon.phoneNumber}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tesvir</span>
+                            <p className="text-base text-[#1A1714] mt-1">{mySalon.description || "-"}</p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <div className="flex items-center gap-1 text-[#C9A227] font-bold text-sm">
+                              <Star className="w-4 h-4 fill-current" /> {mySalon.averageRating?.toFixed(1) || "0.0"} ({mySalon.reviewCount || 0} rey)
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleDelete("salon", mySalon.id)}
+                                className="px-3 py-2.5 bg-red-50 text-red-600 rounded-xl border border-red-100 hover:bg-red-100"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setIsEditingMySalon(true)}
+                                className="px-5 py-2.5 bg-[#1A1714] text-white rounded-xl text-sm font-medium hover:bg-[#2A2420] flex items-center gap-2"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" /> Redakte Et
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Salon Adi</label>
+                            <input
+                              type="text"
+                              value={mySalonForm.name}
+                              onChange={(e) => setMySalonForm({ ...mySalonForm, name: e.target.value })}
+                              className="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unvan</label>
+                            <input
+                              type="text"
+                              value={mySalonForm.address}
+                              onChange={(e) => setMySalonForm({ ...mySalonForm, address: e.target.value })}
+                              className="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Telefon</label>
+                            <input
+                              type="text"
+                              value={mySalonForm.phoneNumber}
+                              onChange={(e) => setMySalonForm({ ...mySalonForm, phoneNumber: e.target.value })}
+                              className="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tesvir</label>
+                            <textarea
+                              value={mySalonForm.description}
+                              onChange={(e) => setMySalonForm({ ...mySalonForm, description: e.target.value })}
+                              rows={4}
+                              className="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
+                            />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                            <button
+                              onClick={() => { setIsEditingMySalon(false); setMySalonForm({ name: mySalon.name || "", address: mySalon.address || "", phoneNumber: mySalon.phoneNumber || "", description: mySalon.description || "" }); }}
+                              className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200"
+                            >
+                              Legv Et
+                            </button>
+                            <button
+                              onClick={handleSaveMySalon}
+                              disabled={savingMySalon}
+                              className="px-5 py-2.5 bg-[#1A1714] text-white rounded-xl text-sm font-medium hover:bg-[#2A2420] disabled:opacity-50"
+                            >
+                              {savingMySalon ? "Saxlanilir..." : "Yadda Saxla"}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">Salon melumati tapilmadi.</p>
+                  )}
+                </div>
+              )}
+
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
@@ -880,6 +1033,12 @@ export default function AdminPanel() {
                           <div className="flex items-center gap-1 text-[#C9A227] font-bold text-xs">
                           <Star className="w-3.5 h-3.5 fill-current" /> {salon.averageRating.toFixed(1)} ({salon.reviewCount} rey)
                           </div>
+                          <button
+                            onClick={() => handleRenameSalon(salon)}
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 border border-blue-100 mr-1"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => handleDelete("salon", salon.id)}
                             className="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 border border-red-100"
@@ -918,6 +1077,11 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

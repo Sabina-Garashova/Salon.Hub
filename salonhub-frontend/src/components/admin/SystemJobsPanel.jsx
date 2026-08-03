@@ -5,7 +5,7 @@ import api from "../../services/api";
 const JOBS = [
   { id: "reminders", label: "Rezervasiya Xatirlatmalari", desc: "Yaxinlasan rezervasiyalar ucun xatirlatma gonderir (her 5 deqiqede avtomatik islek)", icon: Bell, endpoint: "/SystemJobs/trigger/reminders" },
   { id: "birthday-bonus", label: "Dogum Gunu Bonusu", desc: "Bu gun dogum gunu olan istifadecilere 100 bal hediyye edir (her gun 09:00-da avtomatik islek)", icon: Gift, endpoint: "/SystemJobs/trigger/birthday-bonus" },
-  { id: "monthly-top-performer", label: "Aylig Top Performer", desc: "Ayin en yaxsi ustalarini secir (her ayin 1-i saat 10:00-da avtomatik islek)", icon: Trophy, endpoint: "/SystemJobs/trigger/monthly-top-performer" },
+  { id: "monthly-top-performer", label: "Aylig Top Performer", desc: "Ayin en yaxsi ustasini VE salonunu secir (her ayin 1-i saat 10:00-da avtomatik islek)", icon: Trophy, endpoint: "/SystemJobs/trigger/monthly-top-performer" },
   { id: "review-follow-up", label: "Rey Follow-up", desc: "Cavabsiz reylere xatirlatma gonderir (her gun 11:00-da avtomatik islek)", icon: MessageSquareText, endpoint: "/SystemJobs/trigger/review-follow-up" },
 ];
 
@@ -67,3 +67,4 @@ export default function SystemJobsPanel() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using System.Text.Json;
@@ -39,7 +39,7 @@ namespace SalonHub.Application.Services
             {
                 try
                 {
-                    var message = "NarahatlÄ±ÄŸÄ±nÄ±z Ã¼Ã§Ã¼n Ã¼zr istÉ™yirik. XidmÉ™timizlÉ™ baÄŸlÄ± fikirlÉ™rinizi eÅŸitmÉ™k vÉ™ sizinlÉ™ É™laqÉ™ saxlamaq istÉ™rdik. ZÉ™hmÉ™t olmasa bizimlÉ™ É™laqÉ™ saxlayÄ±n.";
+                    var message = "Narahatlığınız üçün üzr istəyirik. Xidmətimizlə bağlı fikirlərinizi eşitmək və sizinlə əlaqə saxlamaq istərdik. Zəhmət olmasa bizimlə əlaqə saxlayın.";
                     await _notificationService.NotifyReservationChangedAsync(review.CustomerId, message, "notif_review_followup");
 
                     review.FollowUpSent = true;

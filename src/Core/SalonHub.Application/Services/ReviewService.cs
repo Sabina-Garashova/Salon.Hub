@@ -115,7 +115,11 @@ namespace SalonHub.Application.Services
 
             var salon = await _unitOfWork.Salons.GetByIdAsync(review.SalonId);
             if (!isSuperAdmin && salon is not null && salon.OwnerId != requesterId)
-                throw new UnauthorizedAccessException("Bu rəyə cavab vermək icazəniz yoxdur.");
+            {
+                var isEmployeeOfSalon = (await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == requesterId && e.SalonId == review.SalonId)).Any();
+                if (!isEmployeeOfSalon)
+                    throw new UnauthorizedAccessException("Bu reye cavab vermek icazeniz yoxdur.");
+            }
 
             review.Response = dto.Response;
             review.RespondedAt = DateTime.UtcNow;
@@ -138,6 +142,7 @@ namespace SalonHub.Application.Services
         };
     }
 }
+
 
 
 

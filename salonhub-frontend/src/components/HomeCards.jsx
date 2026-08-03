@@ -1,55 +1,73 @@
 ﻿import React from 'react';
-import { Star, MapPin, Phone, Calendar, Quote, ArrowRight } from 'lucide-react';
+import { Star, MapPin, Phone, Calendar, Quote, ArrowRight, Building2, ChevronRight, Scissors, Crown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const SalonCard = ({ salon, onClick, onBook }) => {
+  const { t } = useLanguage();
   return (
     <div
       onClick={onClick}
-      className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-[0_15px_35px_rgba(26,23,20,0.08)] transition-all duration-500 cursor-pointer h-full"
+      className="group cursor-pointer relative bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_rgba(26,23,20,0.03)] hover:shadow-[0_20px_50px_rgba(201,162,39,0.12)] transition-all duration-500 border border-[#FAF6F0] hover:border-[#C9A227]/30 flex flex-col h-full"
     >
-      <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-[#1A1714] to-[#2c2823]">
+      <div className="relative h-60 w-full overflow-hidden bg-gradient-to-br from-[#1A1714] to-[#2c2823]">
         {salon?.imageUrl ? (
           <img
             src={salon.imageUrl}
             alt={salon?.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#FAF6F0]/20 to-transparent"></div>
         )}
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-          <Star className="w-4 h-4 text-[#C9A227] fill-[#C9A227]" />
-          <span className="text-sm font-medium text-[#1A1714]">{salon?.averageRating?.toFixed(1) || '0.0'}</span>
-          <span className="text-xs text-gray-500">({salon?.reviewCount || 0})</span>
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+          <Star className="w-3.5 h-3.5 text-[#C9A227] fill-current" />
+          <span className="text-[#1A1714] text-xs font-semibold">
+            {salon?.averageRating?.toFixed(1) || '0.0'} <span className="text-[#1A1714]/50 font-normal">({salon?.reviewCount || 0})</span>
+          </span>
         </div>
+        {salon?.isMonthlyTopSalon && (
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-sm" title="Ayin en yaxsi salonu">
+            <Crown className="w-4 h-4 text-[#C9A227] fill-[#C9A227]" />
+          </div>
+        )}
       </div>
 
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="font-serif text-2xl text-[#1A1714] mb-4 group-hover:text-[#C9A227] transition-colors">{salon?.name}</h3>
+      <div className="p-6 flex-grow flex flex-col bg-gradient-to-b from-white to-[#FAF6F0]/40 relative">
+        <div className="absolute top-0 right-6 -translate-y-1/2 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[#FAF6F0]">
+          <Building2 className="w-5 h-5 text-[#B8935A]" />
+        </div>
 
-        <div className="space-y-3 mb-8 flex-grow">
-          <div className="flex items-start gap-3 text-gray-600">
-            <MapPin className="w-4.5 h-4.5 text-[#B8935A] shrink-0 mt-0.5" />
-            <span className="text-sm font-sans leading-relaxed">{salon?.address}</span>
+        <h3 className="text-xl font-serif font-medium text-[#1A1714] mb-4 pr-8 line-clamp-2 leading-tight">
+          {salon?.name}
+        </h3>
+
+        <div className="space-y-3 mb-8">
+          <div className="flex items-start gap-3 text-[#1A1714]/70 text-sm">
+            <MapPin className="w-4 h-4 text-[#C9A227] shrink-0 mt-0.5" />
+            <span className="line-clamp-2 leading-relaxed">{salon?.address}</span>
           </div>
-          <div className="flex items-center gap-3 text-gray-600">
-            <Phone className="w-4.5 h-4.5 text-[#B8935A] shrink-0" />
-            <span className="text-sm font-sans">{salon?.phoneNumber}</span>
+          <div className="flex items-center gap-3 text-[#1A1714]/70 text-sm">
+            <Phone className="w-4 h-4 text-[#C9A227] shrink-0" />
+            <span>{salon?.phoneNumber}</span>
           </div>
         </div>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); onBook?.(); }}
-          className="w-full py-3.5 bg-[#FAF6F0] text-[#1A1714] font-medium rounded-xl group-hover:bg-[#1A1714] group-hover:text-white transition-colors duration-300 shadow-sm"
-        >
-          Rezervasiya
-        </button>
+        <div className="mt-auto">
+          <button
+            onClick={(e) => { e.stopPropagation(); onBook?.(); }}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-[#1A1714] to-[#2A2622] text-[#FAF6F0] text-sm font-medium hover:shadow-lg hover:shadow-[#1A1714]/25 transition-all duration-300 group/btn"
+          >
+            <span>{t("home_book_now")}</span>
+            <ChevronRight className="w-4 h-4 text-[#C9A227] group-hover/btn:translate-x-1.5 transition-transform duration-300" />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export const EmployeeCard = ({ employee }) => {
+export const EmployeeCard = ({ employee, workPhotos = [] }) => {
+  const { t } = useLanguage();
   const getInitials = (name) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -78,7 +96,14 @@ export const EmployeeCard = ({ employee }) => {
       </div>
 
       <h4 className="font-serif text-lg text-[#1A1714] truncate">{employee?.fullName}</h4>
-      <p className="text-sm text-gray-500 font-sans mt-1">Peşəkar Usta</p>
+      <p className="text-sm text-gray-500 font-sans mt-1">{employee?.specialty || t("home_professional_masters")}</p>
+      {workPhotos.length > 0 && (
+        <div className="flex gap-1.5 mt-3 justify-center">
+          {workPhotos.slice(0, 3).map((url, idx) => (
+            <img key={idx} src={url} alt="Is nomunesi" className="w-10 h-10 rounded-lg object-cover border border-gray-100" />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -122,7 +147,7 @@ export const NewsCard = ({ news, onClick }) => {
 
 export const ReviewCard = ({ review }) => {
   return (
-    <div className="bg-white rounded-2xl p-8 relative border border-gray-100 shadow-sm hover:shadow-lg hover:border-[#C9A227]/30 transition-all duration-500 h-full flex flex-col">
+    <div className="bg-white rounded-2xl p-8 relative border border-gray-100 shadow-sm hover:border-[#C9A227]/30 hover:shadow-lg transition-all duration-500 h-full flex flex-col">
       <Quote className="absolute top-6 right-6 w-12 h-12 text-[#C9A227]/10 rotate-180" />
 
       <div className="flex gap-1 mb-6">
@@ -145,4 +170,5 @@ export const ReviewCard = ({ review }) => {
     </div>
   );
 };
+
 

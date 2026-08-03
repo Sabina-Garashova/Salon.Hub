@@ -195,7 +195,11 @@ export default function Dashboard() {
   const activeSessionsCount = globalReservations.filter((r) => r.status === "Pending" || r.status === "Confirmed").length;
   const uniqueCustomersCount = customerCountFromApi;
   const avgSalonRating = allReviewsForRating.length > 0 ? (allReviewsForRating.reduce((sum, r) => sum + (r.rating || 0), 0) / allReviewsForRating.length).toFixed(1) : "0.0";
-  const totalRevenue = globalReservations.filter((r) => r.status === "Completed").reduce((sum, r) => sum + (r.price || 0), 0);
+  const myUserIdForRevenue = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
+  const myOwnSalonIdsForRevenue = salons.filter((s) => s.ownerId === myUserIdForRevenue).map((s) => s.id);
+  const totalRevenue = globalReservations
+    .filter((r) => r.status === "Completed" && (role !== "SalonAdmin" || myOwnSalonIdsForRevenue.includes(r.salonId)))
+    .reduce((sum, r) => sum + (r.price || 0), 0);
 
   const allStats = [
     { id: 1, name: t("dash_total_earnings"), value: totalRevenue.toFixed(2) + " AZN", change: t("dash_completed"), icon: DollarSign, color: "#C9A227", adminOnly: true },
@@ -491,6 +495,7 @@ export default function Dashboard() {
     </Layout>
   );
 }
+
 
 
 
