@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface INewsService
     {
-        Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null);
+        Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null, int? salonId = null, bool publicOnly = false);
         Task<NewsArticleReadDto?> GetByIdAsync(int id, string? language = null);
         Task<NewsArticleReadDto> CreateAsync(NewsArticleCreateDto dto);
         Task UpdateAsync(int id, NewsArticleUpdateDto dto, string requesterId, bool isAdmin);
@@ -23,12 +23,25 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null)
+        public async Task<List<NewsArticleReadDto>> GetAllAsync(string? language = null, int? salonId = null, bool publicOnly = false)
         {
             var articles = await _unitOfWork.NewsArticles.GetAllAsync();
+
+            IEnumerable<NewsArticle> filtered = articles;
+
+            if (publicOnly)
+            {
+                // salonId verilmeyibse (umumi kontekst, mes. ana sehife): yalniz "Umumi" (SalonId == null) xeberler.
+                // salonId verilibse (konkret salon sehifesi): "Umumi" xeberler + o salona aid xeberler.
+                filtered = salonId.HasValue
+                    ? articles.Where(a => a.SalonId == null || a.SalonId == salonId.Value)
+                    : articles.Where(a => a.SalonId == null);
+            }
+            // publicOnly=false (idareetme paneli): filtrasiyasiz, butun xeberler.
+
             var result = new List<NewsArticleReadDto>();
 
-            foreach (var article in articles.OrderByDescending(a => a.PublishedDate))
+            foreach (var article in filtered.OrderByDescending(a => a.PublishedDate))
                 result.Add(await MapToReadDtoAsync(article, language));
 
             return result;

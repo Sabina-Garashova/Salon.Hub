@@ -77,6 +77,15 @@ namespace SalonHub.Application.Services
                     throw new InvalidOperationException("Bu avadanlıq artıq başqa bir işçiyə təyin olunub.");
             }
 
+            // Filial seçilməyibsə, salonun default filialını təyin edirik — əks halda
+            // işçi rezervasiya axınında (BookingModal) filialsız olduğu üçün heç görünmür.
+            var effectiveBranchId = dto.BranchId;
+            if (!effectiveBranchId.HasValue)
+            {
+                var salonBranches = await _unitOfWork.Branches.FindAsync(b => b.SalonId == dto.SalonId);
+                effectiveBranchId = salonBranches.FirstOrDefault()?.Id;
+            }
+
             var employee = new Employee
             {
                 FullName = dto.FullName,
@@ -85,13 +94,16 @@ namespace SalonHub.Application.Services
                 ProfileImageUrl = dto.ProfileImageUrl,
                 ApplicationUserId = dto.ApplicationUserId,
                 SalonId = dto.SalonId,
-                BranchId = dto.BranchId,
+                BranchId = effectiveBranchId,
                 AssignedEquipmentId = dto.AssignedEquipmentId,
                 Salary = dto.Salary
             };
 
             await _unitOfWork.Employees.AddAsync(employee);
             await _unitOfWork.CompleteAsync();
+
+            if (!string.IsNullOrEmpty(employee.ApplicationUserId))
+                await _userLookupService.PromoteToEmployeeAsync(employee.ApplicationUserId);
 
             return await MapToReadDtoAsync(employee);
         }
@@ -112,7 +124,18 @@ namespace SalonHub.Application.Services
                 if (existingWithSameUser.Any())
                     throw new InvalidOperationException("Bu istifadəçi hesabı artıq başqa bir işçiyə bağlıdır.");
 
+                var previousUserId = employee.ApplicationUserId;
                 employee.ApplicationUserId = dto.ApplicationUserId;
+
+                await _userLookupService.PromoteToEmployeeAsync(dto.ApplicationUserId);
+
+                if (!string.IsNullOrEmpty(previousUserId))
+                {
+                    var otherActiveRecords = await _unitOfWork.Employees.FindAsync(e =>
+                        e.ApplicationUserId == previousUserId && e.Id != id && !e.IsDeleted);
+                    if (!otherActiveRecords.Any())
+                        await _userLookupService.DemoteFromEmployeeAsync(previousUserId);
+                }
             }
 
             if (dto.AssignedEquipmentId.HasValue)
@@ -135,7 +158,17 @@ namespace SalonHub.Application.Services
             employee.PhoneNumber = dto.PhoneNumber;
             employee.Bio = dto.Bio;
             employee.ProfileImageUrl = dto.ProfileImageUrl;
-            employee.BranchId = dto.BranchId;
+            // dto.BranchId göndərilibsə tətbiq et; göndərilməyibsə mövcud filialı SİLMƏ (əvvəllər
+            // hər redaktədə boş gələn filial sahəsi işçinin filialını yaddaşdan silirdi, nəticədə
+            // həmin işçi rezervasiya axınında görünmürdü) — yenə də boşdursa, salonun default
+            // filialını təyin edərək öz-özünü düzəldir.
+            if (dto.BranchId.HasValue)
+                employee.BranchId = dto.BranchId;
+            else if (!employee.BranchId.HasValue)
+            {
+                var salonBranches = await _unitOfWork.Branches.FindAsync(b => b.SalonId == employee.SalonId);
+                employee.BranchId = salonBranches.FirstOrDefault()?.Id;
+            }
             employee.AssignedEquipmentId = dto.AssignedEquipmentId;
             employee.UpdatedAt = DateTime.UtcNow;
 
@@ -207,14 +240,33 @@ namespace SalonHub.Application.Services
 
         private async Task<EmployeeReadDto> MapToReadDtoAsync(Employee employee)
         {
+            // Öz-özünü düzəldən yoxlama: filialsız (BranchId=null) qalmış köhnə işçi qeydləri
+            // BookingModal-da "Usta seçin" addımında heç görünmürdü — bura baxılanda avtomatik
+            // salonun default filialına bağlanır.
+            if (!employee.BranchId.HasValue)
+            {
+                var salonBranches = await _unitOfWork.Branches.FindAsync(b => b.SalonId == employee.SalonId);
+                var defaultBranchId = salonBranches.FirstOrDefault()?.Id;
+                if (defaultBranchId.HasValue)
+                {
+                    employee.BranchId = defaultBranchId;
+                    _unitOfWork.Employees.Update(employee);
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+
             var reviews = await _unitOfWork.Reviews.FindAsync(r => r.EmployeeId == employee.Id);
             var reviewList = reviews.ToList();
+            var email = string.IsNullOrEmpty(employee.ApplicationUserId)
+                ? null
+                : await _userLookupService.GetEmailAsync(employee.ApplicationUserId);
 
             return new EmployeeReadDto
             {
                 Id = employee.Id,
                 ApplicationUserId = employee.ApplicationUserId,
                 FullName = employee.FullName,
+                Email = email,
                 PhoneNumber = employee.PhoneNumber,
                 Bio = employee.Bio,
                 ProfileImageUrl = employee.ProfileImageUrl,

@@ -223,7 +223,7 @@ export default function SalonProfile({
                       {services.map((service) => (
                         <div
                           key={service.id}
-                          className="relative bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:border-[#C9A227]/30 hover:shadow-md transition-all overflow-hidden"
+                          className="relative bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-4 hover:border-[#C9A227]/30 hover:shadow-md transition-all overflow-hidden"
                         >
                           <p className="font-semibold text-[#1A1714] text-sm">{service.name}</p>
                           {service.discountPercent != null && (
@@ -272,7 +272,7 @@ export default function SalonProfile({
                       {employees.map((employee) => (
                         <div
                           key={employee.id}
-                          className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center hover:border-[#C9A227]/30 hover:shadow-md transition-all"
+                          className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-4 text-center hover:border-[#C9A227]/30 hover:shadow-md transition-all"
                         >
                           {employee.profileImageUrl ? (
                             <img
@@ -311,7 +311,7 @@ export default function SalonProfile({
                       {reviews.map((review) => (
                         <article
                           key={review.id}
-                          className="bg-white rounded-xl border border-gray-100 shadow-sm p-5"
+                          className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-5"
                         >
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <span className="font-semibold text-[#1A1714] text-sm">
@@ -319,16 +319,27 @@ export default function SalonProfile({
                             </span>
                             <StarRating rating={review.rating} size="sm" />
                           </div>
-                          { (review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName) && (<p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName}</p>) }
-                          <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-                          {review.response && (
-                            <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
-                              <p className="text-xs text-gray-500">
-                                <span className="font-semibold text-[#B8935A]">{t("sp_salon_reply")} </span>
-                                {review.response}
-                              </p>
-                            </div>
-                          )}
+                          {(() => {
+                            const reviewEmployeeName = review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName;
+                            return (
+                              <>
+                                {reviewEmployeeName && (
+                                  <p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {reviewEmployeeName}</p>
+                                )}
+                                <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                                {review.response && (
+                                  <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
+                                    <p className="text-xs text-gray-500">
+                                      <span className="font-semibold text-[#B8935A]">
+                                        {reviewEmployeeName ? `${t("sp_usta_reply")} ${reviewEmployeeName} — ` : t("sp_salon_reply") + " "}
+                                      </span>
+                                      {review.response}
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </article>
                       ))}
                     </div>
@@ -337,7 +348,7 @@ export default function SalonProfile({
               </div>
 
               <aside className="lg:col-span-1">
-                <div className="lg:sticky lg:top-6 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div className="lg:sticky lg:top-6 bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-5">
                   <h3 className="text-lg font-serif font-bold text-[#1A1714] mb-4">
                     {t("sp_leave_review")}
                   </h3>

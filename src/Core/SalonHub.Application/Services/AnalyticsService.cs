@@ -192,10 +192,22 @@ namespace SalonHub.Application.Services
             };
         }
 
-        public async Task<List<PopularServiceDto>> GetPopularServicesAsync(DateTime startDate, DateTime endDate, int top = 10)
+        public async Task<List<PopularServiceDto>> GetPopularServicesAsync(DateTime startDate, DateTime endDate, int top = 10, int? salonId = null)
         {
             var reservations = (await _unitOfWork.Reservations.GetAllAsync()).ToList();
             var services = (await _unitOfWork.Services.GetAllAsync()).ToList();
+
+            if (salonId.HasValue)
+            {
+                var salonServiceIds = services
+                    .Where(x => x.SalonId == salonId.Value)
+                    .Select(x => x.Id.ToString())
+                    .ToHashSet();
+
+                reservations = reservations
+                    .Where(x => salonServiceIds.Contains(x.ServiceId.ToString()))
+                    .ToList();
+            }
 
             return reservations
                 .Where(x => (x.Status == ReservationStatus.Completed || x.Status.ToString().Equals("Completed", StringComparison.OrdinalIgnoreCase)) && x.ReservationDate.Date >= startDate.Date && x.ReservationDate.Date <= endDate.Date)
@@ -209,12 +221,24 @@ namespace SalonHub.Application.Services
                 .ToList();
         }
 
-        public async Task<List<PopularSalonDto>> GetPopularSalonsAsync(DateTime startDate, DateTime endDate, int top = 10)
+        public async Task<List<PopularSalonDto>> GetPopularSalonsAsync(DateTime startDate, DateTime endDate, int top = 10, int? salonId = null)
         {
             var reservations = (await _unitOfWork.Reservations.GetAllAsync()).ToList();
             var services = (await _unitOfWork.Services.GetAllAsync()).ToList();
             var salons = (await _unitOfWork.Salons.GetAllAsync()).ToList();
             var reviews = (await _unitOfWork.Reviews.GetAllAsync()).ToList();
+
+            if (salonId.HasValue)
+            {
+                var salonServiceIds = services
+                    .Where(x => x.SalonId == salonId.Value)
+                    .Select(x => x.Id.ToString())
+                    .ToHashSet();
+
+                reservations = reservations
+                    .Where(x => salonServiceIds.Contains(x.ServiceId.ToString()))
+                    .ToList();
+            }
 
             return reservations
                 .Where(x => (x.Status == ReservationStatus.Completed || x.Status.ToString().Equals("Completed", StringComparison.OrdinalIgnoreCase)) && x.ReservationDate.Date >= startDate.Date && x.ReservationDate.Date <= endDate.Date)
@@ -231,10 +255,22 @@ namespace SalonHub.Application.Services
                 .ToList();
         }
 
-        public async Task<CustomerAnalyticsDto> GetCustomerAnalyticsAsync(DateTime startDate, DateTime endDate)
+        public async Task<CustomerAnalyticsDto> GetCustomerAnalyticsAsync(DateTime startDate, DateTime endDate, int? salonId = null)
         {
             var reservations = (await _unitOfWork.Reservations.GetAllAsync()).ToList();
             var services = (await _unitOfWork.Services.GetAllAsync()).ToList();
+
+            if (salonId.HasValue)
+            {
+                var salonServiceIds = services
+                    .Where(x => x.SalonId == salonId.Value)
+                    .Select(x => x.Id.ToString())
+                    .ToHashSet();
+
+                reservations = reservations
+                    .Where(x => salonServiceIds.Contains(x.ServiceId.ToString()))
+                    .ToList();
+            }
 
             var inRange = reservations.Where(x => x.ReservationDate.Date >= startDate.Date && x.ReservationDate.Date <= endDate.Date).ToList();
             var priorReservationCustomerIds = reservations.Where(x => x.ReservationDate.Date < startDate.Date).Select(x => x.CustomerId.ToString()).ToHashSet();

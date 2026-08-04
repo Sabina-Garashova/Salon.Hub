@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Categories;
+using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
 
@@ -11,16 +13,33 @@ namespace SalonHub.Api.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService, IUnitOfWork unitOfWork)
         {
             _categoryService = categoryService;
+            _unitOfWork = unitOfWork;
         }
 
         private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _categoryService.GetAllAsync(GetLanguage()));
+        public async Task<IActionResult> GetAll([FromQuery] bool scoped = false)
+        {
+            int? salonId = null;
+
+            var isAuthenticated = User.Identity?.IsAuthenticated == true;
+            var isSalonAdminOnly = scoped && isAuthenticated && User.IsInRole(Roles.SalonAdmin) && !User.IsInRole(Roles.SuperAdmin);
+
+            if (isSalonAdminOnly)
+            {
+                var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var ownSalons = await _unitOfWork.Salons.FindAsync(s => s.OwnerId == requesterId);
+                salonId = ownSalons.FirstOrDefault()?.Id ?? -1;
+            }
+
+            return Ok(await _categoryService.GetAllAsync(GetLanguage(), salonId));
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

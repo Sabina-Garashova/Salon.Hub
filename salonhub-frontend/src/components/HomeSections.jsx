@@ -43,7 +43,7 @@ export const HomeStatsSection = ({ stats = { salonCount: 0, employeeCount: 0, av
   ];
 
   return (
-    <section className="py-10 bg-[#1A1714] relative overflow-hidden font-sans rounded-3xl max-w-7xl mx-auto">
+    <section className="py-10 bg-[#1A1714] relative overflow-hidden font-sans rounded-3xl max-w-[1400px] mx-auto">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#C9A227] rounded-full blur-[150px] opacity-10 pointer-events-none"></div>
 
       <div className="mx-auto px-6 relative z-10">
@@ -77,7 +77,7 @@ export const HomeCTASection = ({ onApplySpecialist, onApplySalon }) => {
   const { t } = useLanguage();
   return (
     <section className="py-10 font-sans">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-[1400px] mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           <div className="group relative overflow-hidden rounded-2xl bg-[#1A1714] p-6 md:p-7 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
@@ -129,38 +129,38 @@ export const HomeCTASection = ({ onApplySpecialist, onApplySalon }) => {
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl bg-white border border-[#C9A227]/15 p-6 md:p-7 hover:shadow-[0_20px_40px_rgba(201,162,39,0.08)] transition-all duration-500 hover:-translate-y-1">
-            <div className="absolute -top-20 -left-20 w-56 h-56 bg-[#C9A227]/5 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-150"></div>
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] via-[#AA8232] to-[#6E5223] border border-white/20 shadow-xl p-6 md:p-7 hover:shadow-[0_20px_40px_rgba(110,82,35,0.3)] transition-all duration-500 hover:-translate-y-1">
+            <div className="absolute -top-20 -left-20 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-150"></div>
 
             <div className="relative z-10 h-full flex flex-col justify-between">
               <div>
-                <div className="w-10 h-10 bg-[#FAF6F0] border border-[#C9A227]/20 rounded-xl flex items-center justify-center mb-4 text-[#C9A227] shadow-sm">
+                <div className="w-10 h-10 bg-white/15 border border-white/30 rounded-xl flex items-center justify-center mb-4 text-white shadow-sm">
                   <Building2 className="w-5 h-5" strokeWidth={1.5} />
                 </div>
 
-                <h3 className="text-lg md:text-xl font-light text-[#1A1714] mb-2 tracking-wide">
-                  {t("home_cta_salon_title_1")} <span className="font-medium text-[#C9A227]">{t("home_cta_salon_title_2")}</span>
+                <h3 className="text-lg md:text-xl font-light text-white mb-2 tracking-wide">
+                  {t("home_cta_salon_title_1")} <span className="font-medium text-[#1A1714]">{t("home_cta_salon_title_2")}</span>
                 </h3>
 
-                <p className="text-gray-600 text-xs font-light leading-relaxed mb-5 max-w-md">
+                <p className="text-white/80 text-xs font-light leading-relaxed mb-5 max-w-md">
                   {t("home_cta_salon_desc")}
                 </p>
 
                 <div className="space-y-2 mb-6">
-                  <div className="flex items-center gap-2.5 text-[#1A1714]">
-                    <div className="w-7 h-7 rounded-full bg-[#FAF6F0] flex items-center justify-center text-[#C9A227] shadow-sm">
+                  <div className="flex items-center gap-2.5 text-white">
+                    <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center text-white shadow-sm">
                       <Users className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </div>
                     <span className="text-xs font-light tracking-wide">{t("home_cta_feature_customers")}</span>
                   </div>
-                  <div className="flex items-center gap-2.5 text-[#1A1714]">
-                    <div className="w-7 h-7 rounded-full bg-[#FAF6F0] flex items-center justify-center text-[#C9A227] shadow-sm">
+                  <div className="flex items-center gap-2.5 text-white">
+                    <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center text-white shadow-sm">
                       <TrendingUp className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </div>
                     <span className="text-xs font-light tracking-wide">{t("home_cta_feature_analytics")}</span>
                   </div>
-                  <div className="flex items-center gap-2.5 text-[#1A1714]">
-                    <div className="w-7 h-7 rounded-full bg-[#FAF6F0] flex items-center justify-center text-[#C9A227] shadow-sm">
+                  <div className="flex items-center gap-2.5 text-white">
+                    <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center text-white shadow-sm">
                       <Sparkles className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </div>
                     <span className="text-xs font-light tracking-wide">{t("home_cta_feature_premium")}</span>

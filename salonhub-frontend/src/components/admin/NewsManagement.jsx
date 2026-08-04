@@ -179,7 +179,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
           <div className="bg-[#FAF6F0] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-[#1A1714]/10 bg-white">
               <h2 className="text-2xl font-serif font-bold text-[#1A1714]">
-                {selectedNews ? 't("news_edit_title")' : 't("news_create_title")'}
+                {selectedNews ? t('news_edit_title') : t('news_create_title')}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#1A1714]/50 hover:text-[#1A1714]">
                 <X size={24} />

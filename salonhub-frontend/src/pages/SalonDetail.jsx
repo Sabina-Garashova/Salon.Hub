@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import BookingModal from "../components/BookingModal";
 import SalonProfile from "../components/SalonProfile";
+import NewsSection from "../components/NewsSection";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -141,6 +142,12 @@ export default function SalonDetail() {
         onBook={handleBook}
         onSubmitReview={handleSubmitReview}
       />
+
+      {salon && (
+        <div className="max-w-6xl mx-auto px-4">
+          <NewsSection limit={3} salonId={salonId} />
+        </div>
+      )}
 
       {showBooking && salon && (
         <BookingModal

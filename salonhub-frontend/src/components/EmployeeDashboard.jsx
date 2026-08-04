@@ -259,10 +259,17 @@ export default function EmployeeDashboard() {
     .reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
   const activeBookings = appointments.filter(app => app?.status === "Pending" || app?.status === "Confirmed").length;
 
-  const completedApps = appointments.filter((app) => app?.status === "Completed");
-  const cardRevenue = completedApps.filter((app) => app?.paymentMethod === "Card").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
-  const cashRevenue = completedApps.filter((app) => app?.paymentMethod === "Cash").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
-  const loyaltyRevenue = completedApps.filter((app) => app?.paymentMethod === "LoyaltyPoints").reduce((sum, app) => sum + (Number(app?.price) || 0), 0);
+  // Ümumi Gəlirlə eyni əhatəni istifadə edirik (Cash üçün yalnız Tamamlanıb, digərləri üçün
+  // Tamamlanıb və ya Təsdiqlənib) — əvvəllər bura yalnız "Completed" statusları daxil edirdi,
+  // buna görə Ümumi Gəlirlə (500 AZN) Kartla/Naqd/Bal ilə cəmləri (0/0/0) uyğun gəlmirdi.
+  const completedApps = appointments.filter((app) =>
+    app?.paymentMethod === "Cash" ? app?.status === "Completed" : (app?.status === "Completed" || app?.status === "Confirmed")
+  );
+  // Hibrid ödənişlərdə (bal + kart/nağd) balla ödənən hissə loyaltyRevenue-ya, qalanı isə
+  // faktiki ödəniş üsuluna gedir — əvvəllər bal hissəsi heç yerə düşmürdü.
+  const cardRevenue = completedApps.filter((app) => app?.paymentMethod === "Card").reduce((sum, app) => sum + (Number(app?.price) || 0) - (Number(app?.loyaltyDiscountApplied) || 0), 0);
+  const cashRevenue = completedApps.filter((app) => app?.paymentMethod === "Cash").reduce((sum, app) => sum + (Number(app?.price) || 0) - (Number(app?.loyaltyDiscountApplied) || 0), 0);
+  const loyaltyRevenue = completedApps.reduce((sum, app) => sum + (Number(app?.loyaltyDiscountApplied) || 0), 0);
 
   const getEquipmentStatusBadge = (status) => {
     switch (status) {
@@ -302,7 +309,7 @@ export default function EmployeeDashboard() {
           </button>
         </div>
 
-        <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+        <div className="max-w-5xl mx-auto bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] rounded-2xl shadow-sm overflow-hidden border border-[#EBDCC5]">
 
           <div className="flex border-b border-gray-200 bg-gray-50/50 overflow-x-auto">
             <button

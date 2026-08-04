@@ -8,7 +8,7 @@ const DashboardStatsSection = ({ stats = [] }) => {
         return (
           <div
             key={stat.id}
-            className="group bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:-translate-y-1 hover:shadow-md transition-all duration-300 flex items-center gap-4"
+            className="group bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] border border-amber-300/30 rounded-2xl p-5 shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex items-center gap-4"
           >
             <div
               className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300"

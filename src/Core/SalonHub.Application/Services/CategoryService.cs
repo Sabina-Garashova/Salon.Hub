@@ -7,7 +7,7 @@ namespace SalonHub.Application.Services
 {
     public interface ICategoryService
     {
-        Task<IReadOnlyList<CategoryReadDto>> GetAllAsync(string? language = null);
+        Task<IReadOnlyList<CategoryReadDto>> GetAllAsync(string? language = null, int? salonId = null);
         Task<CategoryReadDto?> GetByIdAsync(int id, string? language = null);
         Task<CategoryReadDto> CreateAsync(CategoryCreateDto dto);
         Task UpdateAsync(int id, CategoryUpdateDto dto);
@@ -23,9 +23,17 @@ namespace SalonHub.Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IReadOnlyList<CategoryReadDto>> GetAllAsync(string? language = null)
+        public async Task<IReadOnlyList<CategoryReadDto>> GetAllAsync(string? language = null, int? salonId = null)
         {
             var categories = await _unitOfWork.Categories.GetAllAsync();
+
+            if (salonId.HasValue)
+            {
+                var services = await _unitOfWork.Services.FindAsync(s => s.SalonId == salonId.Value);
+                var usedCategoryIds = services.Select(s => s.CategoryId).ToHashSet();
+                categories = categories.Where(c => usedCategoryIds.Contains(c.Id)).ToList();
+            }
+
             return categories.Select(c => MapToReadDto(c, language)).ToList();
         }
 

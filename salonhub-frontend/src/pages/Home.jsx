@@ -134,7 +134,7 @@ export default function Home() {
   return (
     <PageBackgroundLayout>
       <header className="bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-b border-[#B8935A]/20">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[1800px] mx-auto px-4 xl:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#C9A227]" />
             <h1 className="text-xl font-serif font-bold text-[#F4EDE0] tracking-wide">SalonHub</h1>
@@ -202,7 +202,7 @@ export default function Home() {
 
       <HomeCTASection onApplySpecialist={() => { if (requireLogin()) setShowApplicationModal(true); }} onApplySalon={openSalonApplicationModal} />
 
-      <div className="max-w-7xl mx-auto px-6 mt-10 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-4 xl:px-6 mt-10 relative z-10">
         {localStorage.getItem("token") ? (
           <StyleRecommendationWidget />
         ) : (
@@ -259,9 +259,12 @@ export default function Home() {
 
         <div id="news-section"><NewsSection limit={3} /></div>
         {reviews.length > 0 && (
-          <div id="reviews-section">
-            <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4">{t("home_customer_reviews")}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-16">
+          <div id="reviews-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm mb-10">
+            <h3 className="text-2xl font-serif font-bold text-[#1A1714] mb-4 flex items-center gap-2">
+              <Quote className="w-5 h-5 text-[#C9A227]" />
+              {t("home_customer_reviews")}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {reviews.map((rev) => (
                   <ReviewCard
                     key={rev.id}
@@ -275,7 +278,7 @@ export default function Home() {
 
       {reviewModalSalon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-md rounded-3xl shadow-2xl border border-[#E5D2B1] overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rəy yaz</h3>
               <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">

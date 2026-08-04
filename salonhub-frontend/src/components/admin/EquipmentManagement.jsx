@@ -14,7 +14,8 @@ import {
   X,
   Scissors,
   Layers,
-  Search
+  Search,
+  Armchair
 } from 'lucide-react';
 
 export default function EquipmentManagement({
@@ -75,8 +76,10 @@ export default function EquipmentManagement({
   const getTypeIcon = (type = '') => {
     const lower = type.toLowerCase();
     if (lower.includes('lazer')) return <Sparkles className="w-4 h-4 text-[#C9A227]" />;
-    if (lower.includes('masa') || lower.includes('stul') || lower.includes('kursu'))
-      return <span className="text-base leading-none">Masa</span>;
+    if (lower.includes('mebel') || lower.includes('carpayi') || lower.includes('kreslo') || lower.includes('stul') || lower.includes('kursu'))
+      return <Armchair className="w-4 h-4 text-[#B8935A]" />;
+    if (lower.includes('kosmetoloji'))
+      return <Layers className="w-4 h-4 text-[#B8935A]" />;
     if (lower.includes('sac') || lower.includes('qurutucu') || lower.includes('fen'))
       return <Scissors className="w-4 h-4 text-[#B8935A]" />;
     return <Wrench className="w-4 h-4 text-[#B8935A]" />;
@@ -439,7 +442,8 @@ export default function EquipmentManagement({
                     <option value="Lazer Cihazi">Lazer Cihazi</option>
                     <option value="Manikur ve Pedikur Avadanligi">Manikur ve Pedikur Avadanligi</option>
                     <option value="Elektrik Cihazlari">Elektrik Cihazlari (sac qurutucu, ütü ve s.)</option>
-                    <option value="Mebel ve Kosmetoloji Avadanligi">Mebel ve Kosmetoloji Avadanligi (carpayi, kreslo ve s.)</option>
+                    <option value="Mebel">Mebel (carpayi, kreslo, stul ve s.)</option>
+                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanligi</option>
                     <option value="Diger">Diger</option>
                   </select>
                 </div>
@@ -518,15 +522,24 @@ export default function EquipmentManagement({
                   <label className="block text-xs font-semibold uppercase text-[#1A1714]/70 mb-1">
                     Tip
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={editForm.type}
                     onChange={(e) =>
                       setEditForm({ ...editForm, type: e.target.value })
                     }
                     className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#B8935A]/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
-                  />
+                  >
+                    {!['Lazer Cihazi', 'Manikur ve Pedikur Avadanligi', 'Elektrik Cihazlari', 'Mebel', 'Kosmetoloji Avadanligi', 'Diger'].includes(editForm.type) && editForm.type && (
+                      <option value={editForm.type}>{editForm.type} (kohne deyer)</option>
+                    )}
+                    <option value="Lazer Cihazi">Lazer Cihazi</option>
+                    <option value="Manikur ve Pedikur Avadanligi">Manikur ve Pedikur Avadanligi</option>
+                    <option value="Elektrik Cihazlari">Elektrik Cihazlari (sac qurutucu, ütü ve s.)</option>
+                    <option value="Mebel">Mebel (carpayi, kreslo, stul ve s.)</option>
+                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanligi</option>
+                    <option value="Diger">Diger</option>
+                  </select>
                 </div>
 
                 <div>

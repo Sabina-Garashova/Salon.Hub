@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.Auth;
+using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
@@ -18,6 +19,7 @@ namespace SalonHub.Api.Controllers
         private readonly ILoyaltyService _loyaltyService;
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
+        private readonly IUnitOfWork _unitOfWork;
 
         private const int ReferrerBonusPoints = 50;
         private const int NewUserBonusPoints = 20;
@@ -27,13 +29,15 @@ namespace SalonHub.Api.Controllers
             ITokenService tokenService,
             ILoyaltyService loyaltyService,
             INotificationService notificationService,
-            IEmailService emailService)
+            IEmailService emailService,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _loyaltyService = loyaltyService;
             _notificationService = notificationService;
             _emailService = emailService;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost("register")]
@@ -101,10 +105,35 @@ namespace SalonHub.Api.Controllers
                 return Unauthorized(new { message = "Email və ya şifrə yanlışdır." });
 
             var roles = await _userManager.GetRolesAsync(user);
+
+            // Öz-özünü düzəldən yoxlama: istifadəçi aktiv bir Employee qeydinə bağlıdırsa,
+            // amma hələ Employee roluna sahib deyilsə (məsələn, köhnə/əvvəlki əlaqələndirmə
+            // üçün rol heç vaxt verilməyibsə), rolu burada tamamlayırıq.
+            if (!roles.Contains(Roles.Employee))
+            {
+                var activeEmployeeRecords = await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == user.Id && !e.IsDeleted);
+                if (activeEmployeeRecords.Any())
+                {
+                    await _userManager.AddToRoleAsync(user, Roles.Employee);
+                    roles = await _userManager.GetRolesAsync(user);
+                }
+            }
+
             var rolePriority = new[] { Roles.SuperAdmin, Roles.SalonAdmin, Roles.Employee, Roles.Customer };
             var role = rolePriority.FirstOrDefault(r => roles.Contains(r)) ?? Roles.Customer;
 
-            var response = _tokenService.GenerateToken(user.Id, user.Email!, user.FullName, role);
+            // İşçi kabinetdə/header-də göstərilən ad hesabın qeydiyyat adı (ApplicationUser.FullName)
+            // yox, admin panelindən "İşçi adı" olaraq yazılmış Employee.FullName olsun.
+            var displayName = user.FullName;
+            if (role == Roles.Employee)
+            {
+                var myEmployeeRecords = await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == user.Id && !e.IsDeleted);
+                var myEmployee = myEmployeeRecords.FirstOrDefault();
+                if (myEmployee is not null && !string.IsNullOrWhiteSpace(myEmployee.FullName))
+                    displayName = myEmployee.FullName;
+            }
+
+            var response = _tokenService.GenerateToken(user.Id, user.Email!, displayName, role);
             return Ok(response);
         }
 

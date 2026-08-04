@@ -289,19 +289,26 @@ export default function AllReservations({ reservations = [] }) {
                       {renderStatusBadge(res.status)}
                     </td>
                     <td className="py-4 px-6">
-                      {res.paymentMethod === "Cash" || res.paymentMethod === "Nağd" ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-300 shadow-sm flex items-center gap-1 w-fit">
-                          💵 Nağd
-                        </span>
-                      ) : res.paymentMethod === "LoyaltyPoints" ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1 w-fit">
-                          ⭐ Bal ilə
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1 w-fit">
-                          💳 Kartla
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {res.paymentMethod === "Cash" || res.paymentMethod === "Nağd" ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-300 shadow-sm flex items-center gap-1 w-fit">
+                            💵 Nağd
+                          </span>
+                        ) : res.paymentMethod === "LoyaltyPoints" ? (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1 w-fit">
+                            ⭐ Bal ilə
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1 w-fit">
+                            💳 Kartla
+                          </span>
+                        )}
+                        {res.loyaltyDiscountApplied > 0 && res.loyaltyDiscountApplied < (res.price || 0) && (
+                          <span className="text-[10px] text-purple-600 font-medium pl-1">
+                            + Bal: {Number(res.loyaltyDiscountApplied).toFixed(2)} AZN
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

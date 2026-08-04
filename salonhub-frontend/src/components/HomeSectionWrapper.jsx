@@ -7,7 +7,7 @@ export default function HomeSectionWrapper({
   children
 }) {
   return (
-    <section id={id} className="relative w-full bg-[#FAF6F0] pt-4 pb-10 md:pb-14 overflow-hidden">
+    <section id={id} className="relative w-full bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg border-y border-[#B8935A]/40 pt-4 pb-10 md:pb-14 overflow-hidden">
 
       <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-[#C9A227] opacity-[0.04] rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#B8935A] opacity-[0.03] rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />

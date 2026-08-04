@@ -93,15 +93,11 @@ namespace SalonHub.Api.Controllers
             var applicant = await _userManager.FindByIdAsync(application.ApplicantUserId)
                 ?? throw new KeyNotFoundException("Müraciət edən istifadəçi tapılmadı.");
 
-            var combinedBio = string.IsNullOrWhiteSpace(application.Specialty)
-                ? application.Bio
-                : $"{application.Specialty} — {application.Bio}";
-
             var employeeDto = new EmployeeCreateDto
             {
                 FullName = applicant.FullName,
                 PhoneNumber = !string.IsNullOrWhiteSpace(application.PhoneNumber) ? application.PhoneNumber : (applicant.PhoneNumber ?? string.Empty),
-                Bio = combinedBio,
+                Bio = application.Bio,
                 ProfileImageUrl = application.ProfileImageUrl,
                 ApplicationUserId = applicant.Id,
                 SalonId = application.SalonId,

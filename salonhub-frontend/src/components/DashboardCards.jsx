@@ -13,8 +13,28 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
     return 'bg-[#FAF6F0] text-[#B8935A] border-[#C9A227]/30';
   };
 
+  const methodLabel = (method) => (method === 'Card' ? 'Kartla' : method === 'Cash' ? 'Nağd' : method === 'LoyaltyPoints' ? 'Bal ilə' : method || '');
+
+  const renderPayment = (appt) => {
+    const raw = Number(appt.rawPrice ?? appt.price) || 0;
+    const loyalty = Number(appt.loyaltyDiscountApplied) || 0;
+    if (loyalty > 0 && loyalty < raw) {
+      const remainder = (raw - loyalty).toFixed(2);
+      return (
+        <div className="flex flex-col">
+          <span className="text-[11px] font-semibold text-purple-700">Bal: {loyalty.toFixed(2)} AZN</span>
+          <span className="text-[11px] text-gray-500">{methodLabel(appt.paymentMethod)}: {remainder} AZN</span>
+        </div>
+      );
+    }
+    if (loyalty > 0 && loyalty >= raw) {
+      return <span className="text-[11px] font-semibold text-purple-700">Tam bal ilə</span>;
+    }
+    return <span className="text-xs text-gray-500">{methodLabel(appt.paymentMethod)}</span>;
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 font-sans flex flex-col h-full">
+    <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl shadow-md border border-amber-300/30 p-6 font-sans flex flex-col h-full">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium text-[#1A1714] flex items-center gap-2">
           <Calendar className="w-5 h-5 text-[#C9A227]" />
@@ -40,6 +60,7 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Xidmət</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Saat</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Qiymət</th>
+                  <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Ödəniş</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                   {role === "Customer" && <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider text-right">QR</th>}
                 </tr>
@@ -65,6 +86,9 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
                     </td>
                     <td className="py-4 text-sm text-gray-600 whitespace-nowrap pr-4">
                       {appt.price}
+                    </td>
+                    <td className="py-4 whitespace-nowrap pr-4">
+                      {renderPayment(appt)}
                     </td>
                     <td className="py-4 whitespace-nowrap pr-4">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getStatusBadge(appt.status)}`}>
@@ -103,7 +127,7 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
 
 export const TopServicesChart = ({ services = [] }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 font-sans h-full">
+    <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl shadow-md border border-amber-300/30 p-6 font-sans h-full">
       <div className="flex items-center gap-2 mb-8">
         <TrendingUp className="w-5 h-5 text-[#C9A227]" />
         <h2 className="text-xl font-medium text-[#1A1714]">Ən Çox Tələb Olunan Xidmətlər</h2>

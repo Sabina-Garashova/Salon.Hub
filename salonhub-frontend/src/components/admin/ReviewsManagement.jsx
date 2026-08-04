@@ -155,7 +155,7 @@ export default function ReviewsManagement({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-          <div className="bg-white rounded-2xl p-6 border border-[#E5DFD5] shadow-sm flex items-center justify-between relative overflow-hidden group hover:border-[#C9A227]/40 transition-all duration-300">
+          <div className="bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] rounded-2xl p-6 border border-[#EBDCC5] shadow-sm flex items-center justify-between relative overflow-hidden group hover:border-[#C9A227]/40 transition-all duration-300">
             <div className="space-y-1">
               <p className="text-sm font-medium text-[#8C8275]">Umumi Rey Sayi</p>
               <h2 className="font-serif text-3xl font-bold text-[#1A1714]">{totalReviews}</h2>
@@ -166,7 +166,7 @@ export default function ReviewsManagement({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#E5DFD5] shadow-sm flex items-center justify-between relative overflow-hidden group hover:border-[#C9A227]/40 transition-all duration-300">
+          <div className="bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] rounded-2xl p-6 border border-[#EBDCC5] shadow-sm flex items-center justify-between relative overflow-hidden group hover:border-[#C9A227]/40 transition-all duration-300">
             <div className="space-y-2">
               <p className="text-sm font-medium text-[#8C8275]">Ortalama Reytinq</p>
               <div className="flex items-baseline gap-2">
@@ -230,7 +230,7 @@ export default function ReviewsManagement({
 
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E5DFD5] shadow-sm space-y-4">
+        <div className="bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] rounded-2xl p-4 sm:p-5 border border-[#EBDCC5] shadow-sm space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
             <div className="relative flex-1 max-w-md">
@@ -344,7 +344,7 @@ export default function ReviewsManagement({
               return (
                 <div
                   key={review.id}
-                  className={"bg-white rounded-2xl border transition-all duration-300 shadow-sm p-5 sm:p-6 relative overflow-hidden " + (isSuccess ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : !review.response ? 'border-[#C9A227]/40 hover:border-[#C9A227]' : 'border-[#E5DFD5] hover:border-[#B8935A]/50')}
+                  className={"rounded-2xl border transition-all duration-300 shadow-sm p-5 sm:p-6 relative overflow-hidden " + (isSuccess ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20' : !review.response ? 'bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] border-[#C9A227]/40 hover:border-[#C9A227]' : 'bg-gradient-to-b from-[#FAF6F0] to-[#F3EAE0] border-[#EBDCC5] hover:border-[#B8935A]/50')}
                 >
                   {isSuccess && (
                     <div className="bg-emerald-600 text-white text-xs font-medium px-4 py-1.5 flex items-center justify-between -mx-5 sm:-mx-6 -mt-5 sm:-mt-6 mb-4">
@@ -412,17 +412,20 @@ export default function ReviewsManagement({
                     </p>
                   </div>
 
-                  {review.response && (
-                    <div className="mt-4 bg-[#FAF6F0] rounded-xl p-4 border border-[#E5DFD5] relative">
-                      <div className="flex items-center gap-2 mb-2 text-xs font-bold text-[#B8935A]">
-                        <CornerDownRight className="w-4 h-4 text-[#C9A227]" />
-                        <span>Salonun Cavabi</span>
+                  {review.response && (() => {
+                    const replyEmployeeName = getEmployeeName(review) || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName;
+                    return (
+                      <div className="mt-4 bg-[#FAF6F0] rounded-xl p-4 border border-[#E5DFD5] relative">
+                        <div className="flex items-center gap-2 mb-2 text-xs font-bold text-[#B8935A]">
+                          <CornerDownRight className="w-4 h-4 text-[#C9A227]" />
+                          <span>{replyEmployeeName ? `Ustanin Cavabi: ${replyEmployeeName}` : 'Salonun Cavabi'}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#1A1714] pl-6 leading-relaxed">
+                          {review.response}
+                        </p>
                       </div>
-                      <p className="text-xs sm:text-sm text-[#1A1714] pl-6 leading-relaxed">
-                        {review.response}
-                      </p>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {!review.response && (
                     <div className="mt-4 pt-4 border-t border-[#E5DFD5]/60">

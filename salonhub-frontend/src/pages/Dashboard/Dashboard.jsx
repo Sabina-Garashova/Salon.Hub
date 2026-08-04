@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   DollarSign,
   Calendar,
@@ -15,6 +15,7 @@ import {
   Crown,
   X,
   Send,
+  Building2,
 } from "lucide-react";
 import { ImageOff, Quote, CalendarPlus } from "lucide-react";
 import Layout from "../../components/Layout";
@@ -70,12 +71,14 @@ export default function Dashboard() {
   const dateStr = weekdayArr[dateNow.getDay()] + ", " + dateNow.getDate() + " " + monthArr[dateNow.getMonth()] + " " + dateNow.getFullYear();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showSalonApplicationModal, setShowSalonApplicationModal] = useState(false);
   const [salons, setSalons] = useState([]);
   const [salonsLoading, setSalonsLoading] = useState(true);
   const [galleryBySalon, setGalleryBySalon] = useState({});
+  const [galleryByEmployee, setGalleryByEmployee] = useState({});
   const [employees, setEmployees] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [allReviewsForRating, setAllReviewsForRating] = useState([]);
@@ -142,6 +145,11 @@ export default function Dashboard() {
       setReviewModalSalon(null);
       setReviewComment("");
       setReviewEmployeeId("");
+      const reviewRes = await api.get("/Review");
+      const allRevs = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
+      setAllReviewsForRating(allRevs);
+      const withComments = allRevs.filter((r) => r?.comment);
+      setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
     } catch (err) {
       alert(err.response?.data?.message || "Xəta baş verdi");
     } finally {
@@ -170,24 +178,68 @@ export default function Dashboard() {
     hour < 6 ? t("dash_good_night") : hour < 12 ? t("dash_good_morning") : hour < 18 ? t("dash_good_day") : t("dash_good_evening");
 
   useEffect(() => {
-    Promise.all([api.get("/salon"), api.get("/GalleryImage"), api.get("/Employee"), api.get("/Review")])
-      .then(([salonRes, galleryRes, empRes, reviewRes]) => {
+    Promise.all([
+      api.get("/salon"),
+      api.get("/GalleryImage"),
+      api.get("/Employee"),
+      api.get("/Review"),
+      api.get("/Service").catch(() => ({ data: [] })),
+      api.get("/Reservation").catch(() => ({ data: [] })),
+    ])
+      .then(([salonRes, galleryRes, empRes, reviewRes, serviceRes, resvRes]) => {
         setSalons(salonRes.data);
-        setEmployees(empRes.data);
+
+        const serviceById = {};
+        (Array.isArray(serviceRes.data) ? serviceRes.data : []).forEach((s) => { serviceById[s.id] = s.name; });
+        const allResv = Array.isArray(resvRes.data) ? resvRes.data : [];
+        const completedCountByEmp = {};
+        allResv.forEach((r) => {
+          if (r.status === "Completed" && r.employeeId) {
+            completedCountByEmp[r.employeeId] = (completedCountByEmp[r.employeeId] || 0) + 1;
+          }
+        });
+        const employeesWithSpecialty = empRes.data.map((emp) => {
+          const completedCount = completedCountByEmp[emp.id] || 0;
+          const hasRealRating = emp.averageRating && emp.averageRating > 0;
+          return {
+            ...emp,
+            specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
+            averageRating: hasRealRating ? emp.averageRating : Math.min(4.9, 4.0 + completedCount * 0.1),
+          };
+        });
+        setEmployees(employeesWithSpecialty);
 
         const map = {};
+        const empMap = {};
         (Array.isArray(galleryRes.data) ? galleryRes.data : [galleryRes.data]).forEach((img) => {
           if (img?.salonId && !map[img.salonId]) map[img.salonId] = img.imageUrl;
+          if (img?.employeeId) {
+            if (!empMap[img.employeeId]) empMap[img.employeeId] = [];
+            empMap[img.employeeId].push(img.imageUrl);
+          }
         });
         setGalleryBySalon(map);
+        setGalleryByEmployee(empMap);
 
         const allRevs = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
         setAllReviewsForRating(allRevs);
         const withComments = allRevs.filter((r) => r?.comment);
+        setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setSalonsLoading(false));
   }, []);
+
+  useEffect(() => {
+    const targetId = location.state?.scrollTo;
+    if (!targetId || salonsLoading) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(targetId);
+      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" });
+      navigate(location.pathname, { replace: true, state: {} });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [location.state, salonsLoading]);
 
   const [allReservations, setAllReservations] = useState([]);
   const [globalReservations, setGlobalReservations] = useState([]);
@@ -287,7 +339,7 @@ export default function Dashboard() {
               <p className="text-gray-400 text-xs mt-0.5 font-medium">{t("dash_panel_sub")}</p>
             </div>
 
-            <div className="bg-white/70 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-sm border border-white/60 text-sm text-gray-700 font-semibold flex items-center gap-3 self-start sm:self-center transition-all hover:shadow-md">
+            <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-md border border-amber-300/30 text-sm text-gray-700 font-semibold flex items-center gap-3 self-start sm:self-center transition-all hover:shadow-md">
               <div className="p-2 bg-[#C9A227]/10 text-[#C9A227] rounded-xl">
                 <Clock className="w-4 h-4" />
               </div>
@@ -313,10 +365,13 @@ export default function Dashboard() {
           {role === "Customer" && <StyleRecommendationWidget />}
 
           {/* 5. Salonlarımız Bölməsi */}
-          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
+          <div id="salons-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_salons")}</h3>
+                <h3 className="text-xl font-serif font-bold text-[#1A1714] flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-[#C9A227]" />
+                  {t("dash_our_salons")}
+                </h3>
                 <p className="text-xs text-gray-400 font-medium">{t("dash_our_salons_sub")}</p>
               </div>
               <div className="text-gray-300">
@@ -343,22 +398,28 @@ export default function Dashboard() {
           </div>
 
           {/* Ustalarımız Bölməsi */}
-          <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
-            <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_our_masters")}</h3>
+          <div id="masters-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
+            <h3 className="text-xl font-serif font-bold text-[#1A1714] flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#C9A227]" />
+              {t("dash_our_masters")}
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {employees.map((emp) => (
-                <EmployeeCard key={emp.id} employee={emp} />
+                <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} />
               ))}
             </div>
           </div>
 
           {/* Xəbərlər */}
-          <NewsSection limit={3} />
+          <div id="news-section"><NewsSection limit={3} /></div>
 
           {/* Rəylər */}
           {reviews.length > 0 && (
-            <div className="bg-white/60 backdrop-blur-lg p-5 rounded-2xl border border-white/80 shadow-sm space-y-4">
-              <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("dash_customer_reviews")}</h3>
+            <div id="reviews-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
+              <h3 className="text-xl font-serif font-bold text-[#1A1714] flex items-center gap-2">
+                <Quote className="w-5 h-5 text-[#C9A227]" />
+                {t("dash_customer_reviews")}
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {reviews.map((rev) => {
                   const s = salons.find((sal) => sal.id === rev.salonId);
@@ -387,6 +448,7 @@ export default function Dashboard() {
                 appointments={todaysAppointments.map((appt) => ({
                   ...appt,
                   time: appt.startTime?.slice(0, 5),
+                  rawPrice: appt.price,
                   price: appt.price + " AZN",
                   status: statusLabel(appt.status),
                 }))}
@@ -430,7 +492,7 @@ export default function Dashboard() {
 
       {reviewModalSalon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-md rounded-3xl shadow-2xl border border-[#E5D2B1] overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rəy yaz</h3>
               <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">

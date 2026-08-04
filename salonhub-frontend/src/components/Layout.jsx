@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { LogOut, LayoutDashboard, Calendar, Gift, Sparkles, ShieldCheck, Bell, Check, CheckCheck } from "lucide-react";
+import { LogOut, LayoutDashboard, Calendar, Gift, Sparkles, ShieldCheck, Bell, Check, CheckCheck, Building2, Users, Newspaper, Star } from "lucide-react";
 import api from "../services/api";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "../context/LanguageContext";
@@ -37,6 +37,7 @@ export default function Layout({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [myProfileImageUrl, setMyProfileImageUrl] = useState(null);
   const notifRef = useRef(null);
 
   useEffect(() => {
@@ -52,6 +53,19 @@ export default function Layout({ children }) {
   useEffect(() => {
     api.get("/Notification/unread-count")
       .then((res) => setUnreadCount(res.data?.count || 0))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const userRole = decoded?.role || decoded?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "Customer";
+    const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
+    if (userRole !== "Employee" || !userId) return;
+    api.get("/Employee")
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : (res.data?.$values || []);
+        const mine = list.find((e) => e.applicationUserId === userId);
+        if (mine?.profileImageUrl) setMyProfileImageUrl(mine.profileImageUrl);
+      })
       .catch(() => {});
   }, []);
 
@@ -159,11 +173,12 @@ export default function Layout({ children }) {
   const navItems = [
     { label: t("nav_home"), icon: LayoutDashboard, path: "/dashboard" },
     { label: t("nav_loyalty"), icon: Gift, path: "/loyalty" },
+    { label: t("home_our_salons"), icon: Building2, scrollId: "salons-section" },
+    { label: t("home_our_masters"), icon: Users, scrollId: "masters-section" },
+    { label: t("news_title"), icon: Newspaper, scrollId: "news-section" },
+    { label: t("home_customer_reviews"), icon: Star, scrollId: "reviews-section" },
     ...(role === "SalonAdmin" || role === "SuperAdmin"
       ? [{ label: t("nav_admin"), icon: ShieldCheck, path: "/admin" }]
-      : []),
-    ...(role === "SuperAdmin"
-      ? [{ label: t("nav_all_reservations"), icon: Calendar, path: "/admin", state: { tab: "AllReservations" } }]
       : []),
     ...(role === "Employee"
       ? [{ label: t("nav_employee_cabinet"), icon: Calendar, path: "/employee-dashboard" }]
@@ -171,26 +186,44 @@ export default function Layout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0]">
+    <div className="min-h-screen bg-[#FAF6F0] relative">
+      <div
+        className="fixed inset-0 pointer-events-none bg-cover bg-center opacity-60"
+        style={{ backgroundImage: "url('/page-bg-tools.png')" }}
+      />
+      <div className="relative z-10">
       <header className="bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-b border-[#B8935A]/20 shadow-lg">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/dashboard")}>
+        <div className="max-w-[1800px] mx-auto px-4 xl:px-8">
+          <div className="flex items-center justify-between min-h-16 py-2 gap-4 flex-wrap xl:flex-nowrap">
+            <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate("/dashboard")}>
               <Sparkles className="w-5 h-5 text-[#C9A227]" />
-              <h1 className="text-xl font-serif font-bold text-[#F4EDE0] tracking-wide">SalonHub</h1>
+              <h1 className="text-xl font-serif font-bold text-[#F4EDE0] tracking-wide whitespace-nowrap">SalonHub</h1>
             </div>
 
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 flex-wrap justify-center">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const active = location.pathname === item.path;
+                const active = !item.scrollId && location.pathname === item.path;
+                const handleClick = () => {
+                  if (item.disabled) return;
+                  if (item.scrollId) {
+                    if (location.pathname === "/dashboard") {
+                      const el = document.getElementById(item.scrollId);
+                      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" });
+                    } else {
+                      navigate("/dashboard", { state: { scrollTo: item.scrollId } });
+                    }
+                  } else {
+                    navigate(item.path, item.state ? { state: item.state } : undefined);
+                  }
+                };
                 return (
                   <button
                     key={item.label}
                     disabled={item.disabled}
-                    onClick={() => !item.disabled && navigate(item.path, item.state ? { state: item.state } : undefined)}
+                    onClick={handleClick}
                     className={
-                      "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition " +
+                      "flex items-center gap-1.5 px-2.5 lg:px-3.5 py-2 rounded-lg text-[13px] lg:text-sm font-medium transition whitespace-nowrap " +
                       (active
                         ? "bg-[#C9A227]/15 text-[#F0D68A]"
                         : item.disabled
@@ -198,14 +231,14 @@ export default function Layout({ children }) {
                         : "text-gray-300 hover:text-[#F0D68A] hover:bg-white/5")
                     }
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 shrink-0" />
                     {item.label}
                   </button>
                 );
               })}
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <LanguageSwitcher />
               <div className="relative" ref={notifRef}>
                 <button
@@ -274,9 +307,17 @@ export default function Layout({ children }) {
               </div>
 
               <div className="hidden sm:flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center text-[#1A1714] font-bold text-xs">
-                  {getInitials(fullName)}
-                </div>
+                {myProfileImageUrl ? (
+                  <img
+                    src={myProfileImageUrl}
+                    alt={fullName}
+                    className="w-9 h-9 rounded-full object-cover ring-1 ring-[#C9A227]/40"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center text-[#1A1714] font-bold text-xs">
+                    {getInitials(fullName)}
+                  </div>
+                )}
                 <div className="text-left">
                   <p className="text-sm font-medium text-[#F4EDE0] leading-tight">{fullName}</p>
                   <span className="text-[11px] text-[#C9A227] uppercase tracking-wide">{t("role_" + role.toLowerCase())}</span>
@@ -295,7 +336,8 @@ export default function Layout({ children }) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-6">{children}</main>
+      <main className="max-w-[1400px] mx-auto p-4 xl:p-6">{children}</main>
+      </div>
     </div>
   );
 }

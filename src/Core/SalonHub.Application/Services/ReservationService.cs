@@ -24,6 +24,7 @@ namespace SalonHub.Application.Services
         public int DurationMinutes { get; set; }
         public string CustomerName { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = "Card";
+        public decimal? LoyaltyDiscountApplied { get; set; }
     }
 
     public interface IReservationService
@@ -83,6 +84,7 @@ namespace SalonHub.Application.Services
                     DurationMinutes = service?.DurationMinutes ?? 0,
                     CustomerName = !string.IsNullOrEmpty(r.CustomerFullName) ? r.CustomerFullName : "Musteri",
                     PaymentMethod = r.PaymentMethod,
+                    LoyaltyDiscountApplied = r.LoyaltyDiscountApplied,
                 });
             }
 

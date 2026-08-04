@@ -14,6 +14,11 @@ public class UserLookupService : IUserLookupService
         var user = await _userManager.FindByIdAsync(userId);
         return user?.FullName;
     }
+    public async Task<string?> GetEmailAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        return user?.Email;
+    }
     public async Task<int> GetNewCustomersCountInMonthAsync(int month, int year)
     {
         var users = await _userManager.GetUsersInRoleAsync("Customer");

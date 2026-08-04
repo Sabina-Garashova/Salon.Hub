@@ -192,7 +192,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
 
   return (
     <div className="fixed inset-0 bg-[#1A1714]/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-[#FAF6F0] w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-[#B8935A]/20">
+      <div className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-[#E5D2B1]">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-[#1A1714] text-white">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#C9A227]" />

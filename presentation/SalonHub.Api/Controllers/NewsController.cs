@@ -21,7 +21,8 @@ namespace SalonHub.Api.Controllers
         private string? GetLanguage() => Request.Headers["Accept-Language"].FirstOrDefault();
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _newsService.GetAllAsync(GetLanguage()));
+        public async Task<IActionResult> GetAll([FromQuery] int? salonId = null, [FromQuery] bool publicOnly = false) =>
+            Ok(await _newsService.GetAllAsync(GetLanguage(), salonId, publicOnly));
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

@@ -73,7 +73,7 @@ export default function AdminPanel() {
   const [modalType, setModalType] = useState("");
   const [editItem, setEditItem] = useState(null);
 
-  const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [] });
+  const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", email: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [], salary: "" });
   const [mySalonForm, setMySalonForm] = useState({ name: "", address: "", phoneNumber: "", description: "" });
   const [savingMySalon, setSavingMySalon] = useState(false);
   const [isEditingMySalon, setIsEditingMySalon] = useState(false);
@@ -263,14 +263,14 @@ export default function AdminPanel() {
   const openAddModal = (type) => {
     setModalType(type);
     setEditItem(null);
-    if (type === "employee") setEmpForm({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [] });
+    if (type === "employee") setEmpForm({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", email: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [], salary: "" });
     setIsModalOpen(true);
   };
 
   const openEditModal = (type, item) => {
     setModalType(type);
     setEditItem(item);
-    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: item.applicationUserId || "", salonId: item.salonId, branchId: item.branchId || "", assignedEquipmentId: item.assignedEquipmentId || "", serviceIds: item.serviceIds || [] });
+    if (type === "employee") setEmpForm({ fullName: item.fullName, phoneNumber: item.phoneNumber, bio: item.bio || "", applicationUserId: item.applicationUserId || "", email: item.email || "", salonId: item.salonId, branchId: item.branchId || "", assignedEquipmentId: item.assignedEquipmentId || "", serviceIds: item.serviceIds || [], salary: item.salary != null ? String(item.salary) : "" });
     setIsModalOpen(true);
   };
 
@@ -464,6 +464,7 @@ export default function AdminPanel() {
           salonId: Number(empForm.salonId),
           branchId: empForm.branchId ? Number(empForm.branchId) : null,
           assignedEquipmentId: empForm.assignedEquipmentId ? Number(empForm.assignedEquipmentId) : null,
+          salary: empForm.salary !== "" && empForm.salary != null ? Number(empForm.salary) : null,
         };
         let empId = editItem?.id;
         if (editItem) {
@@ -798,7 +799,17 @@ export default function AdminPanel() {
                             </div>
                           </div>
                           <p className="text-xs text-gray-400 font-mono">{emp.phoneNumber}</p>
-                          <p className="text-xs text-gray-600 line-clamp-2">{emp.bio}</p>
+                          {(() => {
+                            const specialtyName = emp.serviceIds && emp.serviceIds.length > 0
+                              ? services.find((s) => s.id === emp.serviceIds[0])?.name
+                              : null;
+                            return (
+                              <p className="text-xs text-gray-600 line-clamp-2">
+                                {specialtyName && <span className="font-semibold text-[#B8935A]">{specialtyName} — </span>}
+                                {emp.bio}
+                              </p>
+                            );
+                          })()}
                           {emp.salary && (
                             <p className="text-xs font-bold text-emerald-600">Maas: {emp.salary} AZN</p>
                           )}
@@ -857,7 +868,7 @@ export default function AdminPanel() {
                 <CategoriesManagement
                   categories={categories}
                   services={services}
-                  salons={salons}
+                  salons={isSuperAdmin ? salons : salons.filter((s) => s.ownerId === currentUserId)}
                   onCreate={handleCreateCategory}
                   onEdit={handleEditCategory}
                   onDelete={handleDeleteCategory}
@@ -896,7 +907,7 @@ export default function AdminPanel() {
                 <SystemJobsPanel />
               )}
 
-              {activeTab === "Analytics" && isSuperAdmin && (
+              {activeTab === "Analytics" && (
                 <AnalyticsPage />
               )}
 
@@ -1067,6 +1078,7 @@ export default function AdminPanel() {
           equipment={equipment}
           branches={branches}
           services={services}
+          employees={employees}
           isEditMode={!!editItem}
           employeeId={editItem?.id}
           onChange={(field, value) => setEmpForm((prev) => ({ ...prev, [field]: value }))}

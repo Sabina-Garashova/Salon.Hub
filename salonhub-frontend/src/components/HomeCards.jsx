@@ -7,7 +7,7 @@ export const SalonCard = ({ salon, onClick, onBook }) => {
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer relative bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_rgba(26,23,20,0.03)] hover:shadow-[0_20px_50px_rgba(201,162,39,0.12)] transition-all duration-500 border border-[#FAF6F0] hover:border-[#C9A227]/30 flex flex-col h-full"
+      className="group cursor-pointer relative bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-3xl overflow-hidden shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:shadow-[0_20px_50px_rgba(26,23,20,0.28)] transition-all duration-500 border-2 border-[#FDF8ED] hover:border-[#C9A227]/40 flex flex-col h-full"
     >
       <div className="relative h-60 w-full overflow-hidden bg-gradient-to-br from-[#1A1714] to-[#2c2823]">
         {salon?.imageUrl ? (
@@ -32,7 +32,7 @@ export const SalonCard = ({ salon, onClick, onBook }) => {
         )}
       </div>
 
-      <div className="p-6 flex-grow flex flex-col bg-gradient-to-b from-white to-[#FAF6F0]/40 relative">
+      <div className="p-6 flex-grow flex flex-col bg-gradient-to-b from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] relative">
         <div className="absolute top-0 right-6 -translate-y-1/2 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[#FAF6F0]">
           <Building2 className="w-5 h-5 text-[#B8935A]" />
         </div>
@@ -74,7 +74,7 @@ export const EmployeeCard = ({ employee, workPhotos = [] }) => {
   };
 
   return (
-    <div className="group bg-white rounded-2xl p-6 text-center border border-gray-100 hover:border-[#C9A227]/30 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+    <div className="group bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl p-6 text-center border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:border-[#C9A227]/40 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
       <div className="relative inline-block mb-5">
         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#FAF6F0] group-hover:border-[#C9A227] transition-colors duration-500 p-1">
           {employee?.profileImageUrl ? (
@@ -95,7 +95,7 @@ export const EmployeeCard = ({ employee, workPhotos = [] }) => {
         </div>
       </div>
 
-      <h4 className="font-serif text-lg text-[#1A1714] truncate">{employee?.fullName}</h4>
+      <h4 className="font-serif text-lg text-[#1A1714] break-words leading-snug">{employee?.fullName}</h4>
       <p className="text-sm text-gray-500 font-sans mt-1">{employee?.specialty || t("home_professional_masters")}</p>
       {workPhotos.length > 0 && (
         <div className="flex gap-1.5 mt-3 justify-center">
@@ -112,7 +112,7 @@ export const NewsCard = ({ news, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-500 cursor-pointer flex flex-col h-full"
+      className="group bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl overflow-hidden border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:shadow-lg transition-all duration-500 cursor-pointer flex flex-col h-full"
     >
       <div className="h-48 overflow-hidden relative bg-[#FAF6F0]">
         {news?.imageUrl && (
@@ -147,7 +147,7 @@ export const NewsCard = ({ news, onClick }) => {
 
 export const ReviewCard = ({ review }) => {
   return (
-    <div className="bg-white rounded-2xl p-8 relative border border-gray-100 shadow-sm hover:border-[#C9A227]/30 hover:shadow-lg transition-all duration-500 h-full flex flex-col">
+    <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl p-8 relative border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:border-[#C9A227]/40 hover:shadow-lg transition-all duration-500 h-full flex flex-col">
       <Quote className="absolute top-6 right-6 w-12 h-12 text-[#C9A227]/10 rotate-180" />
 
       <div className="flex gap-1 mb-6">
