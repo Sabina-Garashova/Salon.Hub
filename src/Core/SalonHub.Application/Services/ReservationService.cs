@@ -25,6 +25,8 @@ namespace SalonHub.Application.Services
         public string CustomerName { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = "Card";
         public decimal? LoyaltyDiscountApplied { get; set; }
+        public string? ReferenceImageUrl { get; set; }
+        public string? CurrentPhotoUrl { get; set; }
     }
 
     public interface IReservationService
@@ -66,11 +68,13 @@ namespace SalonHub.Application.Services
         public async Task<List<EmployeeDashboardReservationDto>> GetEmployeeReservationsAsync(int employeeId)
         {
             var reservations = await _unitOfWork.Reservations.FindAsync(r => r.EmployeeId == employeeId);
+            var allServices = await _unitOfWork.Services.GetAllAsync();
+            var servicesById = allServices.ToDictionary(s => s.Id);
             var result = new List<EmployeeDashboardReservationDto>();
 
             foreach (var r in reservations)
             {
-                var service = await _unitOfWork.Services.GetByIdAsync(r.ServiceId);
+                servicesById.TryGetValue(r.ServiceId, out var service);
 
                 result.Add(new EmployeeDashboardReservationDto
                 {
@@ -85,6 +89,8 @@ namespace SalonHub.Application.Services
                     CustomerName = !string.IsNullOrEmpty(r.CustomerFullName) ? r.CustomerFullName : "Musteri",
                     PaymentMethod = r.PaymentMethod,
                     LoyaltyDiscountApplied = r.LoyaltyDiscountApplied,
+                    ReferenceImageUrl = r.ReferenceImageUrl,
+                    CurrentPhotoUrl = r.CurrentPhotoUrl,
                 });
             }
 
@@ -115,12 +121,16 @@ namespace SalonHub.Application.Services
         public async Task<List<ReservationReadDto>> GetAllAsync()
         {
             var reservations = await _unitOfWork.Reservations.GetAllAsync();
+            var allServices = await _unitOfWork.Services.GetAllAsync();
+            var allEmployees = await _unitOfWork.Employees.GetAllAsync();
+            var servicesById = allServices.ToDictionary(s => s.Id);
+            var employeesById = allEmployees.ToDictionary(e => e.Id);
             var result = new List<ReservationReadDto>();
 
             foreach (var r in reservations)
             {
-                var service = await _unitOfWork.Services.GetByIdAsync(r.ServiceId);
-                var employee = await _unitOfWork.Employees.GetByIdAsync(r.EmployeeId);
+                servicesById.TryGetValue(r.ServiceId, out var service);
+                employeesById.TryGetValue(r.EmployeeId, out var employee);
 
                 result.Add(new ReservationReadDto
                 {
@@ -138,7 +148,9 @@ namespace SalonHub.Application.Services
                     ReservationDate = r.ReservationDate,
                     StartTime = r.StartTime,
                     EndTime = r.EndTime,
-                    Status = r.Status.ToString()
+                    Status = r.Status.ToString(),
+                    ReferenceImageUrl = r.ReferenceImageUrl,
+                    CurrentPhotoUrl = r.CurrentPhotoUrl
                 });
             }
 
@@ -170,7 +182,9 @@ namespace SalonHub.Application.Services
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
                 EndTime = reservation.EndTime,
-                Status = reservation.Status.ToString()
+                Status = reservation.Status.ToString(),
+                ReferenceImageUrl = reservation.ReferenceImageUrl,
+                CurrentPhotoUrl = reservation.CurrentPhotoUrl
             };
         }
 
@@ -255,6 +269,7 @@ namespace SalonHub.Application.Services
                 Status = ReservationStatus.Pending,
                 CheckInCode = GenerateCheckInCode(),
                 ReferenceImageUrl = dto.ReferenceImageUrl,
+                CurrentPhotoUrl = dto.CurrentPhotoUrl,
                 SalonId = service.SalonId
             };
 
@@ -283,7 +298,8 @@ namespace SalonHub.Application.Services
                 ReservationDate = reservation.ReservationDate,
                 StartTime = reservation.StartTime,
                 Status = reservation.Status.ToString(),
-                ReferenceImageUrl = reservation.ReferenceImageUrl
+                ReferenceImageUrl = reservation.ReferenceImageUrl,
+                CurrentPhotoUrl = reservation.CurrentPhotoUrl
             };
         }
 

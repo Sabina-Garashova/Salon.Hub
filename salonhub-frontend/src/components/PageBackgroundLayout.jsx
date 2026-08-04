@@ -5,7 +5,7 @@ export function PageBackgroundLayout({ children }) {
 
       <div
         className="fixed inset-0 pointer-events-none bg-cover bg-center opacity-60"
-        style={{ backgroundImage: "url('/page-bg-tools.png')" }}
+        style={{ backgroundImage: "url('/page-bg-tools.webp')" }}
       />
 
       <div className="absolute -top-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-br from-[#C9A227]/[0.05] to-transparent blur-[120px] pointer-events-none" />

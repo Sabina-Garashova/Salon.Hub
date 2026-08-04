@@ -1,6 +1,6 @@
 ﻿import { useLanguage } from '../context/LanguageContext';
 import { useState, useEffect } from "react";
-import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift } from "lucide-react";
+import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift, Camera, Wand2, ArrowRight, Trash2, ImagePlus } from "lucide-react";
 import api from "../services/api";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 
@@ -33,6 +33,11 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   const [paymentMethod, setPaymentMethod] = useState("Card");
   const [loyaltyBalance, setLoyaltyBalance] = useState({ points: 0, equivalentDiscount: 0 });
   const [remainderMethod, setRemainderMethod] = useState("Card");
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState(null);
+  const [desiredPhotoUrl, setDesiredPhotoUrl] = useState(initialReferenceImage || null);
+  const [uploadingCurrent, setUploadingCurrent] = useState(false);
+  const [uploadingDesired, setUploadingDesired] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState("");
 
   useEffect(() => {
     if (!isOpen || !salonId) return;
@@ -43,6 +48,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     setSelectedTime(null);
     setAvailableSlots([]);
     setLoadingOptions(true);
+    setCurrentPhotoUrl(null);
+    setDesiredPhotoUrl(initialReferenceImage || null);
+    setPhotoUploadError("");
 
     Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
       .then(([servRes, empRes, balRes]) => {
@@ -100,10 +108,30 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   };
 
   const handleNext = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 5) setStep(step + 1);
   };
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handlePhotoSelect = async (kind, file) => {
+    if (!file) return;
+    setPhotoUploadError("");
+    const setUploading = kind === "current" ? setUploadingCurrent : setUploadingDesired;
+    const setUrl = kind === "current" ? setCurrentPhotoUrl : setDesiredPhotoUrl;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post("/Upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUrl(res.data.url);
+    } catch (err) {
+      setPhotoUploadError(err.response?.data?.message || "Şəkil yüklənmədi.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleFinalConfirm = async () => {
@@ -116,7 +144,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
         branchId: selectedEmployee.branchId,
         reservationDate: selectedDate,
         startTime,
-        referenceImageUrl: initialReferenceImage || null,
+        referenceImageUrl: desiredPhotoUrl || null,
+        currentPhotoUrl: currentPhotoUrl || null,
         paymentMethod: paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod,
       });
 
@@ -159,7 +188,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
       { id: 1, label: "Xidmət" },
       { id: 2, label: "Usta" },
       { id: 3, label: "Tarix & Saat" },
-      { id: 4, label: "Təsdiq" },
+      { id: 4, label: "Görünüş" },
+      { id: 5, label: "Təsdiq" },
     ];
     return (
       <div className="flex items-center justify-between w-full mb-8 relative px-4">
@@ -338,6 +368,52 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
               )}
 
               {step === 4 && (
+                <div className="space-y-5">
+                  <div>
+                    <h3 className="text-xl font-serif text-[#1A1714] mb-1 flex items-center gap-2">
+                      <Wand2 className="w-5 h-5 text-[#C9A227]" />
+                      Görünüş Transformasiyası
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Ustanıza hazırkı halınızı və arzuladığınız nəticəni göstərin ki, tam istədiyiniz kimi işləsin. Bu addım istəyə bağlıdır.
+                    </p>
+                  </div>
+
+                  {photoUploadError && <p className="text-sm text-red-500">{photoUploadError}</p>}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                    <PhotoUploadSlot
+                      label="İndiki Halınız"
+                      hint="Hazırkı saç/görünüşünüzün şəkli"
+                      icon={<Camera className="w-6 h-6" />}
+                      imageUrl={currentPhotoUrl}
+                      uploading={uploadingCurrent}
+                      onFile={(file) => handlePhotoSelect("current", file)}
+                      onRemove={() => setCurrentPhotoUrl(null)}
+                      inputId="booking-current-photo"
+                    />
+
+                    <div className="flex sm:flex-col items-center justify-center gap-1 text-[#C9A227] py-1">
+                      <ArrowRight className="w-6 h-6 rotate-90 sm:rotate-0" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap">Transformasiya</span>
+                    </div>
+
+                    <PhotoUploadSlot
+                      label="Arzuladığınız Nəticə"
+                      hint="Bəyəndiyiniz model/ilham şəkli"
+                      icon={<Sparkles className="w-6 h-6" />}
+                      imageUrl={desiredPhotoUrl}
+                      uploading={uploadingDesired}
+                      onFile={(file) => handlePhotoSelect("desired", file)}
+                      onRemove={() => setDesiredPhotoUrl(null)}
+                      inputId="booking-desired-photo"
+                      accent
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step === 5 && (
                 <div className="space-y-4">
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Rezervasiya Xülasəsi</h3>
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -374,6 +450,34 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                           </h4>
                         </div>
                       </div>
+                      {(currentPhotoUrl || desiredPhotoUrl) && (
+                        <>
+                          <div className="border-t border-dashed border-gray-200 my-2"></div>
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-[#FAF6F0] rounded-xl text-[#C9A227]">
+                              <Wand2 className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-xs text-gray-400 block font-sans mb-2">GÖRÜNÜŞ ŞƏKİLLƏRİ</span>
+                              <div className="flex gap-3">
+                                {currentPhotoUrl && (
+                                  <div className="relative">
+                                    <img src={currentPhotoUrl} alt="İndiki hal" className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200" />
+                                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#1A1714] text-white text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap">İndiki</span>
+                                  </div>
+                                )}
+                                {currentPhotoUrl && desiredPhotoUrl && <ArrowRight className="w-4 h-4 text-[#C9A227] self-center shrink-0" />}
+                                {desiredPhotoUrl && (
+                                  <div className="relative">
+                                    <img src={desiredPhotoUrl} alt="Arzu olunan" className="w-16 h-16 rounded-lg object-cover border-2 border-[#C9A227]/50" />
+                                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#C9A227] text-white text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap">Arzu</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                       <div className="border-t border-dashed border-gray-200 my-2"></div>
                       <PaymentMethodSelector
                         paymentMethod={paymentMethod}
@@ -404,7 +508,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
             <div></div>
           )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <button
               disabled={isNextDisabled()}
               onClick={handleNext}
@@ -424,6 +528,62 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PhotoUploadSlot({ label, hint, icon, imageUrl, uploading, onFile, onRemove, inputId, accent = false }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <label
+        htmlFor={inputId}
+        className={`relative w-full aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center p-3 cursor-pointer transition-all duration-300 overflow-hidden group ${
+          imageUrl
+            ? accent
+              ? "border-solid border-[#C9A227]"
+              : "border-solid border-[#1A1714]/30"
+            : accent
+            ? "border-[#C9A227]/40 bg-[#C9A227]/5 hover:bg-[#C9A227]/10 hover:border-[#C9A227]"
+            : "border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400"
+        }`}
+      >
+        {uploading ? (
+          <Loader2 className="w-7 h-7 text-[#C9A227] animate-spin" />
+        ) : imageUrl ? (
+          <>
+            <img src={imageUrl} alt={label} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+              <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-sans font-semibold transition-opacity duration-300 flex items-center gap-1">
+                <ImagePlus className="w-3.5 h-3.5" /> Dəyiş
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={`mb-1.5 ${accent ? "text-[#C9A227]" : "text-gray-400"}`}>{icon}</div>
+            <span className={`text-xs font-sans font-semibold ${accent ? "text-[#B8935A]" : "text-gray-500"}`}>{label}</span>
+            <span className="text-[10px] text-gray-400 mt-0.5 font-sans leading-tight">{hint}</span>
+          </>
+        )}
+        <input
+          id={inputId}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            onFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+      </label>
+      <div className="flex items-center gap-1.5">
+        <span className={`text-xs font-sans font-semibold ${accent ? "text-[#B8935A]" : "text-gray-600"}`}>{label}</span>
+        {imageUrl && !uploading && (
+          <button type="button" onClick={onRemove} className="text-gray-400 hover:text-red-500 transition-colors" title="Sil">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );

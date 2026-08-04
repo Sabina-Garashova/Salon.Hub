@@ -1,5 +1,5 @@
 import React from 'react';
-import { QrCode, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
+import { QrCode, Calendar, TrendingUp, ChevronRight, Wand2 } from 'lucide-react';
 
 export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) => {
   const getStatusBadge = (status) => {
@@ -61,6 +61,7 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Saat</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Qiymət</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Ödəniş</th>
+                  <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Görünüş</th>
                   <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                   {role === "Customer" && <th className="pb-3 text-xs font-medium text-gray-400 uppercase tracking-wider text-right">QR</th>}
                 </tr>
@@ -89,6 +90,24 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role }) =>
                     </td>
                     <td className="py-4 whitespace-nowrap pr-4">
                       {renderPayment(appt)}
+                    </td>
+                    <td className="py-4 whitespace-nowrap pr-4">
+                      {(appt.currentPhotoUrl || appt.referenceImageUrl) ? (
+                        <div className="flex items-center -space-x-2">
+                          {appt.currentPhotoUrl && (
+                            <a href={appt.currentPhotoUrl} target="_blank" rel="noreferrer" title="İndiki hal">
+                              <img src={appt.currentPhotoUrl} alt="İndiki hal" className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm hover:z-10 hover:scale-125 transition-transform" />
+                            </a>
+                          )}
+                          {appt.referenceImageUrl && (
+                            <a href={appt.referenceImageUrl} target="_blank" rel="noreferrer" title="Arzu olunan nəticə">
+                              <img src={appt.referenceImageUrl} alt="Arzu olunan" className="w-8 h-8 rounded-full object-cover border-2 border-[#C9A227] shadow-sm hover:z-10 hover:scale-125 transition-transform" />
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <Wand2 className="w-4 h-4 text-gray-200" />
+                      )}
                     </td>
                     <td className="py-4 whitespace-nowrap pr-4">
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${getStatusBadge(appt.status)}`}>

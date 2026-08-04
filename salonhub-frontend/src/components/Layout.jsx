@@ -189,7 +189,7 @@ export default function Layout({ children }) {
     <div className="min-h-screen bg-[#FAF6F0] relative">
       <div
         className="fixed inset-0 pointer-events-none bg-cover bg-center opacity-60"
-        style={{ backgroundImage: "url('/page-bg-tools.png')" }}
+        style={{ backgroundImage: "url('/page-bg-tools.webp')" }}
       />
       <div className="relative z-10">
       <header className="bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-b border-[#B8935A]/20 shadow-lg">

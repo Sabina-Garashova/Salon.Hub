@@ -43,6 +43,7 @@ namespace SalonHub.Domain.Entities
         public string PaymentMethod { get; set; } = "Card";
         public decimal? LoyaltyDiscountApplied { get; set; }
         public string? ReferenceImageUrl { get; set; }
+        public string? CurrentPhotoUrl { get; set; }
     }
 }
 

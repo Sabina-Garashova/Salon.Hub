@@ -6,7 +6,7 @@ import ReviewsManagement from "./admin/ReviewsManagement";
 import NewsManagement from "./admin/NewsManagement";
 import { useLanguage } from "../context/LanguageContext";
 import api from "../services/api";
-import { Clock,  Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper, DollarSign, RefreshCw  } from "lucide-react";
+import { Clock,  Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper, DollarSign, RefreshCw, ArrowRight  } from "lucide-react";
 
 function decodeToken(token) {
   try {
@@ -469,6 +469,24 @@ export default function EmployeeDashboard() {
                                 </span>
                                 <span className="text-gray-400">({app?.durationMinutes || 0} {t("emp_mins")})</span>
                               </div>
+                              {(app?.currentPhotoUrl || app?.referenceImageUrl) && (
+                                <div className="flex items-center gap-1.5 mt-2">
+                                  {app?.currentPhotoUrl && (
+                                    <a href={app.currentPhotoUrl} target="_blank" rel="noreferrer" className="relative group/photo" title="İndiki hal">
+                                      <img src={app.currentPhotoUrl} alt="İndiki hal" className="w-10 h-10 rounded-lg object-cover border-2 border-gray-200 group-hover/photo:border-[#B8935A] transition-colors" />
+                                    </a>
+                                  )}
+                                  {app?.currentPhotoUrl && app?.referenceImageUrl && (
+                                    <ArrowRight className="w-3.5 h-3.5 text-[#C9A227] shrink-0" />
+                                  )}
+                                  {app?.referenceImageUrl && (
+                                    <a href={app.referenceImageUrl} target="_blank" rel="noreferrer" className="relative group/photo" title="Arzu olunan nəticə">
+                                      <img src={app.referenceImageUrl} alt="Arzu olunan" className="w-10 h-10 rounded-lg object-cover border-2 border-[#C9A227]/50 group-hover/photo:border-[#C9A227] transition-colors" />
+                                    </a>
+                                  )}
+                                  <span className="text-[10px] text-[#B8935A] font-semibold ml-1">Görünüş şəkli var</span>
+                                </div>
+                              )}
                             </div>
                           </div>
 
