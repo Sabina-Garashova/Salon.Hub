@@ -66,7 +66,7 @@ export const SalonCard = ({ salon, onClick, onBook }) => {
   );
 };
 
-export const EmployeeCard = ({ employee, workPhotos = [] }) => {
+export const EmployeeCard = ({ employee, workPhotos = [], topRank = null }) => {
   const { t } = useLanguage();
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -74,7 +74,15 @@ export const EmployeeCard = ({ employee, workPhotos = [] }) => {
   };
 
   return (
-    <div className="group bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl p-6 text-center border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:border-[#C9A227]/40 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+    <div className="group relative bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl p-6 text-center border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:border-[#C9A227]/40 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+      {topRank && (
+        <div
+          className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] border-2 border-white shadow-md flex items-center justify-center z-10"
+          title={`Ən yüksək reytinqli ustalardan biri (#${topRank})`}
+        >
+          <Crown className="w-4 h-4 text-[#1A1714] fill-[#1A1714]/10" />
+        </div>
+      )}
       <div className="relative inline-block mb-5">
         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#FAF6F0] group-hover:border-[#C9A227] transition-colors duration-500 p-1">
           {employee?.profileImageUrl ? (

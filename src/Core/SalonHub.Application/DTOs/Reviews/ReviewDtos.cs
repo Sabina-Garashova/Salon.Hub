@@ -11,6 +11,7 @@
         public string? Comment { get; set; }
         public string? Response { get; set; }
         public DateTime? RespondedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class ReviewCreateDto

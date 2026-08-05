@@ -19,10 +19,12 @@ namespace SalonHub.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
-        public SalonService(IUnitOfWork unitOfWork, INotificationService notificationService)
+        private readonly IUserLookupService _userLookupService;
+        public SalonService(IUnitOfWork unitOfWork, INotificationService notificationService, IUserLookupService userLookupService)
         {
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
+            _userLookupService = userLookupService;
         }
 
         public async Task<IReadOnlyList<SalonReadDto>> GetAllAsync(string? language = null)
@@ -108,11 +110,12 @@ namespace SalonHub.Application.Services
             _unitOfWork.Salons.Update(salon);
             await _unitOfWork.CompleteAsync();
 
-            if (!string.IsNullOrWhiteSpace(ownerId))
+            var deletedBySomeoneElse = !string.Equals(ownerId, requesterId, StringComparison.Ordinal);
+            if (!string.IsNullOrWhiteSpace(ownerId) && deletedBySomeoneElse)
             {
                 await _notificationService.NotifyReservationChangedAsync(
                     ownerId,
-                    $"Salonunuz (\"{salonName}\") sistem administratoru terefinden silindi.");
+                    $"Salonunuz (\"{salonName}\") sistem administratoru tərəfindən silindi.");
             }
         }
 
@@ -120,6 +123,14 @@ namespace SalonHub.Application.Services
         {
             var reviews = await _unitOfWork.Reviews.FindAsync(r => r.SalonId == salon.Id);
             var reviewList = reviews.ToList();
+
+            string? ownerFullName = null;
+            string? ownerEmail = null;
+            if (!string.IsNullOrWhiteSpace(salon.OwnerId))
+            {
+                ownerFullName = await _userLookupService.GetFullNameAsync(salon.OwnerId);
+                ownerEmail = await _userLookupService.GetEmailAsync(salon.OwnerId);
+            }
 
             return new SalonReadDto
             {
@@ -135,7 +146,9 @@ namespace SalonHub.Application.Services
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
                 ReviewCount = reviewList.Count,
                 IsMonthlyTopSalon = salon.IsMonthlyTopSalon,
-                OwnerId = salon.OwnerId
+                OwnerId = salon.OwnerId,
+                OwnerFullName = ownerFullName,
+                OwnerEmail = ownerEmail
             };
         }
     }

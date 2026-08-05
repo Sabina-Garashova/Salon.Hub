@@ -32,6 +32,7 @@ import QRCode from "qrcode";
 import NewsSection from "../../components/NewsSection";
 import StyleRecommendationWidget from "../../components/StyleRecommendationWidget";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 
 function decodeToken(token) {
   try {
@@ -55,6 +56,7 @@ function getFirstName(fullName) {
 
 export default function Dashboard() {
   const { t, language } = useLanguage();
+  const { showToast } = useToast();
   const dateNow = new Date();
   const weekdaysByLang = {
     az: ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"],
@@ -79,6 +81,7 @@ export default function Dashboard() {
   const [salonsLoading, setSalonsLoading] = useState(true);
   const [galleryBySalon, setGalleryBySalon] = useState({});
   const [galleryByEmployee, setGalleryByEmployee] = useState({});
+  const [workPhotos, setWorkPhotos] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [allReviewsForRating, setAllReviewsForRating] = useState([]);
@@ -89,6 +92,7 @@ export default function Dashboard() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [bookingSalon, setBookingSalon] = useState(null);
   const [qrModalAppt, setQrModalAppt] = useState(null);
+  const [showAllReservationsModal, setShowAllReservationsModal] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -125,7 +129,7 @@ export default function Dashboard() {
       setCheckInResult(resp.data.reservation || null);
       setQrCode("");
     } catch (err) {
-      alert(err.response?.data?.message || "Xəta baş verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     } finally {
       setScanning(false);
     }
@@ -141,7 +145,7 @@ export default function Dashboard() {
         rating: reviewRating,
         comment: reviewComment,
       });
-      alert("Rəyiniz üçün təşəkkür edirik!");
+      showToast(t("home_review_thanks"), "success");
       setReviewModalSalon(null);
       setReviewComment("");
       setReviewEmployeeId("");
@@ -151,13 +155,13 @@ export default function Dashboard() {
       const withComments = allRevs.filter((r) => r?.comment);
       setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
     } catch (err) {
-      alert(err.response?.data?.message || "Xəta baş verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     } finally {
       setSubmittingReview(false);
     }
   };
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const decoded = token ? decodeToken(token) : null;
   const fullName =
     decoded?.["FullName"] ||
@@ -184,42 +188,33 @@ export default function Dashboard() {
       api.get("/Employee"),
       api.get("/Review"),
       api.get("/Service").catch(() => ({ data: [] })),
-      api.get("/Reservation").catch(() => ({ data: [] })),
     ])
-      .then(([salonRes, galleryRes, empRes, reviewRes, serviceRes, resvRes]) => {
+      .then(([salonRes, galleryRes, empRes, reviewRes, serviceRes]) => {
         setSalons(salonRes.data);
 
         const serviceById = {};
         (Array.isArray(serviceRes.data) ? serviceRes.data : []).forEach((s) => { serviceById[s.id] = s.name; });
-        const allResv = Array.isArray(resvRes.data) ? resvRes.data : [];
-        const completedCountByEmp = {};
-        allResv.forEach((r) => {
-          if (r.status === "Completed" && r.employeeId) {
-            completedCountByEmp[r.employeeId] = (completedCountByEmp[r.employeeId] || 0) + 1;
-          }
-        });
-        const employeesWithSpecialty = empRes.data.map((emp) => {
-          const completedCount = completedCountByEmp[emp.id] || 0;
-          const hasRealRating = emp.averageRating && emp.averageRating > 0;
-          return {
-            ...emp,
-            specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
-            averageRating: hasRealRating ? emp.averageRating : Math.min(4.9, 4.0 + completedCount * 0.1),
-          };
-        });
+        const employeesWithSpecialty = empRes.data.map((emp) => ({
+          ...emp,
+          specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
+          averageRating: emp.averageRating || 0,
+        }));
         setEmployees(employeesWithSpecialty);
 
         const map = {};
         const empMap = {};
+        const portfolioImages = [];
         (Array.isArray(galleryRes.data) ? galleryRes.data : [galleryRes.data]).forEach((img) => {
           if (img?.salonId && !map[img.salonId]) map[img.salonId] = img.imageUrl;
           if (img?.employeeId) {
             if (!empMap[img.employeeId]) empMap[img.employeeId] = [];
             empMap[img.employeeId].push(img.imageUrl);
           }
+          if (img?.type === "Portfolio") portfolioImages.push(img);
         });
         setGalleryBySalon(map);
         setGalleryByEmployee(empMap);
+        setWorkPhotos(portfolioImages.slice(0, 12));
 
         const allRevs = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
         setAllReviewsForRating(allRevs);
@@ -288,7 +283,14 @@ export default function Dashboard() {
   const todaysAppointments = allReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
 
   const statusLabel = (s) =>
-    s === "Confirmed" ? "Təsdiqlənib" : s === "Completed" ? "Tamamlanıb" : s === "Cancelled" ? "Ləğv edilib" : "Gözlənilir";
+    s === "Confirmed" ? t("status_confirmed") : s === "Completed" ? t("status_completed") : s === "Cancelled" ? t("status_cancelled") : t("status_pending");
+
+  const topEmployeeRanks = {};
+  [...employees]
+    .filter((e) => e.averageRating > 0)
+    .sort((a, b) => b.averageRating - a.averageRating)
+    .slice(0, 3)
+    .forEach((e, idx) => { topEmployeeRanks[e.id] = idx + 1; });
 
   const serviceStats = (() => {
     const completed = globalReservations.filter((r) => r.status === "Completed");
@@ -300,7 +302,7 @@ export default function Dashboard() {
     return Object.entries(counts)
       .map(([name, count]) => ({ name, percentage: Math.round((count / total) * 100) }))
       .sort((a, b) => b.percentage - a.percentage)
-      .slice(0, 3);
+      .slice(0, 5);
   })();
 
   return (
@@ -336,7 +338,7 @@ export default function Dashboard() {
                 {greeting}{firstName ? `, ${firstName}` : ""}
               </span>
               <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#1A1714] tracking-tight">{t("dash_panel_title")}</h1>
-              <p className="text-gray-400 text-xs mt-0.5 font-medium">{t("dash_panel_sub")}</p>
+              <p className="text-[#7A6A50] text-xs mt-0.5 font-medium">{t("dash_panel_sub")}</p>
             </div>
 
             <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-md border border-amber-300/30 text-sm text-gray-700 font-semibold flex items-center gap-3 self-start sm:self-center transition-all hover:shadow-md">
@@ -344,7 +346,7 @@ export default function Dashboard() {
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">{t("dash_current_date")}</div>
+                <div className="text-[11px] text-[#7A6A50] font-bold uppercase tracking-wider">{t("dash_current_date")}</div>
                 <div className="font-mono text-[#1A1714] capitalize">{dateStr}</div>
               </div>
             </div>
@@ -361,8 +363,14 @@ export default function Dashboard() {
             />
 
           )}
+          {role === "Employee" && (
+            <HomeCTASection
+              onApplySalon={() => setShowSalonApplicationModal(true)}
+              onlySalon
+            />
+          )}
           {/* 4. AI Stil Tövsiyəsi Vidceti */}
-          {role === "Customer" && <StyleRecommendationWidget />}
+          <StyleRecommendationWidget />
 
           {/* 5. Salonlarımız Bölməsi */}
           <div id="salons-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
@@ -372,18 +380,18 @@ export default function Dashboard() {
                   <Building2 className="w-5 h-5 text-[#C9A227]" />
                   {t("dash_our_salons")}
                 </h3>
-                <p className="text-xs text-gray-400 font-medium">{t("dash_our_salons_sub")}</p>
+                <p className="text-xs text-[#7A6A50] font-medium">{t("dash_our_salons_sub")}</p>
               </div>
-              <div className="text-gray-300">
+              <div className="text-[#B8A578]">
                 <Scissors className="w-5 h-5 opacity-40 rotate-90" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {salonsLoading ? (
-                <p className="text-sm text-gray-400 col-span-full">Yüklənir...</p>
+                <p className="text-sm text-[#7A6A50] col-span-full">{t("dash_loading")}</p>
               ) : salons.length === 0 ? (
-                <p className="text-sm text-gray-400 col-span-full">Hələ salon əlavə edilməyib.</p>
+                <p className="text-sm text-[#7A6A50] col-span-full">{t("dash_no_salons_yet")}</p>
               ) : (
                 salons.map((salon) => (
                   <SalonCard
@@ -405,10 +413,27 @@ export default function Dashboard() {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {employees.map((emp) => (
-                <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} />
+                <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} topRank={topEmployeeRanks[emp.id] || null} />
               ))}
             </div>
           </div>
+
+          {/* İşlərimiz Bölməsi */}
+          {workPhotos.length > 0 && (
+            <div id="works-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
+              <h3 className="text-xl font-serif font-bold text-[#1A1714] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#C9A227]" />
+                {t("sp_our_works")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {workPhotos.map((photo) => (
+                  <div key={photo.id} className="aspect-square rounded-xl overflow-hidden border border-amber-300/30 shadow-sm">
+                    <img src={photo.imageUrl} alt={photo.description || t("sp_our_works")} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Xəbərlər */}
           <div id="news-section"><NewsSection limit={3} /></div>
@@ -433,7 +458,7 @@ export default function Dashboard() {
                             <Star key={i} className={"w-3 h-3 " + (i < rev.rating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-200 fill-gray-200")} />
                           ))}
                         </div>
-                        {s && <span className="text-xs text-gray-400 truncate max-w-[50%]">{s.name}</span>}
+                        {s && <span className="text-xs text-[#7A6A50] truncate max-w-[50%]">{s.name}</span>}
                       </div>
                     </div>
                   );
@@ -454,6 +479,11 @@ export default function Dashboard() {
                 }))}
                 onShowQr={(appt) => setQrModalAppt(appt)}
                 role={role}
+                onShowAll={
+                  role === "SuperAdmin" || role === "SalonAdmin"
+                    ? () => navigate("/admin", { state: { tab: "AllReservations" } })
+                    : () => setShowAllReservationsModal(true)
+                }
               />
             </div>
 
@@ -469,18 +499,54 @@ export default function Dashboard() {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-3 max-h-[90vh] overflow-y-auto"
               >
-                <h3 className="text-lg font-serif font-bold text-[#1A1714]">Check-in QR Kodu</h3>
+                <h3 className="text-lg font-serif font-bold text-[#1A1714]">{t("qr_checkin_title")}</h3>
                 {qrDataUrl ? (
                   <img src={qrDataUrl} alt="QR" className="mx-auto rounded-xl border border-gray-100" />
                 ) : (
-                  <p className="text-sm text-gray-400 py-10">QR kodu yuklenir...</p>
+                  <p className="text-sm text-[#7A6A50] py-10">{t("qr_loading")}</p>
                 )}
                 <button
                   onClick={() => setQrModalAppt(null)}
                   className="w-full py-2.5 rounded-xl bg-[#1A1714] text-white font-medium text-sm hover:bg-[#2B2118]"
                 >
-                  Bagla
+                  {t("common_close")}
                 </button>
+              </div>
+            </div>
+          )}
+
+          {showAllReservationsModal && (
+            <div
+              onClick={() => setShowAllReservationsModal(false)}
+              className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-3xl shadow-2xl border border-[#E5D2B1] p-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-serif font-bold text-[#1A1714]">{t("all_reservations_title")}</h3>
+                  <button
+                    onClick={() => setShowAllReservationsModal(false)}
+                    className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <TodayAppointmentsTable
+                  appointments={[...allReservations]
+                    .filter((r) => r.reservationDate?.split("T")[0] >= todayStr)
+                    .sort((a, b) => new Date(a.reservationDate) - new Date(b.reservationDate) || (a.startTime || "").localeCompare(b.startTime || ""))
+                    .map((appt) => ({
+                      ...appt,
+                      time: appt.startTime?.slice(0, 5),
+                      rawPrice: appt.price,
+                      price: appt.price + " AZN",
+                      status: statusLabel(appt.status),
+                    }))}
+                  onShowQr={(appt) => { setShowAllReservationsModal(false); setQrModalAppt(appt); }}
+                  role={role}
+                />
               </div>
             </div>
           )}
@@ -494,27 +560,27 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-md rounded-3xl shadow-2xl border border-[#E5D2B1] overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - Rəy yaz</h3>
-              <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
+              <h3 className="font-serif font-bold text-lg text-[#1A1714]">{reviewModalSalon.name} - {t("review_modal_write_review")}</h3>
+              <button onClick={() => setReviewModalSalon(null)} className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-[#6B5D45]">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form onSubmit={handleSubmitReview} className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Hansı usta ilə işlədin? (Könüllü)</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">{t("review_modal_which_employee")}</label>
                 <select
                   value={reviewEmployeeId}
                   onChange={(e) => setReviewEmployeeId(e.target.value)}
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 >
-                  <option value="">Sadece salona rəy ver</option>
+                  <option value="">{t("review_modal_salon_only")}</option>
                   {employees.filter((e) => e.salonId === reviewModalSalon?.id).map((e) => (
                     <option key={e.id} value={e.id}>{e.fullName}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Reytinq</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">{t("review_modal_rating")}</label>
                 <div className="flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <button key={i} type="button" onClick={() => setReviewRating(i + 1)} className="p-1">
@@ -524,13 +590,13 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">Rəyiniz</label>
+                <label className="text-xs font-bold text-[#1A1714] uppercase tracking-wider block mb-2">{t("review_modal_your_review")}</label>
                 <textarea
                   rows={4}
                   required
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Fikirlərinizi bölüşün..."
+                  placeholder={t("review_modal_placeholder")}
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 />
               </div>
@@ -539,7 +605,7 @@ export default function Dashboard() {
                 disabled={submittingReview}
                 className="w-full py-3 bg-gradient-to-r from-[#C9A227] to-[#B8935A] text-[#1A1714] font-bold rounded-xl shadow-md hover:opacity-95 transition"
               >
-                {submittingReview ? "Göndərilir..." : "Rəyi Göndər"}
+                {submittingReview ? t("review_modal_sending") : t("review_modal_send")}
               </button>
             </form>
           </div>

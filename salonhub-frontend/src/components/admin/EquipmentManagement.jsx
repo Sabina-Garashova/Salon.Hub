@@ -57,8 +57,18 @@ export default function EquipmentManagement({
     status: 'Active'
   });
 
-  const STATUS_LABELS = { Active: 'Islek', Busy: 'Mesgul', Faulty: 'Xarab', InRepair: 'Temirde' };
+  const STATUS_LABELS = { Active: 'İşlək', Busy: 'Məşğul', Faulty: 'Xarab', InRepair: 'Təmirdə' };
   const normalizeStatus = (status) => STATUS_LABELS[status] || status;
+
+  const TYPE_LABELS = {
+    'Lazer Cihazi': 'Lazer Cihazı',
+    'Manikur ve Pedikur Avadanligi': 'Manikür və Pedikür Avadanlığı',
+    'Elektrik Cihazlari': 'Elektrik Cihazları',
+    'Mebel': 'Mebel',
+    'Kosmetoloji Avadanligi': 'Kosmetoloji Avadanlığı',
+    'Diger': 'Digər'
+  };
+  const typeLabel = (type) => TYPE_LABELS[type] || type;
 
   const totalCount = equipment.length;
   const workingCount = equipment.filter((item) => item.status === 'Active').length;
@@ -90,7 +100,7 @@ export default function EquipmentManagement({
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          Islek
+          İşlək
         </span>
       );
     }
@@ -98,7 +108,7 @@ export default function EquipmentManagement({
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-          Temirde
+          Təmirdə
         </span>
       );
     }
@@ -106,7 +116,7 @@ export default function EquipmentManagement({
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          Mesgul
+          Məşğul
         </span>
       );
     }
@@ -168,10 +178,10 @@ export default function EquipmentManagement({
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#B8935A]/30 pb-6">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1714] font-serif">
-              Avadanliq Idareetmesi
+              Avadanlıq İdarəetməsi
             </h1>
             <p className="text-sm text-[#1A1714]/70 mt-1">
-              Salon sebekesinin texniki techizati, statuslari ve tehkim olunmus ustalar.
+              Salon şəbəkəsinin texniki təchizatı, statusları və təhkim olunmuş ustalar.
             </p>
           </div>
 
@@ -180,7 +190,7 @@ export default function EquipmentManagement({
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow-md hover:shadow-lg bg-[#C9A227] hover:bg-[#B8935A] text-[#1A1714]"
           >
             <Plus className="w-4 h-4" />
-            <span>Yeni Avadanliq Elave Et</span>
+            <span>Yeni Avadanlıq Əlavə Et</span>
           </button>
         </div>
 
@@ -188,7 +198,7 @@ export default function EquipmentManagement({
           <div className="p-5 rounded-xl bg-white border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-[#1A1714]/60 uppercase tracking-wider">
-                Umumi Avadanliq
+                Ümumi Avadanlıq
               </p>
               <h3 className="text-2xl font-bold text-[#1A1714] mt-1">{totalCount}</h3>
             </div>
@@ -200,7 +210,7 @@ export default function EquipmentManagement({
           <div className="p-5 rounded-xl bg-white border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-[#1A1714]/60 uppercase tracking-wider">
-                Islek Veziyyetde
+                İşlək Vəziyyətdə
               </p>
               <h3 className="text-2xl font-bold text-emerald-700 mt-1">{workingCount}</h3>
             </div>
@@ -212,7 +222,7 @@ export default function EquipmentManagement({
           <div className="p-5 rounded-xl bg-white border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-[#1A1714]/60 uppercase tracking-wider">
-                Temirde Olanlar
+                Təmirdə Olanlar
               </p>
               <h3 className="text-2xl font-bold text-amber-700 mt-1">{repairCount}</h3>
             </div>
@@ -224,7 +234,7 @@ export default function EquipmentManagement({
           <div className="p-5 rounded-xl bg-white border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-[#1A1714]/60 uppercase tracking-wider">
-                Xaric Edilmis
+                Xaric Edilmiş
               </p>
               <h3 className="text-2xl font-bold text-rose-700 mt-1">{discardedCount}</h3>
             </div>
@@ -239,7 +249,7 @@ export default function EquipmentManagement({
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#1A1714]/40" />
             <input
               type="text"
-              placeholder="Avadanliq adi ve ya tipi..."
+              placeholder="Avadanlıq adı və ya tipi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm bg-[#FAF6F0] border border-[#B8935A]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A227] transition"
@@ -249,10 +259,10 @@ export default function EquipmentManagement({
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             <Filter className="w-4 h-4 text-[#B8935A] shrink-0 mr-1" />
             {[
-              { key: 'Hamisi', label: 'Hamisi' },
-              { key: 'Active', label: 'Islek' },
-              { key: 'Busy', label: 'Mesgul' },
-              { key: 'InRepair', label: 'Temirde' },
+              { key: 'Hamisi', label: 'Hamısı' },
+              { key: 'Active', label: 'İşlək' },
+              { key: 'Busy', label: 'Məşğul' },
+              { key: 'InRepair', label: 'Təmirdə' },
               { key: 'Faulty', label: 'Xarab' }
             ].map((s) => {
               const active = statusFilter === s.key;
@@ -295,7 +305,7 @@ export default function EquipmentManagement({
                   </div>
 
                   <span className="text-xs font-semibold px-3 py-1 bg-[#FAF6F0] text-[#B8935A] rounded-full border border-[#B8935A]/20">
-                    {branchEquipment.length} Avadanliq
+                    {branchEquipment.length} Avadanlıq
                   </span>
                 </div>
 
@@ -303,7 +313,7 @@ export default function EquipmentManagement({
                   <div className="text-center py-8 bg-[#FAF6F0]/50 rounded-xl border border-dashed border-[#B8935A]/30">
                     <Wrench className="w-8 h-8 text-[#B8935A]/40 mx-auto mb-2" />
                     <p className="text-sm text-[#1A1714]/60">
-                      Bu filialda secilmis filtre uygun avadanliq tapilmadi.
+                      Bu filialda seçilmiş filtrə uyğun avadanlıq tapılmadı.
                     </p>
                   </div>
                 ) : (
@@ -326,7 +336,7 @@ export default function EquipmentManagement({
                                 </div>
                                 <div>
                                   <span className="text-[11px] uppercase tracking-wider text-[#B8935A] font-semibold">
-                                    {item.type}
+                                    {typeLabel(item.type)}
                                   </span>
                                   <h3 className="text-base font-bold text-[#1A1714] leading-snug">
                                     {item.name}
@@ -355,7 +365,7 @@ export default function EquipmentManagement({
                                   )}
                                   <div className="truncate">
                                     <p className="text-[10px] text-[#1A1714]/50 leading-none">
-                                      Istifade edir:
+                                      İstifadə edir:
                                     </p>
                                     <p className="text-xs font-semibold text-[#1A1714] truncate mt-0.5">
                                       {assignedEmployee.fullName}
@@ -364,7 +374,7 @@ export default function EquipmentManagement({
                                 </>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-xs text-[#1A1714]/60 font-medium px-2 py-0.5 rounded bg-gray-200/60">
-                                  Serbest
+                                  Sərbəst
                                 </span>
                               )}
                             </div>
@@ -373,7 +383,7 @@ export default function EquipmentManagement({
                               <button
                                 onClick={() => handleOpenEdit(item)}
                                 className="p-1.5 rounded-lg text-[#1A1714]/70 hover:text-[#C9A227] hover:bg-white transition border border-transparent hover:border-[#B8935A]/20"
-                                title="Redakte et"
+                                title="Redaktə et"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -401,7 +411,7 @@ export default function EquipmentManagement({
             <div className="bg-white rounded-2xl max-w-md w-full border border-[#B8935A]/30 shadow-2xl overflow-hidden">
               <div className="bg-[#1A1714] p-5 text-white flex items-center justify-between">
                 <h3 className="text-lg font-bold text-[#F0D68A] font-serif">
-                  Yeni Avadanliq Elave Et
+                  Yeni Avadanlıq Əlavə Et
                 </h3>
                 <button
                   onClick={() => setIsCreateOpen(false)}
@@ -414,7 +424,7 @@ export default function EquipmentManagement({
               <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase text-[#1A1714]/70 mb-1">
-                    Avadanliq Adi
+                    Avadanlıq Adı
                   </label>
                   <input
                     type="text"
@@ -439,12 +449,12 @@ export default function EquipmentManagement({
                     }
                     className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#B8935A]/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   >
-                    <option value="Lazer Cihazi">Lazer Cihazi</option>
-                    <option value="Manikur ve Pedikur Avadanligi">Manikur ve Pedikur Avadanligi</option>
-                    <option value="Elektrik Cihazlari">Elektrik Cihazlari (sac qurutucu, ütü ve s.)</option>
-                    <option value="Mebel">Mebel (carpayi, kreslo, stul ve s.)</option>
-                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanligi</option>
-                    <option value="Diger">Diger</option>
+                    <option value="Lazer Cihazi">Lazer Cihazı</option>
+                    <option value="Manikur ve Pedikur Avadanligi">Manikür və Pedikür Avadanlığı</option>
+                    <option value="Elektrik Cihazlari">Elektrik Cihazları (saç qurutucu, ütü və s.)</option>
+                    <option value="Mebel">Mebel (çarpayı, kreslo, stul və s.)</option>
+                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanlığı</option>
+                    <option value="Diger">Digər</option>
                   </select>
                 </div>
 
@@ -473,13 +483,13 @@ export default function EquipmentManagement({
                     onClick={() => setIsCreateOpen(false)}
                     className="px-4 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
                   >
-                    Legv Et
+                    Ləğv Et
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#C9A227] hover:bg-[#B8935A] text-[#1A1714] transition"
                   >
-                    Elave Et
+                    Əlavə Et
                   </button>
                 </div>
               </form>
@@ -492,7 +502,7 @@ export default function EquipmentManagement({
             <div className="bg-white rounded-2xl max-w-md w-full border border-[#B8935A]/30 shadow-2xl overflow-hidden">
               <div className="bg-[#1A1714] p-5 text-white flex items-center justify-between">
                 <h3 className="text-lg font-bold text-[#F0D68A] font-serif">
-                  Avadanligi Redakte Et
+                  Avadanlığı Redaktə Et
                 </h3>
                 <button
                   onClick={() => setIsEditOpen(false)}
@@ -505,7 +515,7 @@ export default function EquipmentManagement({
               <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase text-[#1A1714]/70 mb-1">
-                    Avadanliq Adi
+                    Avadanlıq Adı
                   </label>
                   <input
                     type="text"
@@ -531,14 +541,14 @@ export default function EquipmentManagement({
                     className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#B8935A]/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   >
                     {!['Lazer Cihazi', 'Manikur ve Pedikur Avadanligi', 'Elektrik Cihazlari', 'Mebel', 'Kosmetoloji Avadanligi', 'Diger'].includes(editForm.type) && editForm.type && (
-                      <option value={editForm.type}>{editForm.type} (kohne deyer)</option>
+                      <option value={editForm.type}>{typeLabel(editForm.type)} (köhnə dəyər)</option>
                     )}
-                    <option value="Lazer Cihazi">Lazer Cihazi</option>
-                    <option value="Manikur ve Pedikur Avadanligi">Manikur ve Pedikur Avadanligi</option>
-                    <option value="Elektrik Cihazlari">Elektrik Cihazlari (sac qurutucu, ütü ve s.)</option>
-                    <option value="Mebel">Mebel (carpayi, kreslo, stul ve s.)</option>
-                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanligi</option>
-                    <option value="Diger">Diger</option>
+                    <option value="Lazer Cihazi">Lazer Cihazı</option>
+                    <option value="Manikur ve Pedikur Avadanligi">Manikür və Pedikür Avadanlığı</option>
+                    <option value="Elektrik Cihazlari">Elektrik Cihazları (saç qurutucu, ütü və s.)</option>
+                    <option value="Mebel">Mebel (çarpayı, kreslo, stul və s.)</option>
+                    <option value="Kosmetoloji Avadanligi">Kosmetoloji Avadanlığı</option>
+                    <option value="Diger">Digər</option>
                   </select>
                 </div>
 
@@ -553,9 +563,9 @@ export default function EquipmentManagement({
                     }
                     className="w-full px-3 py-2 bg-[#FAF6F0] border border-[#B8935A]/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   >
-                    <option value="Active">Islek</option>
-                    <option value="Busy">Mesgul</option>
-                    <option value="InRepair">Temirde</option>
+                    <option value="Active">İşlək</option>
+                    <option value="Busy">Məşğul</option>
+                    <option value="InRepair">Təmirdə</option>
                     <option value="Faulty">Xarab</option>
                   </select>
                 </div>
@@ -566,13 +576,13 @@ export default function EquipmentManagement({
                     onClick={() => setIsEditOpen(false)}
                     className="px-4 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
                   >
-                    Legv Et
+                    Ləğv Et
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#C9A227] hover:bg-[#B8935A] text-[#1A1714] transition"
                   >
-                    Yenile
+                    Yenilə
                   </button>
                 </div>
               </form>
@@ -589,10 +599,10 @@ export default function EquipmentManagement({
 
               <div>
                 <h3 className="text-base font-bold text-[#1A1714]">
-                  Avadanligi silmeye eminsiniz?
+                  Avadanlığı silməyə əminsiniz?
                 </h3>
                 <p className="text-xs text-[#1A1714]/60 mt-1">
-                  Bu emeliyyat geri qaytarila bilmez.
+                  Bu əməliyyat geri qaytarıla bilməz.
                 </p>
               </div>
 
@@ -601,13 +611,13 @@ export default function EquipmentManagement({
                   onClick={() => setDeleteConfirmId(null)}
                   className="px-4 py-2 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
                 >
-                  Legv Et
+                  Ləğv Et
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition"
                 >
-                  Beli, Sil
+                  Bəli, Sil
                 </button>
               </div>
             </div>

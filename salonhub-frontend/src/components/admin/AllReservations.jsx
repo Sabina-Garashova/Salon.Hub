@@ -15,7 +15,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-export default function AllReservations({ reservations = [] }) {
+export default function AllReservations({ reservations = [], isSuperAdmin = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sortByDate, setSortByDate] = useState('newest');
@@ -117,16 +117,20 @@ export default function AllReservations({ reservations = [] }) {
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#B8935A]/20 pb-5">
         <div>
           <h1 className="text-3xl font-bold font-serif tracking-wide text-[#1A1714]">
-            Butun Rezervasiyalar
+            {isSuperAdmin ? "Bütün Rezervasiyalar" : "Rezervasiyalarım"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">SalonHub sistemindeki butun rezervasiyalarin idare edilmesi (SuperAdmin)</p>
+          <p className="text-sm text-[#6B5D45] mt-1">
+            {isSuperAdmin
+              ? "SalonHub sistemindəki bütün rezervasiyaların idarə edilməsi (SuperAdmin)"
+              : "Salonunuzdakı bütün rezervasiyaların idarə edilməsi"}
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-xl border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
+        <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] p-5 rounded-xl border border-[#E5D2B1] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Umumi Rezervasiya</p>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Ümumi Rezervasiya</p>
             <h3 className="text-2xl font-bold mt-1 text-[#1A1714] font-serif">{stats.total}</h3>
           </div>
           <div className="p-3 rounded-lg bg-[#1A1714] text-[#F0D68A]">
@@ -134,9 +138,9 @@ export default function AllReservations({ reservations = [] }) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
+        <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] p-5 rounded-xl border border-[#E5D2B1] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Tamamlanmis</p>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Tamamlanmış</p>
             <h3 className="text-2xl font-bold mt-1 text-emerald-600 font-serif">{stats.completed}</h3>
           </div>
           <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -144,9 +148,9 @@ export default function AllReservations({ reservations = [] }) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-[#B8935A]/20 shadow-sm flex items-center justify-between">
+        <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] p-5 rounded-xl border border-[#E5D2B1] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Legv Edilmis</p>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Ləğv Edilmiş</p>
             <h3 className="text-2xl font-bold mt-1 text-red-600 font-serif">{stats.cancelled}</h3>
           </div>
           <div className="p-3 rounded-lg bg-red-50 text-red-600 border border-red-100">
@@ -154,15 +158,15 @@ export default function AllReservations({ reservations = [] }) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-[#C9A227]/30 bg-gradient-to-br from-white to-[#FAF6F0] shadow-sm flex items-center justify-between">
+        <div className="p-5 rounded-xl border border-[#C9A227]/30 bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Umumi Gelir (Tamamlanan)</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Ümumi Gəlir (Tamamlanan)</p>
             <h3 className="text-2xl font-bold mt-1 text-[#C9A227] font-serif">
               {stats.totalRevenue.toFixed(2)} AZN
             </h3>
             <div className="flex items-center gap-1.5 mt-1.5 text-[10px]">
               <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Kartla: {stats.cardRevenue.toFixed(2)} AZN</span>
-              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Bal ile: {stats.loyaltyRevenue.toFixed(2)} AZN</span>
+              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Bal ilə: {stats.loyaltyRevenue.toFixed(2)} AZN</span>
             </div>
           </div>
           <div className="p-3 rounded-lg bg-[#C9A227] text-white">
@@ -171,7 +175,7 @@ export default function AllReservations({ reservations = [] }) {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-[#B8935A]/20 shadow-sm mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#F6EAD3] to-[#EFDFC0] p-4 rounded-xl border border-[#E5D2B1] shadow-sm mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
         
         <div className="relative w-full lg:max-w-md">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
@@ -180,7 +184,7 @@ export default function AllReservations({ reservations = [] }) {
           <input
             type="text"
             className="w-full pl-9 pr-4 py-2 bg-[#FAF6F0]/50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227] focus:border-transparent transition-all"
-            placeholder="Musteri, usta ve ya xidmet adi ile axtar..."
+            placeholder="Müştəri, usta və ya xidmət adı ilə axtar..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
@@ -195,11 +199,11 @@ export default function AllReservations({ reservations = [] }) {
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
             >
-              <option value="All">Butun Statuslar</option>
-              <option value="Pending">Gozlemede</option>
-              <option value="Confirmed">Tesdiqlenib</option>
-              <option value="Completed">Tamamlanib</option>
-              <option value="Cancelled">Legv edilib</option>
+              <option value="All">Bütün Statuslar</option>
+              <option value="Pending">Gözləmədə</option>
+              <option value="Confirmed">Təsdiqlənib</option>
+              <option value="Completed">Tamamlanıb</option>
+              <option value="Cancelled">Ləğv edilib</option>
             </select>
           </div>
 
@@ -208,26 +212,26 @@ export default function AllReservations({ reservations = [] }) {
             value={sortByDate}
             onChange={(e) => setSortByDate(e.target.value)}
           >
-            <option value="newest">Evvelce Yeniler</option>
-            <option value="oldest">Evvelce Kohneler</option>
+            <option value="newest">Əvvəlcə Yenilər</option>
+            <option value="oldest">Əvvəlcə Köhnələr</option>
           </select>
 
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#B8935A]/20 shadow-sm overflow-hidden">
+      <div className="bg-[#FAF6F0] rounded-xl border border-[#B8935A]/20 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#1A1714] text-[#F0D68A] text-xs uppercase tracking-wider font-semibold">
                 <th className="py-4 px-6 border-b border-[#B8935A]/20">ID</th>
-                <th className="py-4 px-6 border-b border-[#B8935A]/20">Musteri</th>
+                <th className="py-4 px-6 border-b border-[#B8935A]/20">Müştəri</th>
                 <th className="py-4 px-6 border-b border-[#B8935A]/20">Usta</th>
-                <th className="py-4 px-6 border-b border-[#B8935A]/20">Xidmet</th>
-                <th className="py-4 px-6 border-b border-[#B8935A]/20">Tarix ve Saat</th>
-                <th className="py-4 px-6 border-b border-[#B8935A]/20">Qiymet</th>
+                <th className="py-4 px-6 border-b border-[#B8935A]/20">Xidmət</th>
+                <th className="py-4 px-6 border-b border-[#B8935A]/20">Tarix və Saat</th>
+                <th className="py-4 px-6 border-b border-[#B8935A]/20">Qiymət</th>
                 <th className="py-4 px-6 border-b border-[#B8935A]/20">Status</th>
-                <th className="py-4 px-6 border-b border-[#B8935A]/20">Odenis</th>
+                <th className="py-4 px-6 border-b border-[#B8935A]/20">Ödəniş</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
@@ -250,7 +254,7 @@ export default function AllReservations({ reservations = [] }) {
                           <span className="text-gray-800">{res.customerFullName}</span>
                         </div>
                       ) : (
-                        <span className="text-gray-400 italic font-normal">Musteri</span>
+                        <span className="text-gray-400 italic font-normal">Müştəri</span>
                       )}
                     </td>
 
@@ -260,7 +264,7 @@ export default function AllReservations({ reservations = [] }) {
                           <Users className="w-3.5 h-3.5 text-[#B8935A]" /> {res.employeeName}
                         </span>
                       ) : (
-                        <span className="text-gray-400 italic text-xs">Teyin edilmeyib</span>
+                        <span className="text-gray-400 italic text-xs">Təyin edilməyib</span>
                       )}
                     </td>
 
@@ -317,8 +321,8 @@ export default function AllReservations({ reservations = [] }) {
                   <td colSpan="8" className="py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <AlertCircle className="w-10 h-10 text-[#B8935A] mb-3 stroke-1" />
-                      <p className="text-base font-medium text-gray-600">Uygun rezervasiya tapilmadi</p>
-                      <p className="text-xs text-gray-400 mt-1">Zehmet olmasa axtaris parametrlerini ve ya filtrleri deyisin.</p>
+                      <p className="text-base font-medium text-gray-600">Uyğun rezervasiya tapılmadı</p>
+                      <p className="text-xs text-gray-400 mt-1">Zəhmət olmasa axtarış parametrlərini və ya filtrləri dəyişin.</p>
                     </div>
                   </td>
                 </tr>
@@ -328,10 +332,10 @@ export default function AllReservations({ reservations = [] }) {
         </div>
 
         {totalPages > 1 && (
-          <div className="bg-white px-6 py-4 border-t border-gray-100 flex items-center justify-between flex-col sm:flex-row gap-4">
+          <div className="bg-[#F1E2C5] px-6 py-4 border-t border-[#E5D2B1] flex items-center justify-between flex-col sm:flex-row gap-4">
             <div className="text-xs text-gray-500">
-              Toplam <span className="font-semibold text-gray-700">{filteredAndSortedReservations.length}</span> neticeden 
-              <span className="font-semibold text-gray-700"> {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredAndSortedReservations.length)}</span> arasi gosterilir.
+              Toplam <span className="font-semibold text-gray-700">{filteredAndSortedReservations.length}</span> nəticədən
+              <span className="font-semibold text-gray-700"> {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredAndSortedReservations.length)}</span> arası göstərilir.
             </div>
             
             <div className="flex items-center gap-1">

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import WorkingHoursView from "../../components/admin/WorkingHoursView";
 import BranchManagement from "../../components/admin/BranchManagement";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
   Calendar, Image, Star, BarChart3, Building2, UserCog, Award, Newspaper,
@@ -38,7 +40,9 @@ function decodeToken(token) {
 }
 
 export default function AdminPanel() {
-  const token = localStorage.getItem("token");
+  const { t } = useLanguage();
+  const { showToast } = useToast();
+  const token = sessionStorage.getItem("token");
   const decoded = token ? decodeToken(token) : null;
   const role =
     decoded?.role ||
@@ -72,6 +76,7 @@ export default function AdminPanel() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [editItem, setEditItem] = useState(null);
+  const [isLogoLightboxOpen, setIsLogoLightboxOpen] = useState(false);
 
   const [empForm, setEmpForm] = useState({ fullName: "", phoneNumber: "", bio: "", applicationUserId: "", email: "", salonId: "", branchId: "", assignedEquipmentId: "", serviceIds: [], salary: "" });
   const [mySalonForm, setMySalonForm] = useState({ name: "", address: "", phoneNumber: "", description: "" });
@@ -101,47 +106,48 @@ export default function AdminPanel() {
         descriptionAz: mySalonForm.description,
       });
       setSalons(salons.map((s) => (s.id === mySalon.id ? { ...s, ...mySalonForm } : s)));
-      alert("Salon melumatlari yenilendi.");
+      showToast(t("admin_salon_updated_success"), "success");
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     } finally {
       setSavingMySalon(false);
     }
   };
 
   const salonAdminTabs = [
-    { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
-    { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
-    { id: "MySalon", name: "Salonum", icon: Building2 },
-    { id: "Branches", name: "Filiallar", icon: Building2 },
-    { id: "Employees", name: "Iscilerim", icon: Users },
-    { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
-    { id: "Categories", name: "Kateqoriyalar", icon: Tag },
-    { id: "Services", name: "Xidmetlerim", icon: Scissors },
-    { id: "Equipment", name: "Avadanliq", icon: Wrench },
-    { id: "News", name: "Xeberler", icon: Newspaper },
-    { id: "Tags", name: "Tag-lar", icon: Hash },
-    { id: "Reviews", name: "Reyler", icon: Star },
-    { id: "Analytics", name: "Analitika", icon: TrendingUp },
+    { id: "Dashboard", name: t("admin_nav_dashboard"), icon: LayoutDashboard },
+    { id: "Applications", name: t("admin_nav_applications"), icon: Inbox, badge: applications.length || null },
+    { id: "MySalon", name: t("admin_nav_my_salon"), icon: Building2 },
+    { id: "Branches", name: t("admin_nav_branches"), icon: Building2 },
+    { id: "AllReservations", name: t("admin_nav_all_reservations"), icon: Calendar },
+    { id: "Employees", name: t("admin_nav_employees"), icon: Users },
+    { id: "WorkingHours", name: t("admin_nav_working_hours"), icon: Clock },
+    { id: "Categories", name: t("admin_nav_categories"), icon: Tag },
+    { id: "Services", name: t("admin_nav_services"), icon: Scissors },
+    { id: "Equipment", name: t("admin_nav_equipment"), icon: Wrench },
+    { id: "News", name: t("admin_nav_news"), icon: Newspaper },
+    { id: "Tags", name: t("admin_nav_tags"), icon: Hash },
+    { id: "Reviews", name: t("admin_nav_reviews"), icon: Star },
+    { id: "Analytics", name: t("admin_nav_analytics"), icon: TrendingUp },
   ];
 
   const superAdminTabs = [
-    { id: "Dashboard", name: "Ana Sehife", icon: LayoutDashboard },
-    { id: "Applications", name: "Muracietler", icon: Inbox, badge: applications.length || null },
-    { id: "AllSalons", name: "Butun Salonlar", icon: Building2 },
-    { id: "Branches", name: "Filiallar", icon: Building2 },
-    { id: "AllReservations", name: "Butun Rezervasiyalar", icon: Calendar },
-    { id: "Employees", name: "Iscilerim", icon: Users },
-    { id: "WorkingHours", name: "Is Saatlari", icon: Clock },
-    { id: "Categories", name: "Kateqoriyalar", icon: Tag },
-    { id: "Services", name: "Xidmetlerim", icon: Scissors },
-    { id: "Equipment", name: "Avadanliq", icon: Wrench },
-    { id: "Tags", name: "Tag-lar", icon: Hash },
-    { id: "Reviews", name: "Reyler", icon: Star },
-    { id: "News", name: "Xeberler", icon: Newspaper },
-    { id: "SystemJobs", name: "Sistem Isleri", icon: Settings },
-    { id: "Analytics", name: "Analitika", icon: TrendingUp },
-    { id: "AuditLogs", name: "Audit Loglari", icon: FileClock },
+    { id: "Dashboard", name: t("admin_nav_dashboard"), icon: LayoutDashboard },
+    { id: "Applications", name: t("admin_nav_applications"), icon: Inbox, badge: (applications.length + salonApplications.length) || null },
+    { id: "AllSalons", name: t("admin_nav_all_salons"), icon: Building2 },
+    { id: "Branches", name: t("admin_nav_branches"), icon: Building2 },
+    { id: "AllReservations", name: t("admin_nav_all_reservations_super"), icon: Calendar },
+    { id: "Employees", name: t("admin_nav_employees"), icon: Users },
+    { id: "WorkingHours", name: t("admin_nav_working_hours"), icon: Clock },
+    { id: "Categories", name: t("admin_nav_categories"), icon: Tag },
+    { id: "Services", name: t("admin_nav_services"), icon: Scissors },
+    { id: "Equipment", name: t("admin_nav_equipment"), icon: Wrench },
+    { id: "Tags", name: t("admin_nav_tags"), icon: Hash },
+    { id: "Reviews", name: t("admin_nav_reviews"), icon: Star },
+    { id: "News", name: t("admin_nav_news"), icon: Newspaper },
+    { id: "SystemJobs", name: t("admin_nav_system_jobs"), icon: Settings },
+    { id: "Analytics", name: t("admin_nav_analytics"), icon: TrendingUp },
+    { id: "AuditLogs", name: t("admin_nav_audit_logs"), icon: FileClock },
   ];
 
   const currentTabs = isSuperAdmin ? superAdminTabs : salonAdminTabs;
@@ -179,7 +185,7 @@ export default function AdminPanel() {
           setServices(servRes.data);
           setCategories(catRes.data);
         }
-        if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard") {
+        if (activeTab === "AllSalons" || activeTab === "Employees" || activeTab === "Services" || activeTab === "Categories" || activeTab === "Dashboard" || activeTab === "AllReservations") {
           const salonRes = await api.get("/salon");
           setSalons(salonRes.data);
         }
@@ -222,41 +228,48 @@ export default function AdminPanel() {
     try {
       const payload = agreedSalary[id] ? { agreedSalary: Number(agreedSalary[id]) } : {};
       const res = await api.post(`/SpecialistApplication/${id}/approve`, payload);
-      alert(res.data.message);
+      showToast(res.data.message, "success");
+      if (res.data.staffEmail && res.data.staffPassword) {
+        showToast(
+          `${t("admin_staff_credentials_prefix")} ${res.data.staffEmail} / ${res.data.staffPassword}`,
+          "info",
+          15000
+        );
+      }
       setApplications(applications.filter((a) => a.id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
   const handleApproveSalonApplication = async (id) => {
     try {
       const res = await api.post(`/SalonApplication/${id}/approve`);
-      alert(res.data.message);
+      showToast(res.data.message, "success");
       setSalonApplications(salonApplications.filter((a) => a.id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
   const handleRejectSalonApplication = async (id) => {
-    const reason = prompt("Redd sebebi (opsional):");
+    const reason = prompt(t("admin_prompt_reject_reason"));
     try {
       const res = await api.post(`/SalonApplication/${id}/reject`, { reason });
-      alert(res.data.message);
+      showToast(res.data.message, "success");
       setSalonApplications(salonApplications.filter((a) => a.id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
   const handleReject = async (id) => {
     try {
       const res = await api.post(`/SpecialistApplication/${id}/reject`, { reason: rejectReason[id] || null });
-      alert(res.data.message);
+      showToast(res.data.message, "success");
       setApplications(applications.filter((a) => a.id !== id));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
@@ -411,7 +424,7 @@ export default function AdminPanel() {
     setBranches((prev) => prev.map((b) => (b.id === id ? { ...b, ...data } : b)));
   };
   const handleDeleteBranch = async (id) => {
-    if (!window.confirm("Silmek isteyirsiniz?")) return;
+    if (!window.confirm(t("admin_confirm_delete"))) return;
     await api.delete(`/Branch/${id}`);
     setBranches((prev) => prev.filter((b) => b.id !== id));
   };
@@ -486,12 +499,12 @@ export default function AdminPanel() {
       }
       setIsModalOpen(false);
     } catch (err) {
-      alert(err.response?.data?.message || JSON.stringify(err.response?.data) || "Xeta bas verdi");
+      showToast(err.response?.data?.message || JSON.stringify(err.response?.data) || t("admin_generic_error"), "error");
     }
   };
 
   const handleDelete = async (type, id) => {
-    if (!window.confirm("Silmek isteyirsiniz?")) return;
+    if (!window.confirm(t("admin_confirm_delete"))) return;
     try {
       if (type === "employee") {
         await api.delete(`/Employee/${id}`);
@@ -502,12 +515,12 @@ export default function AdminPanel() {
         setSalons(salons.filter((s) => s.id !== id));
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
   const handleRenameSalon = async (salon) => {
-    const newName = window.prompt("Yeni salon adi:", salon.name);
+    const newName = window.prompt(t("admin_prompt_new_salon_name"), salon.name);
     if (!newName || newName.trim() === "" || newName === salon.name) return;
     try {
       await api.put(`/salon/${salon.id}`, {
@@ -517,7 +530,7 @@ export default function AdminPanel() {
       });
       setSalons(salons.map((s) => (s.id === salon.id ? { ...s, name: newName } : s)));
     } catch (err) {
-      alert(err.response?.data?.message || "Xeta bas verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     }
   };
 
@@ -527,8 +540,11 @@ export default function AdminPanel() {
         <div>
           <div className="p-6 border-b border-[#B8935A]/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full border border-[#C9A227] flex items-center justify-center bg-gradient-to-br from-[#1A1714] to-[#2A2420]">
-                <span className="text-[#C9A227] font-serif text-xl font-bold">S</span>
+              <div
+                onClick={() => setIsLogoLightboxOpen(true)}
+                className="w-10 h-10 rounded-full border border-[#C9A227] overflow-hidden bg-gradient-to-br from-[#1A1714] to-[#2A2420] cursor-zoom-in hover:scale-105 transition-transform"
+              >
+                <img src="/logo-mark.png" alt="SalonHub" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h1 className="font-serif font-bold text-lg tracking-wider text-white">SALONHUB</h1>
@@ -600,7 +616,7 @@ export default function AdminPanel() {
               <Menu className="w-5 h-5 text-[#1A1714]" />
             </button>
             <h2 className="font-serif text-xl md:text-2xl font-bold tracking-tight text-[#1A1714]">
-              {currentTabs.find((t) => t.id === activeTab)?.name || "Idareetme"}
+              {currentTabs.find((tab) => tab.id === activeTab)?.name || t("admin_header_fallback")}
             </h2>
           </div>
         </header>
@@ -609,7 +625,7 @@ export default function AdminPanel() {
           {isLoading ? (
             <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
               <div className="w-12 h-12 border-4 border-[#B8935A]/20 border-t-[#C9A227] rounded-full animate-spin" />
-              <p className="text-xs font-serif text-[#B8935A] tracking-widest uppercase font-semibold">Melumatlar Yuklenir...</p>
+              <p className="text-xs font-serif text-[#B8935A] tracking-widest uppercase font-semibold">{t("admin_loading")}</p>
             </div>
           ) : (
             <>
@@ -635,12 +651,12 @@ export default function AdminPanel() {
                 const todayStr = nowForToday.getFullYear() + "-" + String(nowForToday.getMonth() + 1).padStart(2, "0") + "-" + String(nowForToday.getDate()).padStart(2, "0");
                 const todaysAppointments = scopedReservations.filter((r) => r.reservationDate?.split("T")[0] === todayStr);
                 const adminName = decoded?.name || decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Admin";
-                const salonName = isSuperAdmin ? "Butun Salonlar" : (salons.find((s) => s.ownerId === currentUserId)?.name || "Salon");
+                const salonName = isSuperAdmin ? t("admin_nav_all_salons") : (salons.find((s) => s.ownerId === currentUserId)?.name || t("admin_label_salon"));
                 return (
                   <DashboardOverview
                     adminName={adminName}
                     salonName={salonName}
-                    pendingApplicationsCount={applications.length}
+                    pendingApplicationsCount={applications.length + salonApplications.length}
                     employeeCount={employees.length}
                     uniqueServiceCount={uniqueServiceCount}
                     avgRating={avgRating}
@@ -654,10 +670,10 @@ export default function AdminPanel() {
 
               {activeTab === "Applications" && (
                 <div className="space-y-3">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">Gozleyen Usta Muracietleri</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">{t("admin_applications_specialist_heading")}</h3>
                   {applications.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-xs">
-                      Yeni usta muraciieti tapilmadi.
+                      {t("admin_applications_specialist_empty")}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -675,11 +691,11 @@ export default function AdminPanel() {
                             <h4 className="font-serif font-bold text-base text-[#1A1714]">{app.applicantFullName}</h4>
                             <p className="text-xs text-gray-400 font-mono mt-0.5">{app.applicantEmail}</p>
                             <p className="text-xs text-gray-400 font-mono">{app.phoneNumber}</p>
-                            <p className="text-xs text-gray-500 mt-1">Salon: <b>{app.salonName}</b> {app.specialty && <>· Ixtisas: <b>{app.specialty}</b></>}</p>
+                            <p className="text-xs text-gray-500 mt-1">{t("admin_label_salon")}: <b>{app.salonName}</b> {app.specialty && <>· {t("admin_label_specialty")}: <b>{app.specialty}</b></>}</p>
                             <div className="flex gap-4 mt-3 text-xs">
-                              <span className="bg-amber-50 text-[#B8935A] px-2.5 py-1 rounded-lg border border-amber-100 font-medium">Tecrube: <b>{app.yearsOfExperience} il</b></span>
+                              <span className="bg-amber-50 text-[#B8935A] px-2.5 py-1 rounded-lg border border-amber-100 font-medium">{t("admin_label_experience")}: <b>{app.yearsOfExperience} {t("common_years")}</b></span>
                               <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-100 font-medium">
-                                Gozlenilen: <b>{app.expectedSalaryMin}-{app.expectedSalaryMax} AZN</b>
+                                {t("admin_label_expected_salary")}: <b>{app.expectedSalaryMin}-{app.expectedSalaryMax} AZN</b>
                               </span>
                             </div>
                             </div>
@@ -688,7 +704,7 @@ export default function AdminPanel() {
 
                           {app.portfolioImageUrls?.length > 0 && (
                             <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Portfolio</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">{t("admin_label_portfolio")}</p>
                               <div className="flex gap-2">
                                 {app.portfolioImageUrls.map((img, i) => (
                                   <img key={i} src={img} alt="portfolio" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
@@ -702,7 +718,7 @@ export default function AdminPanel() {
                               <DollarSign className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-emerald-500" />
                               <input
                                 type="number"
-                                placeholder="Konkret maas (AZN)"
+                                placeholder={t("admin_placeholder_agreed_salary")}
                                 value={agreedSalary[app.id] || ""}
                                 onChange={(e) => setAgreedSalary({ ...agreedSalary, [app.id]: e.target.value })}
                                 className="w-full pl-8 pr-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400"
@@ -711,17 +727,17 @@ export default function AdminPanel() {
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                               <input
                                 type="text"
-                                placeholder="Redd sebebini yazin..."
+                                placeholder={t("admin_placeholder_reject_reason")}
                                 value={rejectReason[app.id] || ""}
                                 onChange={(e) => setRejectReason({ ...rejectReason, [app.id]: e.target.value })}
                                 className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
                               />
                               <div className="flex gap-2 justify-end">
                                 <button onClick={() => handleReject(app.id)} className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold border border-red-200">
-                                  Redd Et
+                                  {t("common_reject")}
                                 </button>
                                 <button onClick={() => handleApprove(app.id)} className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-xs font-bold">
-                                  Tesdiqle
+                                  {t("common_approve")}
                                 </button>
                               </div>
                             </div>
@@ -736,10 +752,10 @@ export default function AdminPanel() {
 
               {activeTab === "Applications" && isSuperAdmin && (
                 <div className="space-y-3 mt-6">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">Gozleyen Salon Muracietleri</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714] border-b border-gray-200 pb-2">{t("admin_applications_salon_heading")}</h3>
                   {salonApplications.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-xs">
-                      Yeni salon muracieti tapilmadi.
+                      {t("admin_applications_salon_empty")}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -757,13 +773,13 @@ export default function AdminPanel() {
                               <h4 className="font-serif font-bold text-base text-[#1A1714]">{app.proposedSalonName}</h4>
                               <p className="text-xs text-gray-400 font-mono mt-0.5">{app.applicantFullName} - {app.applicantEmail}</p>
                               <p className="text-xs text-gray-400 font-mono">{app.phoneNumber}</p>
-                              <p className="text-xs text-gray-500 mt-1">Unvan: <b>{app.address}</b></p>
+                              <p className="text-xs text-gray-500 mt-1">{t("admin_label_address")}: <b>{app.address}</b></p>
                               {app.description && <p className="text-xs text-gray-500 mt-1">{app.description}</p>}
                             </div>
                           </div>
                           <div className="flex gap-2 pt-3 border-t border-gray-100">
-                            <button onClick={() => handleApproveSalonApplication(app.id)} className="flex-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl py-2 text-xs font-bold hover:bg-emerald-100 transition">Tesdiqle</button>
-                            <button onClick={() => handleRejectSalonApplication(app.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 rounded-xl py-2 text-xs font-bold hover:bg-red-100 transition">Redd Et</button>
+                            <button onClick={() => handleApproveSalonApplication(app.id)} className="flex-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl py-2 text-xs font-bold hover:bg-emerald-100 transition">{t("common_approve")}</button>
+                            <button onClick={() => handleRejectSalonApplication(app.id)} className="flex-1 bg-red-50 text-red-600 border border-red-100 rounded-xl py-2 text-xs font-bold hover:bg-red-100 transition">{t("common_reject")}</button>
                           </div>
                         </div>
                       ))}
@@ -774,9 +790,9 @@ export default function AdminPanel() {
               {activeTab === "Employees" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-serif text-lg font-bold text-[#1A1714]">Usta ve Personal Siyahisi</h3>
+                    <h3 className="font-serif text-lg font-bold text-[#1A1714]">{t("admin_employees_heading")}</h3>
                     <button onClick={() => openAddModal("employee")} className="bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                      <Plus className="w-4 h-4" /> Yeni Isci
+                      <Plus className="w-4 h-4" /> {t("admin_employees_add_btn")}
                     </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -811,7 +827,7 @@ export default function AdminPanel() {
                             );
                           })()}
                           {emp.salary && (
-                            <p className="text-xs font-bold text-emerald-600">Maas: {emp.salary} AZN</p>
+                            <p className="text-xs font-bold text-emerald-600">{t("admin_label_salary")}: {emp.salary} AZN</p>
                           )}
                         </div>
                         <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-gray-100">
@@ -826,12 +842,12 @@ export default function AdminPanel() {
 
               {activeTab === "WorkingHours" && (
                 <div className="space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Ustalarin Is Saatlari</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">{t("admin_workinghours_heading")}</h3>
                   <input
                     type="text"
                     value={whSearchTerm}
                     onChange={(e) => setWhSearchTerm(e.target.value)}
-                    placeholder="Ad ile axtar..."
+                    placeholder={t("admin_search_by_name_placeholder")}
                     className="w-full max-w-sm px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -846,7 +862,13 @@ export default function AdminPanel() {
               )}
 
               {activeTab === "Branches" && (
-                <BranchManagement branches={branches} salons={salons} onCreate={handleCreateBranch} onUpdate={handleUpdateBranch} onDelete={handleDeleteBranch} />
+                <BranchManagement
+                  branches={isSuperAdmin ? branches : branches.filter((b) => salons.some((s) => s.id === b.salonId && s.ownerId === currentUserId))}
+                  salons={isSuperAdmin ? salons : salons.filter((s) => s.ownerId === currentUserId)}
+                  onCreate={handleCreateBranch}
+                  onUpdate={handleUpdateBranch}
+                  onDelete={handleDeleteBranch}
+                />
               )}
 
               {activeTab === "Services" && (
@@ -934,24 +956,24 @@ export default function AdminPanel() {
                       {!isEditingMySalon ? (
                         <>
                           <div>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Salon Adi</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_name_label")}</span>
                             <p className="text-base text-[#1A1714] mt-1">{mySalon.name}</p>
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unvan</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_label_address")}</span>
                             <p className="text-base text-[#1A1714] mt-1">{mySalon.address}</p>
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Telefon</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_phone_label")}</span>
                             <p className="text-base text-[#1A1714] mt-1">{mySalon.phoneNumber}</p>
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tesvir</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_desc_label")}</span>
                             <p className="text-base text-[#1A1714] mt-1">{mySalon.description || "-"}</p>
                           </div>
                           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                             <div className="flex items-center gap-1 text-[#C9A227] font-bold text-sm">
-                              <Star className="w-4 h-4 fill-current" /> {mySalon.averageRating?.toFixed(1) || "0.0"} ({mySalon.reviewCount || 0} rey)
+                              <Star className="w-4 h-4 fill-current" /> {mySalon.averageRating?.toFixed(1) || "0.0"} ({mySalon.reviewCount || 0} {t("admin_review_count_suffix")})
                             </div>
                             <div className="flex items-center gap-2">
                               <button
@@ -964,7 +986,7 @@ export default function AdminPanel() {
                                 onClick={() => setIsEditingMySalon(true)}
                                 className="px-5 py-2.5 bg-[#1A1714] text-white rounded-xl text-sm font-medium hover:bg-[#2A2420] flex items-center gap-2"
                               >
-                                <Edit2 className="w-3.5 h-3.5" /> Redakte Et
+                                <Edit2 className="w-3.5 h-3.5" /> {t("common_edit")}
                               </button>
                             </div>
                           </div>
@@ -972,7 +994,7 @@ export default function AdminPanel() {
                       ) : (
                         <>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Salon Adi</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_name_label")}</label>
                             <input
                               type="text"
                               value={mySalonForm.name}
@@ -981,7 +1003,7 @@ export default function AdminPanel() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unvan</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_label_address")}</label>
                             <input
                               type="text"
                               value={mySalonForm.address}
@@ -990,16 +1012,21 @@ export default function AdminPanel() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Telefon</label>
-                            <input
-                              type="text"
-                              value={mySalonForm.phoneNumber}
-                              onChange={(e) => setMySalonForm({ ...mySalonForm, phoneNumber: e.target.value })}
-                              className="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
-                            />
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_phone_label")}</label>
+                            <div className="relative flex items-center mt-1">
+                              <span className="absolute left-4 text-[#1A1714] font-medium pointer-events-none select-none">+994</span>
+                              <input
+                                type="tel"
+                                value={(mySalonForm.phoneNumber || "").replace(/^\+994\s?/, "")}
+                                onChange={(e) => setMySalonForm({ ...mySalonForm, phoneNumber: `+994${e.target.value.replace(/[^0-9 ]/g, "")}` })}
+                                maxLength={12}
+                                className="w-full pl-[3.7rem] pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A227]"
+                                placeholder="(XX) XXX XX XX"
+                              />
+                            </div>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Tesvir</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t("admin_mysalon_desc_label")}</label>
                             <textarea
                               value={mySalonForm.description}
                               onChange={(e) => setMySalonForm({ ...mySalonForm, description: e.target.value })}
@@ -1012,50 +1039,58 @@ export default function AdminPanel() {
                               onClick={() => { setIsEditingMySalon(false); setMySalonForm({ name: mySalon.name || "", address: mySalon.address || "", phoneNumber: mySalon.phoneNumber || "", description: mySalon.description || "" }); }}
                               className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200"
                             >
-                              Legv Et
+                              {t("common_cancel")}
                             </button>
                             <button
                               onClick={handleSaveMySalon}
                               disabled={savingMySalon}
                               className="px-5 py-2.5 bg-[#1A1714] text-white rounded-xl text-sm font-medium hover:bg-[#2A2420] disabled:opacity-50"
                             >
-                              {savingMySalon ? "Saxlanilir..." : "Yadda Saxla"}
+                              {savingMySalon ? t("common_saving") : t("common_save")}
                             </button>
                           </div>
                         </>
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">Salon melumati tapilmadi.</p>
+                    <p className="text-sm text-gray-400">{t("admin_mysalon_not_found")}</p>
                   )}
                 </div>
               )}
 
               {activeTab === "AllSalons" && isSuperAdmin && (
                 <div className="space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">Sistemdeki Butun Salonlar</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#1A1714]">{t("admin_allsalons_heading")}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {salons.map((salon) => (
-                      <div key={salon.id} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-2">
+                      <div key={salon.id} className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl border border-[#E5D2B1] p-5 shadow-sm space-y-2">
                         <h4 className="font-serif font-bold text-base text-[#1A1714]">{salon.name}</h4>
                         <p className="text-xs text-gray-500">{salon.address}</p>
                         <p className="text-xs text-gray-400">{salon.phoneNumber}</p>
+                        {(salon.ownerFullName || salon.ownerEmail) && (
+                          <p className="text-xs text-[#B8935A] font-medium truncate">
+                            {salon.ownerFullName || t("admin_owner_unknown")}
+                            {salon.ownerEmail && <span className="text-gray-400 font-normal"> · {salon.ownerEmail}</span>}
+                          </p>
+                        )}
                         <div className="flex items-center justify-between gap-1 pt-2 border-t border-gray-100">
                           <div className="flex items-center gap-1 text-[#C9A227] font-bold text-xs">
-                          <Star className="w-3.5 h-3.5 fill-current" /> {salon.averageRating.toFixed(1)} ({salon.reviewCount} rey)
+                          <Star className="w-3.5 h-3.5 fill-current" /> {salon.averageRating.toFixed(1)} ({salon.reviewCount} {t("admin_review_count_suffix")})
                           </div>
-                          <button
-                            onClick={() => handleRenameSalon(salon)}
-                            className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 border border-blue-100 mr-1"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete("salon", salon.id)}
-                            className="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 border border-red-100"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleRenameSalon(salon)}
+                              className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 border border-blue-100"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete("salon", salon.id)}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 rounded-lg text-red-600 border border-red-100"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1063,8 +1098,17 @@ export default function AdminPanel() {
                 </div>
               )}
 
-              {activeTab === "AllReservations" && isSuperAdmin && (
-                <AllReservations reservations={allReservations} />
+              {activeTab === "AllReservations" && (
+                <AllReservations
+                  reservations={
+                    isSuperAdmin
+                      ? allReservations
+                      : allReservations.filter(
+                          (r) => r.salonId === salons.find((s) => s.ownerId === currentUserId)?.id
+                        )
+                  }
+                  isSuperAdmin={isSuperAdmin}
+                />
               )}
             </>
           )}
@@ -1085,6 +1129,26 @@ export default function AdminPanel() {
           onSubmit={() => handleSave({ preventDefault: () => {} })}
           onClose={() => setIsModalOpen(false)}
         />
+      )}
+
+      {isLogoLightboxOpen && (
+        <div
+          onClick={() => setIsLogoLightboxOpen(false)}
+          className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <img
+            src="/logo-mark.png"
+            alt="SalonHub"
+            className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl object-contain border border-[#C9A227]/40"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setIsLogoLightboxOpen(false)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl"
+          >
+            ✕
+          </button>
+        </div>
       )}
     </div>
   );

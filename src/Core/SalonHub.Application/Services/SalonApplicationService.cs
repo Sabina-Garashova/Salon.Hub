@@ -101,17 +101,30 @@ namespace SalonHub.Application.Services
             }
             await _unitOfWork.CompleteAsync();
 
-            var templateImage = (await _unitOfWork.GalleryImages.FindAsync(g => g.SalonId == 1)).FirstOrDefault();
-            if (templateImage is not null)
+            if (!string.IsNullOrWhiteSpace(application.LogoImageUrl))
             {
                 await _unitOfWork.GalleryImages.AddAsync(new GalleryImage
                 {
-                    ImageUrl = templateImage.ImageUrl,
-                    Description = templateImage.Description,
-                    Type = templateImage.Type,
+                    ImageUrl = application.LogoImageUrl,
+                    Description = "Salon loqosu",
                     SalonId = salon.Id
                 });
                 await _unitOfWork.CompleteAsync();
+            }
+            else
+            {
+                var templateImage = (await _unitOfWork.GalleryImages.FindAsync(g => g.SalonId == 1)).FirstOrDefault();
+                if (templateImage is not null)
+                {
+                    await _unitOfWork.GalleryImages.AddAsync(new GalleryImage
+                    {
+                        ImageUrl = templateImage.ImageUrl,
+                        Description = templateImage.Description,
+                        Type = templateImage.Type,
+                        SalonId = salon.Id
+                    });
+                    await _unitOfWork.CompleteAsync();
+                }
             }
 
             application.Status = SalonApplicationStatus.Approved;

@@ -9,7 +9,7 @@ namespace SalonHub.Application.Services
     {
         Task<IReadOnlyList<GalleryImageReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<GalleryImageReadDto?> GetByIdAsync(int id);
-        Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto, string requesterId, bool isSuperAdmin);
+        Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto, string requesterId, bool isSuperAdmin, bool isEmployeeAtSalon = false);
         Task UpdateAsync(int id, GalleryImageUpdateDto dto, string requesterId, bool isSuperAdmin);
         Task DeleteAsync(int id, string requesterId, bool isSuperAdmin);
     }
@@ -45,12 +45,12 @@ namespace SalonHub.Application.Services
             return image is null ? null : MapToReadDto(image);
         }
 
-        public async Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto, string requesterId, bool isSuperAdmin)
+        public async Task<GalleryImageReadDto> CreateAsync(GalleryImageCreateDto dto, string requesterId, bool isSuperAdmin, bool isEmployeeAtSalon = false)
         {
             var salon = await _unitOfWork.Salons.GetByIdAsync(dto.SalonId)
                 ?? throw new KeyNotFoundException("Salon tapılmadı.");
 
-            if (!isSuperAdmin && salon.OwnerId != requesterId)
+            if (!isSuperAdmin && !isEmployeeAtSalon && salon.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Bu salona şəkil əlavə etmək icazəniz yoxdur.");
 
             if (!Enum.TryParse<GalleryImageType>(dto.Type, true, out var type))

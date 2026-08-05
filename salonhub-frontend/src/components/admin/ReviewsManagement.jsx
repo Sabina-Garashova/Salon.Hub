@@ -26,7 +26,7 @@ export default function ReviewsManagement({
   useEffect(() => {
     const fetchEmps = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await fetch("https://localhost:7289/api/Employee", {
           headers: { Authorization: token ? `Bearer ${token}` : "" }
         });

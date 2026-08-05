@@ -10,6 +10,7 @@ namespace SalonHub.Application.DTOs.Reservations
         public DateTime ReservationDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public string? ReferenceImageUrl { get; set; }
+        public string? ReferenceImageUrl2 { get; set; }
         public string? CurrentPhotoUrl { get; set; }
         public string? PaymentMethod { get; set; }
     }
@@ -31,6 +32,7 @@ namespace SalonHub.Application.DTOs.Reservations
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public string? ReferenceImageUrl { get; set; }
+        public string? ReferenceImageUrl2 { get; set; }
         public string? CurrentPhotoUrl { get; set; }
         public string Status { get; set; } = string.Empty;
         public decimal? LoyaltyDiscountApplied { get; set; }

@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, Calendar, Gift } from "lucide-react";
 import api from "../../services/api";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 
 function SalonIllustration() {
   return (
@@ -32,6 +33,7 @@ function LogoMark() {
 
 export default function AuthPage() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const location = useLocation();
   const [tab, setTab] = useState(location.state?.tab === "register" ? "register" : "login");
   const [showPass, setShowPass] = useState(false);
@@ -55,18 +57,18 @@ export default function AuthPage() {
         password: loginData.password,
       };
       const res = await api.post("/auth/login", payload);
-      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token);
       window.location.href = "/dashboard";
     } catch (err) {
       const msg = err.response?.data?.message || t("auth_login_error");
-      alert(msg);
+      showToast(msg, "error");
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (registerData.password !== registerData.confirmPassword) {
-      alert(t("auth_password_mismatch"));
+      showToast(t("auth_password_mismatch"), "error");
       return;
     }
     try {
@@ -79,17 +81,21 @@ export default function AuthPage() {
       };
       await api.post("/auth/register", payload);
       setTab("login");
-      alert(t("auth_register_success"));
+      showToast(t("auth_register_success"), "success");
     } catch (err) {
       const msg = err.response?.data?.message || t("auth_register_error");
-      alert(msg);
+      showToast(msg, "error");
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-[#FAF6F0]">
+    <div className="min-h-screen flex bg-[#FAF6F0] relative overflow-hidden">
+      <div
+        className="fixed inset-0 pointer-events-none bg-cover bg-center opacity-60"
+        style={{ backgroundImage: "url('/page-bg-tools.webp')" }}
+      />
       {/* Sol brend/illustrasiya paneli */}
-      <div className="hidden lg:flex flex-col justify-center items-center w-1/2 bg-gradient-to-b from-[#1A1714] to-[#2B2118] relative overflow-hidden px-10 py-10">
+      <div className="hidden lg:flex flex-col justify-center items-center w-1/2 bg-gradient-to-b from-[#1A1714] to-[#2B2118] relative overflow-hidden px-10 py-10 z-10">
         <LogoMark />
         <h1 className="text-5xl font-serif text-[#F4EDE0] tracking-wide -mt-2">SalonHub</h1>
         <p className="mt-2 mb-8 text-[#C9A227] tracking-widest text-xs uppercase">
@@ -101,8 +107,8 @@ export default function AuthPage() {
       </div>
 
       {/* Sag auth paneli */}
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+      <div className="relative z-10 flex flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-md bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] border border-[#E5D2B1] rounded-2xl shadow-xl p-8">
           <div className="relative flex bg-[#F4EDE0] rounded-full p-1 mb-8">
             <div
               className={`absolute top-1 bottom-1 w-1/2 rounded-full bg-[#1A1714] transition-transform duration-300 ${
@@ -140,8 +146,6 @@ export default function AuthPage() {
                   onChange={(e) => setLoginData({ ...loginData, emailOrPhone: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   maxLength={40}
-                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                  title={t("auth_email_hint")}
                   required
                 />
               </div>
@@ -198,7 +202,6 @@ export default function AuthPage() {
                   onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                   maxLength={40}
-                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                   title={t("auth_email_hint")}
                   required
                 />

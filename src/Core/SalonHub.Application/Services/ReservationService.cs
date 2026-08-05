@@ -26,6 +26,7 @@ namespace SalonHub.Application.Services
         public string PaymentMethod { get; set; } = "Card";
         public decimal? LoyaltyDiscountApplied { get; set; }
         public string? ReferenceImageUrl { get; set; }
+        public string? ReferenceImageUrl2 { get; set; }
         public string? CurrentPhotoUrl { get; set; }
     }
 
@@ -90,6 +91,7 @@ namespace SalonHub.Application.Services
                     PaymentMethod = r.PaymentMethod,
                     LoyaltyDiscountApplied = r.LoyaltyDiscountApplied,
                     ReferenceImageUrl = r.ReferenceImageUrl,
+                    ReferenceImageUrl2 = r.ReferenceImageUrl2,
                     CurrentPhotoUrl = r.CurrentPhotoUrl,
                 });
             }
@@ -150,6 +152,7 @@ namespace SalonHub.Application.Services
                     EndTime = r.EndTime,
                     Status = r.Status.ToString(),
                     ReferenceImageUrl = r.ReferenceImageUrl,
+                    ReferenceImageUrl2 = r.ReferenceImageUrl2,
                     CurrentPhotoUrl = r.CurrentPhotoUrl
                 });
             }
@@ -184,6 +187,7 @@ namespace SalonHub.Application.Services
                 EndTime = reservation.EndTime,
                 Status = reservation.Status.ToString(),
                 ReferenceImageUrl = reservation.ReferenceImageUrl,
+                ReferenceImageUrl2 = reservation.ReferenceImageUrl2,
                 CurrentPhotoUrl = reservation.CurrentPhotoUrl
             };
         }
@@ -194,12 +198,21 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
-                e => e.Id == dto.EmployeeId, e => e.EmployeeServices)
+                e => e.Id == dto.EmployeeId, e => e.EmployeeServices, e => e.AssignedEquipment)
                 ?? throw new KeyNotFoundException("Isçi tapilmadi.");
+
+            if (!string.IsNullOrEmpty(dto.CustomerId) && employee.ApplicationUserId == dto.CustomerId)
+                throw new InvalidOperationException("Usta özü özünü rezervasiya edə bilməz.");
 
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == dto.ServiceId);
             if (!isAssigned)
                 throw new InvalidOperationException("Secilmis usta bu xidmeti gostermir.");
+
+            if (employee.AssignedEquipment is not null &&
+                employee.AssignedEquipment.Status != EquipmentStatus.Active)
+            {
+                throw new InvalidOperationException("Seçilmiş ustaya təhkim olunmuş avadanlıq hazırda istifadə üçün əlçatan deyil (məşğul, nasaz və ya təmirdədir).");
+            }
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -269,6 +282,7 @@ namespace SalonHub.Application.Services
                 Status = ReservationStatus.Pending,
                 CheckInCode = GenerateCheckInCode(),
                 ReferenceImageUrl = dto.ReferenceImageUrl,
+                ReferenceImageUrl2 = dto.ReferenceImageUrl2,
                 CurrentPhotoUrl = dto.CurrentPhotoUrl,
                 SalonId = service.SalonId
             };
@@ -277,9 +291,9 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
 
             var custParams1 = JsonSerializer.Serialize(new { service = service.NameAz, date = dto.ReservationDate.ToString("dd.MM.yyyy"), time = dto.StartTime.ToString() });
-            await _notificationService.NotifyReservationChangedAsync(dto.CustomerId, $"Rezervasiyaniz qeyde alindi: {service.NameAz}, {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime}. Tesdiq gozlenilir.", "notif_reservation_created_customer", custParams1);
-            var empParams1 = JsonSerializer.Serialize(new { customer = dto.CustomerFullName ?? "Musteri", service = service.NameAz, date = dto.ReservationDate.ToString("dd.MM.yyyy"), time = dto.StartTime.ToString() });
-            await _notificationService.NotifyEmployeeAsync(employee.Id, $"Yeni rezervasiya: {dto.CustomerFullName ?? "Musteri"} sizden {service.NameAz} xidmetini {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime} tarixinde teleb edib.", "notif_reservation_created_employee", empParams1);
+            await _notificationService.NotifyReservationChangedAsync(dto.CustomerId, $"Rezervasiyanız qeydə alındı: {service.NameAz}, {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime}. Təsdiq gözlənilir.", "notif_reservation_created_customer", custParams1);
+            var empParams1 = JsonSerializer.Serialize(new { customer = dto.CustomerFullName ?? "Müştəri", service = service.NameAz, date = dto.ReservationDate.ToString("dd.MM.yyyy"), time = dto.StartTime.ToString() });
+            await _notificationService.NotifyEmployeeAsync(employee.Id, $"Yeni rezervasiya: {dto.CustomerFullName ?? "Müştəri"} sizdən {service.NameAz} xidmətini {dto.ReservationDate:dd.MM.yyyy} {dto.StartTime} tarixində tələb edib.", "notif_reservation_created_employee", empParams1);
 
             return new ReservationReadDto
             {
@@ -299,6 +313,7 @@ namespace SalonHub.Application.Services
                 StartTime = reservation.StartTime,
                 Status = reservation.Status.ToString(),
                 ReferenceImageUrl = reservation.ReferenceImageUrl,
+                ReferenceImageUrl2 = reservation.ReferenceImageUrl2,
                 CurrentPhotoUrl = reservation.CurrentPhotoUrl
             };
         }
@@ -327,12 +342,21 @@ namespace SalonHub.Application.Services
                 ?? throw new KeyNotFoundException("Xidmet tapilmadi.");
 
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
-                e => e.Id == dto.EmployeeId, e => e.EmployeeServices)
+                e => e.Id == dto.EmployeeId, e => e.EmployeeServices, e => e.AssignedEquipment)
                 ?? throw new KeyNotFoundException("Isçi tapilmadi.");
+
+            if (!string.IsNullOrEmpty(reservation.CustomerId) && employee.ApplicationUserId == reservation.CustomerId)
+                throw new InvalidOperationException("Usta özü özünü rezervasiya edə bilməz.");
 
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == dto.ServiceId);
             if (!isAssigned)
                 throw new InvalidOperationException("Secilmis usta bu xidmeti gostermir.");
+
+            if (employee.AssignedEquipment is not null &&
+                employee.AssignedEquipment.Status != EquipmentStatus.Active)
+            {
+                throw new InvalidOperationException("Seçilmiş ustaya təhkim olunmuş avadanlıq hazırda istifadə üçün əlçatan deyil (məşğul, nasaz və ya təmirdədir).");
+            }
 
             var endTime = dto.StartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
@@ -414,7 +438,7 @@ namespace SalonHub.Application.Services
 
             if (timeChanged)
             {
-                var message = $"Rezervasiyaniz deyisdirildi. Yeni tarix: {reservation.ReservationDate:dd.MM.yyyy}, saat: {reservation.StartTime:hh\\:mm}. Zehmet olmasa tesdiqleyin ve ya redd edin.";
+                var message = $"Rezervasiyanız dəyişdirildi. Yeni tarix: {reservation.ReservationDate:dd.MM.yyyy}, saat: {reservation.StartTime:hh\\:mm}. Zəhmət olmasa təsdiqləyin və ya rədd edin.";
                 await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, message);
             }
 
@@ -453,7 +477,7 @@ namespace SalonHub.Application.Services
             var service = await _unitOfWork.Services.GetByIdAsync(reservation.ServiceId);
             var employee = await _unitOfWork.Employees.GetByIdAsync(reservation.EmployeeId);
 
-            var message = $"Rezervasiyaniz legv edildi. Sebeb: {reason}";
+            var message = $"Rezervasiyanız ləğv edildi. Səbəb: {reason}";
             await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, message);
 
             return new ReservationReadDto
@@ -495,7 +519,7 @@ namespace SalonHub.Application.Services
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
 
-            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tesdiqlendi!", "notif_reservation_confirmed");
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyanız usta tərəfindən təsdiqləndi!", "notif_reservation_confirmed");
 
             
 
@@ -583,7 +607,7 @@ namespace SalonHub.Application.Services
             _unitOfWork.Reservations.Update(reservation);
             await _unitOfWork.CompleteAsync();
 
-            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyaniz usta terefinden tamamlandi. Tesekkur edirik!", "notif_reservation_completed");
+            await _notificationService.NotifyReservationChangedAsync(reservation.CustomerId, "Rezervasiyanız usta tərəfindən tamamlandı. Təşəkkür edirik!", "notif_reservation_completed");
 
             await _loyaltyService.AwardPointsForCompletedReservationAsync(reservationId);
 
@@ -661,7 +685,7 @@ namespace SalonHub.Application.Services
         public async Task<List<string>> GetAvailableSlotsAsync(int employeeId, int serviceId, DateTime date)
         {
             var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
-                e => e.Id == employeeId, e => e.EmployeeServices)
+                e => e.Id == employeeId, e => e.EmployeeServices, e => e.AssignedEquipment)
                 ?? throw new KeyNotFoundException("Isçi tapilmadi.");
 
             var service = await _unitOfWork.Services.GetByIdAsync(serviceId)
@@ -670,6 +694,13 @@ namespace SalonHub.Application.Services
             var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == serviceId);
             if (!isAssigned)
                 throw new InvalidOperationException("Bu isçi bu xidmeti gostermir.");
+
+            // Ustaya tehkim olunmus avadanliq mesgul, xarab ve ya temirdedirse, bunu aciq sekilde bildirek
+            if (employee.AssignedEquipment is not null &&
+                employee.AssignedEquipment.Status != EquipmentStatus.Active)
+            {
+                throw new InvalidOperationException("Seçilmiş ustaya təhkim olunmuş avadanlıqda problem var. Zəhmət olmasa başqa usta seçin.");
+            }
 
             var dayOfWeek = date.DayOfWeek;
 
@@ -723,12 +754,21 @@ namespace SalonHub.Application.Services
                     ?? throw new KeyNotFoundException($"Xidmet tapilmadi: {item.ServiceId}");
 
                 var employee = await _unitOfWork.Employees.SingleOrDefaultAsync(
-                    e => e.Id == item.EmployeeId, e => e.EmployeeServices)
+                    e => e.Id == item.EmployeeId, e => e.EmployeeServices, e => e.AssignedEquipment)
                     ?? throw new KeyNotFoundException($"Isçi tapilmadi: {item.EmployeeId}");
+
+                if (!string.IsNullOrEmpty(dto.CustomerId) && employee.ApplicationUserId == dto.CustomerId)
+                    throw new InvalidOperationException($"Usta ({employee.FullName}) özü özünü rezervasiya edə bilməz.");
 
                 var isAssigned = employee.EmployeeServices.Any(es => es.ServiceId == item.ServiceId);
                 if (!isAssigned)
                     throw new InvalidOperationException($"Secilmis usta ({employee.FullName}) '{service.NameAz}' xidmetini gostermir.");
+
+                if (employee.AssignedEquipment is not null &&
+                    employee.AssignedEquipment.Status != EquipmentStatus.Active)
+                {
+                    throw new InvalidOperationException($"Seçilmiş usta ({employee.FullName}) üçün təhkim olunmuş avadanlıq hazırda istifadə üçün əlçatan deyil (məşğul, nasaz və ya təmirdədir).");
+                }
 
                 var endTime = currentStartTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 

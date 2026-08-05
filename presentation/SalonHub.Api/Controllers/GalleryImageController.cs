@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SalonHub.Application.DTOs.GalleryImages;
+using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Services;
 using SalonHub.Persistence.Identity;
 using System.Security.Claims;
@@ -12,9 +13,11 @@ namespace SalonHub.Api.Controllers
     public class GalleryImageController : ControllerBase
     {
         private readonly IGalleryImageService _galleryImageService;
-        public GalleryImageController(IGalleryImageService galleryImageService)
+        private readonly IUnitOfWork _unitOfWork;
+        public GalleryImageController(IGalleryImageService galleryImageService, IUnitOfWork unitOfWork)
         {
             _galleryImageService = galleryImageService;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
@@ -34,12 +37,21 @@ namespace SalonHub.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin}")]
+        [Authorize(Roles = $"{Roles.SalonAdmin},{Roles.SuperAdmin},{Roles.Employee}")]
         public async Task<IActionResult> Create(GalleryImageCreateDto dto)
         {
             var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
-            var created = await _galleryImageService.CreateAsync(dto, requesterId, isSuperAdmin);
+
+            var isEmployeeAtSalon = false;
+            if (!isSuperAdmin && User.IsInRole(Roles.Employee))
+            {
+                var myEmployeeRecords = await _unitOfWork.Employees.FindAsync(
+                    e => e.ApplicationUserId == requesterId && e.SalonId == dto.SalonId && !e.IsDeleted);
+                isEmployeeAtSalon = myEmployeeRecords.Any();
+            }
+
+            var created = await _galleryImageService.CreateAsync(dto, requesterId, isSuperAdmin, isEmployeeAtSalon);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 

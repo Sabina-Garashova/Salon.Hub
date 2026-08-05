@@ -23,5 +23,12 @@ namespace SalonHub.Api.Controllers
             var result = await _styleRecommendationService.AnalyzeAsync(dto);
             return Ok(result);
         }
+
+        [HttpPost("try-on")]
+        public async Task<IActionResult> TryOn(VirtualTryOnRequestDto dto)
+        {
+            var result = await _styleRecommendationService.GenerateTryOnAsync(dto);
+            return Ok(result);
+        }
     }
 }

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext.jsx";
+import { ToastProvider } from "./context/ToastContext.jsx";
 import AuthPage from "./pages/Auth/AuthPage.jsx";
 import Home from "./pages/Home.jsx";
 import Dashboard from "./pages/Dashboard/Dashboard.jsx";
@@ -11,11 +12,12 @@ import LoyaltyPage from "./pages/LoyaltyPage.jsx";
 function App() {
   return (
     <LanguageProvider>
+    <ToastProvider>
     <BrowserRouter>
       <Routes>
         <Route
           path="/"
-          element={localStorage.getItem("token") ? <Navigate to="/dashboard" replace /> : <Home />}
+          element={sessionStorage.getItem("token") ? <Navigate to="/dashboard" replace /> : <Home />}
         />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -25,6 +27,7 @@ function App() {
         <Route path="/loyalty" element={<LoyaltyPage />} />
               </Routes>
     </BrowserRouter>
+    </ToastProvider>
     </LanguageProvider>
   );
 }

@@ -1,5 +1,37 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { CreditCard, Banknote, Gift, Check, Info } from 'lucide-react';
+
+const SAVED_CARD_KEY_PREFIX = 'salonhub_saved_card_number_';
+
+function decodeToken(t) {
+  try {
+    const base64 = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+function getCurrentUserId() {
+  const token = sessionStorage.getItem("token");
+  if (!token) return null;
+  const decoded = decodeToken(token);
+  return (
+    decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+    decoded?.sub ||
+    null
+  );
+}
+
+function formatCardNumber(digitsOnly) {
+  return digitsOnly.match(/.{1,4}/g)?.join(' ') || '';
+}
 
 export default function PaymentMethodSelector({
   paymentMethod,
@@ -13,6 +45,27 @@ export default function PaymentMethodSelector({
   const price = selectedService?.price || 0;
   const remainingAmount = Math.max(0, price - discount);
   const isLoyaltyDisabled = !loyaltyBalance || loyaltyBalance.points === 0 || discount === 0;
+
+  const [cardNumber, setCardNumber] = useState('');
+
+  useEffect(() => {
+    // Köhnə paylaşılan (bütün istifadəçilər üçün ortaq) açarı təmizlə
+    localStorage.removeItem('salonhub_saved_card_number');
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    const saved = localStorage.getItem(SAVED_CARD_KEY_PREFIX + userId);
+    if (saved) setCardNumber(saved);
+  }, []);
+
+  const handleCardNumberChange = (e) => {
+    const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const formatted = formatCardNumber(digitsOnly);
+    setCardNumber(formatted);
+    if (digitsOnly.length === 16) {
+      const userId = getCurrentUserId();
+      if (userId) localStorage.setItem(SAVED_CARD_KEY_PREFIX + userId, formatted);
+    }
+  };
 
   const options = [
     {
@@ -108,6 +161,27 @@ export default function PaymentMethodSelector({
           );
         })}
       </div>
+
+      {paymentMethod === 'Card' && (
+        <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-[#FAF6F0] border border-[#C9A227]/40">
+          <label className="text-xs font-semibold text-[#1A1714] flex items-center gap-1.5">
+            <CreditCard className="w-3.5 h-3.5 text-[#C9A227]" />
+            Kart Nömrəsi
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={cardNumber}
+            onChange={handleCardNumberChange}
+            placeholder="0000 0000 0000 0000"
+            maxLength={19}
+            className="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-[#C9A227] font-mono"
+          />
+          <p className="text-[11px] text-stone-500">
+            Kart məlumatınız növbəti dəfə üçün yadda saxlanılacaq.
+          </p>
+        </div>
+      )}
 
       {paymentMethod === 'LoyaltyPoints' &&
         !isLoyaltyDisabled &&

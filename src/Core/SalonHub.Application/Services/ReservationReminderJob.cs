@@ -23,8 +23,8 @@ namespace SalonHub.Application.Services
         public async Task SendUpcomingReminders()
         {
             var now = DateTime.UtcNow;
-            var windowStart = now.AddHours(1);
-            var windowEnd = now.AddHours(1).AddMinutes(5);
+            var windowStart = now.AddMinutes(15);
+            var windowEnd = now.AddMinutes(15).AddMinutes(5);
 
             var reservations = await _unitOfWork.Reservations.FindAsync(r =>
                 r.Status == ReservationStatus.Confirmed &&

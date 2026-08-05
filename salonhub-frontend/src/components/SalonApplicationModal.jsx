@@ -1,8 +1,12 @@
 ﻿import { useState } from "react";
 import { X, Building2, MapPin, Phone, Image as ImageIcon, FileText, Loader2, Send } from "lucide-react";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 
 export default function SalonApplicationModal({ isOpen, onClose }) {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -37,13 +41,13 @@ export default function SalonApplicationModal({ isOpen, onClose }) {
     setSubmitting(true);
     try {
       await api.post("/SalonApplication", {
-        phoneNumber: phone,
+        phoneNumber: `+994${phone.replace(/\s/g, "")}`,
         proposedSalonName: name,
         address,
         description,
         logoImageUrl: logoUrl || null,
       });
-      alert("Müraciətiniz uğurla göndərildi!");
+      showToast(t("salon_app_success"), "success");
       setPhone("");
       setName("");
       setAddress("");
@@ -51,7 +55,7 @@ export default function SalonApplicationModal({ isOpen, onClose }) {
       setLogoUrl("");
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || "Xəta baş verdi");
+      showToast(err.response?.data?.message || t("admin_generic_error"), "error");
     } finally {
       setSubmitting(false);
     }
@@ -94,17 +98,17 @@ export default function SalonApplicationModal({ isOpen, onClose }) {
 
             <div>
               <label className="block text-sm font-medium text-[#1A1714] mb-2">Telefon Nömrəsi</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                </div>
+              <div className="relative flex items-center">
+                <Phone className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400 z-10" />
+                <span className="absolute left-11 top-3.5 text-sm text-gray-500 font-medium select-none pointer-events-none">+994</span>
                 <input
                   type="tel"
                   required
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="pl-11 block w-full border border-gray-200 rounded-xl py-3 text-[#1A1714] placeholder-gray-400 focus:ring-2 focus:ring-[#C9A227]/20 focus:border-[#C9A227] sm:text-sm transition-all outline-none bg-white"
-                  placeholder="+994 (XX) XXX XX XX"
+                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9 ]/g, ""))}
+                  maxLength={12}
+                  className="pl-[4.7rem] block w-full border border-gray-200 rounded-xl py-3 text-[#1A1714] placeholder-gray-400 focus:ring-2 focus:ring-[#C9A227]/20 focus:border-[#C9A227] sm:text-sm transition-all outline-none bg-white"
+                  placeholder="(XX) XXX XX XX"
                 />
               </div>
             </div>

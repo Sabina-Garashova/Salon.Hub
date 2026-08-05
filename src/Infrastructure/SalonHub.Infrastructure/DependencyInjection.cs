@@ -15,6 +15,7 @@ namespace SalonHub.Infrastructure
             services.AddScoped<IEmailService, MockNotificationService>();
             services.AddScoped<ISmsService, AwsSnsSmsService>();
             services.AddHttpClient<IStyleRecommendationService, StyleRecommendationService>();
+            services.AddHttpClient<IChatBookingService, ChatBookingService>();
             return services;
         }
     }

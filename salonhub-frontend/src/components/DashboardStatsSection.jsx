@@ -21,7 +21,7 @@ const DashboardStatsSection = ({ stats = [] }) => {
               <div className="text-xl font-bold text-[#1A1714] tracking-tight leading-tight truncate">
                 {stat.value}
               </div>
-              <div className="text-[11px] font-medium text-gray-400 tracking-wide uppercase truncate">
+              <div className="text-[11px] font-medium text-[#7A6A50] tracking-wide uppercase truncate">
                 {stat.name}
               </div>
               {stat.change && (

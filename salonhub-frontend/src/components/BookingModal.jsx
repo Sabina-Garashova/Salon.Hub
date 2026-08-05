@@ -3,21 +3,42 @@ import { useState, useEffect } from "react";
 import { Check, Calendar, Clock, User, Scissors, ChevronRight, ChevronLeft, Star, Loader2, X, Sparkles, CreditCard, Banknote, Gift, Camera, Wand2, ArrowRight, Trash2, ImagePlus } from "lucide-react";
 import api from "../services/api";
 import PaymentMethodSelector from "./PaymentMethodSelector";
+import { useToast } from "../context/ToastContext";
 
-export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, showAllSalons = false }) {
+function decodeToken(t) {
+  try {
+    const base64 = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, initialReferenceImage2, showAllSalons = false }) {
   const getMatchingServiceIds = (svcName) => services.filter((s) => s.name === svcName).map((s) => s.id);
   const getActualServiceId = () => {
     if (!selectedEmployee || !selectedService) return selectedService?.id;
     const matchingIds = getMatchingServiceIds(selectedService.name);
+    // Employeein xidmet siyahisindaki eyni adli xidmeti, ustanin oz salonuna aid olana gore tap
+    // (selectedService "hamisina bax" rejimimde muxtelif salonlardan deduplicate olunmus temsilci ola biler,
+    // ona gore selectedService.salonId yox, selectedEmployee.salonId ile eslesdirmek lazimdir)
     const employeeMatch = selectedEmployee.serviceIds?.find((id) => {
       if (!matchingIds.includes(id)) return false;
       const matchedService = services.find((s) => s.id === id);
-      return matchedService && matchedService.salonId === selectedService.salonId;
+      return matchedService && matchedService.salonId === selectedEmployee.salonId;
     });
-    return employeeMatch || selectedService.id;
+    return employeeMatch || selectedEmployee.serviceIds?.find((id) => matchingIds.includes(id)) || selectedService.id;
   };
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [step, setStep] = useState(1);
+  const [isLogoLightboxOpen, setIsLogoLightboxOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -35,6 +56,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   const [remainderMethod, setRemainderMethod] = useState("Card");
   const [currentPhotoUrl, setCurrentPhotoUrl] = useState(null);
   const [desiredPhotoUrl, setDesiredPhotoUrl] = useState(initialReferenceImage || null);
+  const [desiredPhotoUrl2, setDesiredPhotoUrl2] = useState(initialReferenceImage2 || null);
   const [uploadingCurrent, setUploadingCurrent] = useState(false);
   const [uploadingDesired, setUploadingDesired] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState("");
@@ -50,12 +72,26 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     setLoadingOptions(true);
     setCurrentPhotoUrl(null);
     setDesiredPhotoUrl(initialReferenceImage || null);
+    setDesiredPhotoUrl2(initialReferenceImage2 || null);
     setPhotoUploadError("");
+
+    const token = sessionStorage.getItem("token");
+    const decoded = token ? decodeToken(token) : null;
+    const myUserId =
+      decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+      decoded?.sub;
 
     Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
       .then(([servRes, empRes, balRes]) => {
         setServices(servRes.data.filter((s) => showAllSalons || s.salonId === salonId));
-        setEmployees(empRes.data.filter((e) => e.branchId && (showAllSalons || e.salonId === salonId)));
+        setEmployees(
+          empRes.data.filter(
+            (e) =>
+              e.branchId &&
+              (showAllSalons || e.salonId === salonId) &&
+              (!myUserId || String(e.applicationUserId) !== String(myUserId))
+          )
+        );
         setLoyaltyBalance(balRes.data);
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
@@ -90,7 +126,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
         });
         setAvailableSlots(res.data);
       } catch (err) {
-        setSlotsError(err.response?.data?.message || "Boş saatları yükləmək olmadı");
+        const rawMsg = err.response?.data?.message || "";
+        const isEquipmentIssue = /avadanl/i.test(rawMsg);
+        setSlotsError(isEquipmentIssue ? t("bm_equipment_issue") : (rawMsg || t("bm_slots_load_error")));
         setAvailableSlots([]);
       } finally {
         setIsLoadingSlots(false);
@@ -128,7 +166,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
       });
       setUrl(res.data.url);
     } catch (err) {
-      setPhotoUploadError(err.response?.data?.message || "Şəkil yüklənmədi.");
+      setPhotoUploadError(err.response?.data?.message || t("admin_image_upload_error"));
     } finally {
       setUploading(false);
     }
@@ -145,6 +183,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
         reservationDate: selectedDate,
         startTime,
         referenceImageUrl: desiredPhotoUrl || null,
+        referenceImageUrl2: desiredPhotoUrl2 || null,
         currentPhotoUrl: currentPhotoUrl || null,
         paymentMethod: paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod,
       });
@@ -161,10 +200,20 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
           console.error("Bal istifadə edilərkən xəta", redeemErr);
         }
       }
-      alert("Rezervasiya uğurla tamamlandı!");
+      showToast(t("bm_booking_success"), "success");
       onClose();
     } catch (err) {
-      alert(err.response?.data?.message || "Xəta baş verdi");
+      const rawMsg = err.response?.data?.message || "";
+      const isEquipmentIssue = /avadanl/i.test(rawMsg);
+      const isSelfBooking = /özü özünü|özünü rezervasiya/i.test(rawMsg);
+      showToast(
+        isSelfBooking
+          ? t("bm_self_booking_error")
+          : isEquipmentIssue
+          ? t("bm_equipment_issue")
+          : rawMsg || t("admin_generic_error"),
+        "error"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -220,12 +269,22 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     );
   };
 
+  const bookableServices = Array.from(new Map(services.map((s) => [s.name, s])).values()).filter((service) => {
+    const matchingIds = getMatchingServiceIds(service.name);
+    return employees.some((e) => e.serviceIds?.some((id) => matchingIds.includes(id)));
+  });
+
   return (
     <div className="fixed inset-0 bg-[#1A1714]/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-[#E5D2B1]">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-[#1A1714] text-white">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#C9A227]" />
+            <div
+              onClick={() => setIsLogoLightboxOpen(true)}
+              className="w-8 h-8 rounded-full border border-[#C9A227] overflow-hidden bg-gradient-to-br from-[#1A1714] to-[#2A2420] shrink-0 cursor-zoom-in hover:scale-105 transition-transform"
+            >
+              <img src="/logo-mark.png" alt="SalonHub" className="w-full h-full object-cover" />
+            </div>
             <div>
               <h2 className="text-xl font-serif text-[#F0D68A]">SalonHub</h2>
               <p className="text-xs text-gray-400 font-sans tracking-wider">{salonName || "ONLAYN REZERVASİYA"}</p>
@@ -250,14 +309,16 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Xidmət seçin</h3>
                   {services.length === 0 ? (
                     <p className="text-sm text-gray-400">Bu salonda hələ xidmət əlavə edilməyib.</p>
+                  ) : bookableServices.length === 0 ? (
+                    <p className="text-sm text-gray-400">Hazırda heç bir xidmətə usta təyin olunmayıb.</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {Array.from(new Map(services.map((s) => [s.name, s])).values()).map((service) => (
+                      {bookableServices.map((service) => (
                         <div
                           key={service.id}
                           onClick={() => setSelectedService(service)}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedService?.id === service.id ? "border-[#C9A227] bg-[#B8935A]/10" : "border-gray-200 bg-white hover:border-gray-300"
+                            selectedService?.id === service.id ? "border-[#C9A227] bg-[#B8935A]/10" : "border-[#E5D2B1] bg-gradient-to-br from-[#F8EFDC] to-[#F1E2C5] hover:border-[#C9A227]/40"
                           }`}
                         >
                           <div className="flex justify-between items-start">
@@ -294,7 +355,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                           key={employee.id}
                           onClick={() => setSelectedEmployee(employee)}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-4 ${
-                            selectedEmployee?.id === employee.id ? "border-[#C9A227] bg-[#B8935A]/10" : "border-gray-200 bg-white hover:border-gray-300"
+                            selectedEmployee?.id === employee.id ? "border-[#C9A227] bg-[#B8935A]/10" : "border-[#E5D2B1] bg-gradient-to-br from-[#F8EFDC] to-[#F1E2C5] hover:border-[#C9A227]/40"
                           }`}
                         >
                           {employee.profileImageUrl ? (
@@ -343,7 +404,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                       ) : slotsError ? (
                         <p className="text-sm text-red-500">{slotsError}</p>
                       ) : availableSlots.length === 0 ? (
-                        <p className="text-sm text-gray-400">Bu tarixdə boş saat yoxdur.</p>
+                        <p className="text-sm text-gray-400">{t("bm_no_slots_for_date")}</p>
                       ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {availableSlots.map((slot, index) => {
@@ -410,13 +471,29 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                       accent
                     />
                   </div>
+
+                  {desiredPhotoUrl2 && (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">İkinci İlham Şəkli</p>
+                      <div className="relative inline-block">
+                        <img src={desiredPhotoUrl2} alt="İkinci ilham şəkli" className="w-24 h-24 rounded-xl object-cover border-2 border-[#C9A227]/50" />
+                        <button
+                          type="button"
+                          onClick={() => setDesiredPhotoUrl2(null)}
+                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white shadow border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-600"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {step === 5 && (
                 <div className="space-y-4">
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Rezervasiya Xülasəsi</h3>
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl border border-[#E5D2B1] shadow-sm overflow-hidden">
                     <div className="p-5 space-y-4">
                       <div className="flex items-start gap-4">
                         <div className="p-3 bg-[#FAF6F0] rounded-xl text-[#C9A227]">
@@ -450,7 +527,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                           </h4>
                         </div>
                       </div>
-                      {(currentPhotoUrl || desiredPhotoUrl) && (
+                      {(currentPhotoUrl || desiredPhotoUrl || desiredPhotoUrl2) && (
                         <>
                           <div className="border-t border-dashed border-gray-200 my-2"></div>
                           <div className="flex items-start gap-4">
@@ -471,6 +548,12 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
                                   <div className="relative">
                                     <img src={desiredPhotoUrl} alt="Arzu olunan" className="w-16 h-16 rounded-lg object-cover border-2 border-[#C9A227]/50" />
                                     <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#C9A227] text-white text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap">Arzu</span>
+                                  </div>
+                                )}
+                                {desiredPhotoUrl2 && (
+                                  <div className="relative">
+                                    <img src={desiredPhotoUrl2} alt="Arzu olunan 2" className="w-16 h-16 rounded-lg object-cover border-2 border-[#C9A227]/50" />
+                                    <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#C9A227] text-white text-[9px] px-1.5 py-0.5 rounded-full whitespace-nowrap">Arzu 2</span>
                                   </div>
                                 )}
                               </div>
@@ -529,6 +612,26 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
           )}
         </div>
       </div>
+
+      {isLogoLightboxOpen && (
+        <div
+          onClick={() => setIsLogoLightboxOpen(false)}
+          className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <img
+            src="/logo-mark.png"
+            alt="SalonHub"
+            className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl object-contain border border-[#C9A227]/40"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setIsLogoLightboxOpen(false)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

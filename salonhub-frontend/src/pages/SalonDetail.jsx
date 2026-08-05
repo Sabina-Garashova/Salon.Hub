@@ -6,6 +6,7 @@ import SalonProfile from "../components/SalonProfile";
 import NewsSection from "../components/NewsSection";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 
 function decodeToken(t) {
   try {
@@ -24,6 +25,7 @@ function decodeToken(t) {
 
 export default function SalonDetail() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const salonId = Number(id);
@@ -39,8 +41,23 @@ export default function SalonDetail() {
   const [reviewableEmployees, setReviewableEmployees] = useState([]);
   const [showBooking, setShowBooking] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [uploadingWorkPhoto, setUploadingWorkPhoto] = useState(false);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
+  const decodedForRole = token ? decodeToken(token) : null;
+  const myUserId =
+    decodedForRole?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+    decodedForRole?.sub;
+  const myRole =
+    decodedForRole?.role ||
+    decodedForRole?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+    "Customer";
+  const isMyOwnSalon = salon && String(salon.ownerId) === String(myUserId);
+  const isMyEmployeeSalon = employees.some((e) => String(e.applicationUserId) === String(myUserId));
+  const canManageWorks =
+    myRole === "SuperAdmin" ||
+    (myRole === "SalonAdmin" && isMyOwnSalon) ||
+    (myRole === "Employee" && isMyEmployeeSalon);
 
   useEffect(() => {
     setLoading(true);
@@ -115,13 +132,44 @@ export default function SalonDetail() {
     setSubmittingReview(true);
     try {
       await api.post("/Review", { salonId, rating, comment, employeeId: employeeId || null });
-      alert(t("home_review_thanks"));
+      showToast(t("home_review_thanks"), "success");
       const revRes = await api.get("/Review");
       setReviews(revRes.data.filter((r) => r.salonId === salonId));
     } catch (err) {
-      alert(err.response?.data?.message || t("home_review_error"));
+      showToast(err.response?.data?.message || t("home_review_error"), "error");
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleUploadWorkPhoto = async (file) => {
+    if (!file) return;
+    setUploadingWorkPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await api.post("/Upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await api.post("/GalleryImage", {
+        imageUrl: uploadRes.data.url,
+        description: "",
+        type: "Portfolio",
+        salonId,
+        employeeId: null,
+        pairedImageId: null,
+      });
+      const galRes = await api.get("/GalleryImage");
+      setGallery(
+        (Array.isArray(galRes.data) ? galRes.data : [galRes.data]).filter(
+          (g) => g.salonId === salonId
+        )
+      );
+      showToast(t("sp_work_photo_added"), "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || t("admin_image_upload_error"), "error");
+    } finally {
+      setUploadingWorkPhoto(false);
     }
   };
 
@@ -141,6 +189,10 @@ export default function SalonDetail() {
         onBack={() => navigate(-1)}
         onBook={handleBook}
         onSubmitReview={handleSubmitReview}
+        workPhotos={gallery.filter((g) => g.type === "Portfolio")}
+        canManageWorks={canManageWorks}
+        onUploadWorkPhoto={handleUploadWorkPhoto}
+        uploadingWorkPhoto={uploadingWorkPhoto}
       />
 
       {salon && (

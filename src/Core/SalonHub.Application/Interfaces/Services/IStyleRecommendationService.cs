@@ -10,5 +10,6 @@ namespace SalonHub.Application.Interfaces.Services
     public interface IStyleRecommendationService
     {
         Task<StyleAnalysisResultDto> AnalyzeAsync(StyleAnalysisRequestDto dto);
+        Task<VirtualTryOnResultDto> GenerateTryOnAsync(VirtualTryOnRequestDto dto);
     }
 }

@@ -9,18 +9,22 @@ import CraftsmanApplicationModal from "../components/CraftsmanApplicationModal";
 import api from "../services/api";
 import NewsSection from "../components/NewsSection";
 import StyleRecommendationWidget from "../components/StyleRecommendationWidget";
+import ChatBookingWidget from "../components/ChatBookingWidget";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import HomeSectionWrapper from "../components/HomeSectionWrapper";
 import { PageBackgroundLayout } from "../components/PageBackgroundLayout";
 
 export default function Home() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [salons, setSalons] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [galleryBySalon, setGalleryBySalon] = useState({});
   const [galleryByEmployee, setGalleryByEmployee] = useState({});
+  const [workPhotos, setWorkPhotos] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [reviewModalSalon, setReviewModalSalon] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
@@ -34,8 +38,8 @@ export default function Home() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } })), api.get("/Service").catch(() => ({ data: [] })), api.get("/Reservation").catch(() => ({ data: [] }))])
-      .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes, serviceRes, resvRes]) => {
+    Promise.all([api.get("/salon"), api.get("/Employee"), api.get("/GalleryImage"), api.get("/Review"), api.get("/Reservation/customer-count").catch(() => ({ data: { count: 0 } })), api.get("/Service").catch(() => ({ data: [] }))])
+      .then(([salonRes, empRes, galleryRes, reviewRes, custCountRes, serviceRes]) => {
         const allReviews = Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data];
         setAllReviewsForRating(allReviews);
         const withComments = allReviews.filter((r) => r?.comment);
@@ -44,42 +48,34 @@ export default function Home() {
         setSalons(salonRes.data);
         const serviceById = {};
         (Array.isArray(serviceRes.data) ? serviceRes.data : []).forEach((s) => { serviceById[s.id] = s.name; });
-        const allResv = Array.isArray(resvRes.data) ? resvRes.data : [];
-        const completedCountByEmp = {};
-        allResv.forEach((r) => {
-          if (r.status === "Completed" && r.employeeId) {
-            completedCountByEmp[r.employeeId] = (completedCountByEmp[r.employeeId] || 0) + 1;
-          }
-        });
-        const employeesWithSpecialty = empRes.data.map((emp) => {
-          const completedCount = completedCountByEmp[emp.id] || 0;
-          const hasRealRating = emp.averageRating && emp.averageRating > 0;
-          return {
-            ...emp,
-            specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
-            averageRating: hasRealRating ? emp.averageRating : Math.min(4.9, 4.0 + completedCount * 0.1),
-          };
-        });
+        const employeesWithSpecialty = empRes.data.map((emp) => ({
+          ...emp,
+          specialty: emp.serviceIds && emp.serviceIds.length > 0 ? serviceById[emp.serviceIds[0]] : null,
+          averageRating: emp.averageRating || 0,
+        }));
         setEmployees(employeesWithSpecialty);
 
         const map = {};
         const empMap = {};
+        const portfolioImages = [];
         (Array.isArray(galleryRes.data) ? galleryRes.data : [galleryRes.data]).forEach((img) => {
           if (img?.salonId && !map[img.salonId]) map[img.salonId] = img.imageUrl;
           if (img?.employeeId) {
             if (!empMap[img.employeeId]) empMap[img.employeeId] = [];
             empMap[img.employeeId].push(img.imageUrl);
           }
+          if (img?.type === "Portfolio") portfolioImages.push(img);
         });
         setGalleryBySalon(map);
         setGalleryByEmployee(empMap);
+        setWorkPhotos(portfolioImages.slice(0, 12));
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setLoading(false));
   }, []);
 
   const requireLogin = () => {
-    if (!localStorage.getItem("token")) {
+    if (!sessionStorage.getItem("token")) {
       navigate("/auth", { state: { tab: "login" } });
       return false;
     }
@@ -113,13 +109,13 @@ export default function Home() {
         rating: reviewRating,
         comment: reviewComment,
       });
-      alert(t("home_review_thanks"));
+      showToast(t("home_review_thanks"), "success");
       setReviewModalSalon(null);
       const reviewRes = await api.get("/Review");
       const withComments = (Array.isArray(reviewRes.data) ? reviewRes.data : [reviewRes.data]).filter((r) => r?.comment);
       setReviews([...withComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10));
     } catch (err) {
-      alert(err.response?.data?.message || t("home_review_error"));
+      showToast(err.response?.data?.message || t("home_review_error"), "error");
     } finally {
       setSubmittingReview(false);
     }
@@ -130,6 +126,13 @@ export default function Home() {
     const parts = name.trim().split(" ");
     return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
+
+  const topEmployeeRanks = {};
+  [...employees]
+    .filter((e) => e.averageRating > 0)
+    .sort((a, b) => b.averageRating - a.averageRating)
+    .slice(0, 3)
+    .forEach((e, idx) => { topEmployeeRanks[e.id] = idx + 1; });
 
   return (
     <PageBackgroundLayout>
@@ -203,7 +206,7 @@ export default function Home() {
       <HomeCTASection onApplySpecialist={() => { if (requireLogin()) setShowApplicationModal(true); }} onApplySalon={openSalonApplicationModal} />
 
       <div className="max-w-[1400px] mx-auto px-4 xl:px-6 mt-10 relative z-10">
-        {localStorage.getItem("token") ? (
+        {sessionStorage.getItem("token") ? (
           <StyleRecommendationWidget />
         ) : (
           <div className="bg-gradient-to-br from-[#1A1714] to-[#2B2118] rounded-2xl p-6 mb-10 flex items-center justify-between gap-4 border border-[#B8935A]/20">
@@ -251,11 +254,23 @@ export default function Home() {
             <p className="text-sm text-gray-400 col-span-full">{t("home_no_masters")}</p>
           ) : (
             employees.map((emp) => (
-              <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} />
+              <EmployeeCard key={emp.id} employee={emp} workPhotos={galleryByEmployee[emp.id] || []} topRank={topEmployeeRanks[emp.id] || null} />
             ))
           )}
         </div>
         </HomeSectionWrapper>
+
+        {workPhotos.length > 0 && (
+          <HomeSectionWrapper id="works-section" icon={<Sparkles className="w-5 h-5 text-[#C9A227]" />} title={t("sp_our_works")}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {workPhotos.map((photo) => (
+                <div key={photo.id} className="aspect-square rounded-xl overflow-hidden border border-amber-300/30 shadow-sm">
+                  <img src={photo.imageUrl} alt={photo.description || t("sp_our_works")} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </HomeSectionWrapper>
+        )}
 
         <div id="news-section"><NewsSection limit={3} /></div>
         {reviews.length > 0 && (
@@ -336,6 +351,69 @@ export default function Home() {
           salonName={bookingSalon.name}
         />
       )}
+
+      <footer className="bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-t border-[#B8935A]/20 mt-16">
+        <div className="max-w-[1800px] mx-auto px-4 xl:px-8 py-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-5 h-5 text-[#C9A227]" />
+                <h3 className="text-lg font-serif font-bold text-[#F4EDE0]">SalonHub</h3>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">{t("footer_tagline")}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wide mb-3">{t("footer_quick_links")}</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <button type="button" onClick={() => { const el = document.getElementById("salons-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }} className="hover:text-[#F0D68A] transition">
+                    {t("home_our_salons")}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => { const el = document.getElementById("masters-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }} className="hover:text-[#F0D68A] transition">
+                    {t("home_our_masters")}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => { const el = document.getElementById("news-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }} className="hover:text-[#F0D68A] transition">
+                    {t("news_title")}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => { const el = document.getElementById("reviews-section"); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" }); }} className="hover:text-[#F0D68A] transition">
+                    {t("home_customer_reviews")}
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wide mb-3">{t("footer_account")}</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <button type="button" onClick={() => navigate("/auth", { state: { tab: "login" } })} className="hover:text-[#F0D68A] transition">
+                    {t("home_login")}
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => navigate("/auth", { state: { tab: "register" } })} className="hover:text-[#F0D68A] transition">
+                    {t("home_register")}
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wide mb-3">{t("footer_contact")}</h4>
+              <p className="text-sm text-gray-400">info@salonhub.com</p>
+            </div>
+          </div>
+          <div className="mt-8 pt-6 border-t border-[#B8935A]/10 text-center text-xs text-gray-500">
+            {t("footer_rights")}
+          </div>
+        </div>
+      </footer>
+
+      {sessionStorage.getItem("token") && <ChatBookingWidget />}
     </PageBackgroundLayout>
   );
 }

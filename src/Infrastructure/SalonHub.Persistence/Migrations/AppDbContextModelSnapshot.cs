@@ -191,6 +191,8 @@ namespace SalonHub.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DateTime");
+
                     b.ToTable("AuditLogs");
                 });
 
@@ -663,6 +665,9 @@ namespace SalonHub.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReferenceImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceImageUrl2")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ReservationDate")

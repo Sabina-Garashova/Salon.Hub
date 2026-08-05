@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 import { 
   Award, 
   History, 
@@ -26,6 +27,7 @@ export default function LoyaltyProgram({
   reservations = []
 }) {
   const { t, language } = useLanguage();
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSalon, setSelectedSalon] = useState(null);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
@@ -52,7 +54,7 @@ export default function LoyaltyProgram({
 
   const handleRedeemSubmit = () => {
     if (!selectedSalon) return;
-    if (!selectedReservationId) { alert(t("lp_select_reservation_alert")); return; }
+    if (!selectedReservationId) { showToast(t("lp_select_reservation_alert"), "warning"); return; }
     const aznAmount = calculateAznEquivalent(selectedSalon, pointsToRedeem);
     onRedeem(selectedSalon.salonId, parseFloat(aznAmount), selectedReservationId);
     closeModal();
@@ -64,7 +66,7 @@ export default function LoyaltyProgram({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAF6F0] p-4 md:p-8 font-sans">
+      <div className="min-h-screen p-4 md:p-8 font-sans">
         <div className="max-w-6xl mx-auto space-y-8 animate-pulse">
           <div className="h-12 bg-gray-200 rounded w-1/3 mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -79,8 +81,8 @@ export default function LoyaltyProgram({
 
   if (!balances || balances.length === 0) {
     return (
-      <div className="min-h-screen bg-[#FAF6F0] flex items-center justify-center p-4 font-sans">
-        <div className="max-w-md w-full bg-white border border-[#B8935A]/20 rounded-2xl p-8 text-center shadow-sm">
+      <div className="min-h-screen flex items-center justify-center p-4 font-sans">
+        <div className="max-w-md w-full bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] border border-[#B8935A]/20 rounded-2xl p-8 text-center shadow-sm">
           <div className="w-16 h-16 bg-[#FAF6F0] text-[#C9A227] rounded-full flex items-center justify-center mx-auto mb-6 border border-[#B8935A]/10">
             <Gift className="w-8 h-8 stroke-[1.5]" />
           </div>
@@ -103,7 +105,7 @@ export default function LoyaltyProgram({
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] p-4 md:p-8 font-sans text-[#1A1714]">
+    <div className="min-h-screen p-4 md:p-8 font-sans text-[#1A1714]">
       <div className="max-w-6xl mx-auto">
         
         <div className="mb-10 text-center md:text-left">
@@ -125,7 +127,7 @@ export default function LoyaltyProgram({
             return (
               <div 
                 key={salon.salonId} 
-                className="flex flex-col bg-white rounded-2xl border border-[#B8935A]/20 shadow-md hover:shadow-lg transition-all overflow-hidden duration-300"
+                className="flex flex-col bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-2xl border-2 border-[#FDF8ED] shadow-[0_4px_18px_rgba(26,23,20,0.18)] hover:shadow-lg transition-all overflow-hidden duration-300"
               >
                 <div className="relative p-6 bg-gradient-to-br from-[#1A1714] via-[#2D2622] to-[#1A1714] text-white overflow-hidden group">
                   <div className="absolute right-[-20px] top-[-20px] w-32 h-32 bg-[#C9A227]/10 rounded-full blur-2xl group-hover:bg-[#C9A227]/20 transition-all duration-500"></div>
@@ -164,13 +166,13 @@ export default function LoyaltyProgram({
                   </div>
                 </div>
 
-                <div className="p-4 bg-white border-b border-gray-100 flex items-center gap-3">
+                <div className="p-4 bg-[#E9D5A8] flex items-center gap-3">
                   <button
                     onClick={() => openRedeemModal(salon)}
                     disabled={salon.points <= 0}
                     className={"flex-1 py-2.5 px-4 text-xs font-bold rounded-xl transition-all tracking-wide text-center uppercase " + (
                       salon.points > 0
-                        ? 'bg-[#C9A227] text-white hover:bg-[#B8935A] shadow-sm'
+                        ? 'bg-[#C9A227] text-white hover:bg-[#B8935A]'
                         : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     )}
                   >
@@ -182,7 +184,7 @@ export default function LoyaltyProgram({
                     className={"p-2.5 rounded-xl border transition-all flex items-center justify-center gap-1 text-xs font-medium " + (
                       isExpanded
                         ? 'bg-[#1A1714] border-[#1A1714] text-[#F0D68A]'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-[#FAF6F0]'
+                        : 'bg-[#1A1714]/10 border-[#1A1714]/30 text-[#1A1714] hover:bg-[#1A1714]/20'
                     )}
                     title={t("lp_history_tooltip")}
                   >
@@ -239,7 +241,7 @@ export default function LoyaltyProgram({
 
         {isModalOpen && selectedSalon && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1714]/60 backdrop-blur-sm transition-opacity duration-300">
-            <div className="relative w-full max-w-md bg-white border border-[#B8935A]/30 rounded-2xl p-6 shadow-2xl">
+            <div className="relative w-full max-w-md bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] border border-[#B8935A]/30 rounded-2xl p-6 shadow-2xl">
               
               <button 
                 onClick={closeModal}

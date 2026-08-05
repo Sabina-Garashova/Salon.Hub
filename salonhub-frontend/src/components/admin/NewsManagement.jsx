@@ -2,9 +2,11 @@
 import { Plus, Edit2, Trash2, X, UploadCloud, FileText, Calendar, MapPin } from 'lucide-react';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../context/ToastContext';
 
 const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) => {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
@@ -56,7 +58,7 @@ const NewsManagement = ({ news = [], salons = [], onCreate, onEdit, onDelete }) 
       const url = res.data.url || res.data.imageUrl || res.data;
       setFormData((prev) => ({ ...prev, imageUrl: url }));
     } catch (err) {
-      alert('Şəkil yüklənmədi');
+      showToast(t("admin_image_upload_error"), "error");
     }
     setUploading(false);
   };

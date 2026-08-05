@@ -138,7 +138,8 @@ namespace SalonHub.Application.Services
             Rating = review.Rating,
             Comment = review.Comment,
             Response = review.Response,
-            RespondedAt = review.RespondedAt
+            RespondedAt = review.RespondedAt,
+            CreatedAt = review.CreatedAt
         };
     }
 }

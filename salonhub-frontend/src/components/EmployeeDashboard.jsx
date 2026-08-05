@@ -5,6 +5,7 @@ import jsQR from "jsqr";
 import ReviewsManagement from "./admin/ReviewsManagement";
 import NewsManagement from "./admin/NewsManagement";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 import { Clock,  Calendar, MessageSquare, Wrench, AlertCircle, Scissors, Newspaper, DollarSign, RefreshCw, ArrowRight  } from "lucide-react";
 
@@ -25,6 +26,7 @@ function decodeToken(token) {
 
 export default function EmployeeDashboard() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("reservations");
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function EmployeeDashboard() {
     setScanning(true);
     setCheckInResult(null);
     try {
-      const token3 = localStorage.getItem("token");
+      const token3 = sessionStorage.getItem("token");
       const res = await fetch("https://localhost:7289/api/CheckIn/scan", {
         method: "POST",
         headers: {
@@ -83,7 +85,7 @@ export default function EmployeeDashboard() {
       setQrCode("");
       fetchEmployeeAppointments();
     } catch (err) {
-      alert(err.message || t("emp_error_occurred"));
+      showToast(err.message || t("emp_error_occurred"), "error");
     } finally {
       setScanning(false);
     }
@@ -120,7 +122,7 @@ export default function EmployeeDashboard() {
           }
           performCheckIn(codeToUse);
         } else {
-          alert(t("emp_qr_not_found"));
+          showToast(t("emp_qr_not_found"), "warning");
         }
       };
       img.src = ev.target.result;
@@ -130,7 +132,7 @@ export default function EmployeeDashboard() {
   };
 
   const resolveMyEmployeeId = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const decoded = token ? decodeToken(token) : null;
     const userId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
 
@@ -154,7 +156,7 @@ export default function EmployeeDashboard() {
       }
       setMyEmployeeId(employeeId);
 
-      const token2 = localStorage.getItem("token");
+      const token2 = sessionStorage.getItem("token");
       const empRes2 = await fetch("https://localhost:7289/api/Employee", {
         headers: { Authorization: token2 ? `Bearer ${token2}` : "" },
       });
@@ -178,7 +180,7 @@ export default function EmployeeDashboard() {
         setReviews(revRes.data.filter((r) => r.employeeId === employeeId));
       } catch {}
 
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await fetch(`https://localhost:7289/api/Reservation/employee?employeeId=${employeeId}`, {
         method: "GET",
         headers: {
@@ -204,7 +206,7 @@ export default function EmployeeDashboard() {
   const handleStatusAction = async (id, action) => {
     setActionLoading(id);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       let url = `https://localhost:7289/api/Reservation/${id}/${action}`;
       let options = {
         method: "POST",
@@ -240,7 +242,7 @@ export default function EmployeeDashboard() {
       );
 
     } catch (err) {
-      alert(t("emp_status_update_error") + ": " + err.message);
+      showToast(t("emp_status_update_error") + ": " + err.message, "error");
     } finally {
       setActionLoading(null);
     }
@@ -293,7 +295,7 @@ export default function EmployeeDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#FAF6F0] text-[#1A1714] p-4 md:p-8 font-sans -m-6">
+      <div className="min-h-screen text-[#1A1714] p-4 md:p-8 font-sans -m-6">
 
         <div className="max-w-5xl mx-auto mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -469,19 +471,24 @@ export default function EmployeeDashboard() {
                                 </span>
                                 <span className="text-gray-400">({app?.durationMinutes || 0} {t("emp_mins")})</span>
                               </div>
-                              {(app?.currentPhotoUrl || app?.referenceImageUrl) && (
+                              {(app?.currentPhotoUrl || app?.referenceImageUrl || app?.referenceImageUrl2) && (
                                 <div className="flex items-center gap-1.5 mt-2">
                                   {app?.currentPhotoUrl && (
                                     <a href={app.currentPhotoUrl} target="_blank" rel="noreferrer" className="relative group/photo" title="İndiki hal">
                                       <img src={app.currentPhotoUrl} alt="İndiki hal" className="w-10 h-10 rounded-lg object-cover border-2 border-gray-200 group-hover/photo:border-[#B8935A] transition-colors" />
                                     </a>
                                   )}
-                                  {app?.currentPhotoUrl && app?.referenceImageUrl && (
+                                  {app?.currentPhotoUrl && (app?.referenceImageUrl || app?.referenceImageUrl2) && (
                                     <ArrowRight className="w-3.5 h-3.5 text-[#C9A227] shrink-0" />
                                   )}
                                   {app?.referenceImageUrl && (
                                     <a href={app.referenceImageUrl} target="_blank" rel="noreferrer" className="relative group/photo" title="Arzu olunan nəticə">
                                       <img src={app.referenceImageUrl} alt="Arzu olunan" className="w-10 h-10 rounded-lg object-cover border-2 border-[#C9A227]/50 group-hover/photo:border-[#C9A227] transition-colors" />
+                                    </a>
+                                  )}
+                                  {app?.referenceImageUrl2 && (
+                                    <a href={app.referenceImageUrl2} target="_blank" rel="noreferrer" className="relative group/photo" title="Arzu olunan nəticə (2)">
+                                      <img src={app.referenceImageUrl2} alt="Arzu olunan 2" className="w-10 h-10 rounded-lg object-cover border-2 border-[#C9A227]/50 group-hover/photo:border-[#C9A227] transition-colors" />
                                     </a>
                                   )}
                                   <span className="text-[10px] text-[#B8935A] font-semibold ml-1">Görünüş şəkli var</span>

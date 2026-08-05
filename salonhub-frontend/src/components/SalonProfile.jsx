@@ -1,10 +1,13 @@
-﻿import { useState } from "react";
+﻿import { useState, useRef } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import {
   ArrowLeft,
   CalendarPlus,
   Clock,
   Crown,
+  ImagePlus,
+  Images,
+  Loader2,
   MapPin,
   MessageSquare,
   Phone,
@@ -94,11 +97,16 @@ export default function SalonProfile({
   onBook,
   onSubmitReview,
   reviewableEmployees = [],
+  workPhotos = [],
+  canManageWorks = false,
+  onUploadWorkPhoto,
+  uploadingWorkPhoto = false,
 }) {
   const { t } = useLanguage();
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewComment, setReviewComment] = useState("");
+  const workPhotoInputRef = useRef(null);
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
@@ -109,7 +117,7 @@ export default function SalonProfile({
   const bannerUrl = salon?.bannerImageUrl || salon?.imageUrl || "/craftsman-modal-bg.png";
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] font-sans relative overflow-hidden">
+    <div className="min-h-screen font-sans relative overflow-hidden">
       <div className="pointer-events-none fixed inset-0 -z-0">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#E8C97A] opacity-[0.10] blur-[140px] rounded-full" />
         <div className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] bg-[#B8935A] opacity-[0.08] blur-[160px] rounded-full" />
@@ -140,7 +148,7 @@ export default function SalonProfile({
         {loading ? (
           <LoadingSkeleton />
         ) : !salon ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+          <div className="bg-[#F1E2C5] rounded-2xl border border-dashed border-[#C9A227]/40 p-12 text-center">
             <p className="text-gray-400 text-sm">{t("sp_not_found")}</p>
           </div>
         ) : (
@@ -215,7 +223,7 @@ export default function SalonProfile({
                 <section>
                   <SectionTitle icon={Scissors}>{t("sp_services")}</SectionTitle>
                   {services.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
+                    <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
                       {t("sp_no_services")}
                     </div>
                   ) : (
@@ -264,7 +272,7 @@ export default function SalonProfile({
                 <section>
                   <SectionTitle icon={Users}>{t("sp_masters")}</SectionTitle>
                   {employees.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
+                    <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
                       {t("sp_no_masters")}
                     </div>
                   ) : (
@@ -301,9 +309,63 @@ export default function SalonProfile({
                 </section>
 
                 <section>
+                  <div className="flex items-center justify-between mb-4">
+                    <SectionTitle icon={Images}>{t("sp_our_works")}</SectionTitle>
+                    {canManageWorks && (
+                      <>
+                        <input
+                          ref={workPhotoInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            onUploadWorkPhoto?.(file);
+                            e.target.value = "";
+                          }}
+                        />
+                        <button
+                          type="button"
+                          disabled={uploadingWorkPhoto}
+                          onClick={() => workPhotoInputRef.current?.click()}
+                          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-gradient-to-r from-[#B8935A] to-[#C9A227] text-white hover:opacity-95 transition disabled:opacity-50 -mb-4"
+                        >
+                          {uploadingWorkPhoto ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <ImagePlus className="w-3.5 h-3.5" />
+                          )}
+                          {t("sp_add_work_photo")}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {workPhotos.length === 0 ? (
+                    <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
+                      {t("sp_no_work_photos")}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {workPhotos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="aspect-square rounded-xl overflow-hidden border border-amber-300/30 shadow-sm"
+                        >
+                          <img
+                            src={photo.imageUrl}
+                            alt={photo.description || t("sp_our_works")}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section>
                   <SectionTitle icon={MessageSquare}>{t("sp_reviews")}</SectionTitle>
                   {reviews.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-400">
+                    <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
                       {t("sp_no_reviews")}
                     </div>
                   ) : (
@@ -397,7 +459,7 @@ export default function SalonProfile({
                       </button>
                     </form>
                   ) : (
-                    <div className="bg-[#FAF6F0] border border-dashed border-gray-200 rounded-xl p-4 text-center text-xs text-gray-400 leading-relaxed">
+                    <div className="bg-[#F1E2C5] border border-dashed border-[#C9A227]/40 rounded-xl p-4 text-center text-xs text-[#6B5D45] leading-relaxed">
                       {t("sp_review_gate")}
                     </div>
                   )}

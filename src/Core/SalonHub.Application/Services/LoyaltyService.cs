@@ -139,9 +139,9 @@ namespace SalonHub.Application.Services
                     await _unitOfWork.CompleteAsync();
 
                     var loyCustParams = JsonSerializer.Serialize(new { amount = dto.DiscountAmount, remainingPoints = account.Points });
-                    await _notificationService.NotifyReservationChangedAsync(customerId, $"{dto.DiscountAmount} AZN meblegi bal ile odendi. Qalan bal: {account.Points}.", "notif_loyalty_redeemed_customer", loyCustParams);
+                    await _notificationService.NotifyReservationChangedAsync(customerId, $"{dto.DiscountAmount} AZN məbləği bal ilə ödəndi. Qalan bal: {account.Points}.", "notif_loyalty_redeemed_customer", loyCustParams);
                     var loyEmpParams = JsonSerializer.Serialize(new { amount = dto.DiscountAmount });
-                    await _notificationService.NotifyEmployeeAsync(linkedReservation.EmployeeId, $"Musteri rezervasiyanin {dto.DiscountAmount} AZN hissesini bal ile odedi.", "notif_loyalty_redeemed_employee", loyEmpParams);
+                    await _notificationService.NotifyEmployeeAsync(linkedReservation.EmployeeId, $"Müştəri rezervasiyanın {dto.DiscountAmount} AZN hissəsini bal ilə ödədi.", "notif_loyalty_redeemed_employee", loyEmpParams);
                 }
             }
 

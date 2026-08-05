@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import LoyaltyProgram from "../components/LoyaltyProgram";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 
 function decodeToken(token) {
   try {
@@ -22,6 +23,7 @@ function decodeToken(token) {
 
 export default function LoyaltyPage() {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [balances, setBalances] = useState([]);
   const [referralCode, setReferralCode] = useState("");
@@ -48,7 +50,7 @@ export default function LoyaltyPage() {
           setReferralCode(refRes.data.referralCode);
         } catch {}
 
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const decoded = token ? decodeToken(token) : null;
         const myUserId = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || decoded?.sub;
         const resvRes = await api.get("/Reservation");
@@ -79,12 +81,12 @@ export default function LoyaltyPage() {
         discountAmount,
         reservationId: reservationId ? Number(reservationId) : null,
       });
-      alert(`${t("loy_redeem_success")} ${res.data.remainingPoints}`);
+      showToast(`${t("loy_redeem_success")} ${res.data.remainingPoints}`, "success");
       setBalances((prev) =>
         prev.map((b) => (b.salonId === salonId ? { ...b, points: res.data.remainingPoints } : b))
       );
     } catch (err) {
-      alert(err.response?.data?.message || t("home_review_error"));
+      showToast(err.response?.data?.message || t("home_review_error"), "error");
     }
   };
 
@@ -103,7 +105,7 @@ export default function LoyaltyPage() {
         />
 
         {referralCode && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-8">
             <div className="bg-gradient-to-r from-[#1A1714] to-[#2D2622] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#B8935A]/20">
               <div>
                 <p className="text-xs uppercase tracking-widest text-[#B8935A] font-semibold mb-1">{t("loy_referral_title")}</p>

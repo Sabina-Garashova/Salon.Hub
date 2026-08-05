@@ -66,7 +66,16 @@ namespace SalonHub.Api.Controllers
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            {
+                var isDuplicate = result.Errors.Any(e =>
+                    e.Code == "DuplicateUserName" || e.Code == "DuplicateEmail");
+
+                var message = isDuplicate
+                    ? "Bu email artıq istifadə olunub. Zəhmət olmasa başqa email daxil edin və ya daxil olun."
+                    : string.Join(" ", result.Errors.Select(e => e.Description));
+
+                return BadRequest(new { message });
+            }
 
             await _userManager.AddToRoleAsync(user, dto.Role);
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import AnalyticsDashboard from "./AnalyticsDashboard";
 import api from "../../services/api";
+import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 
 const WEEKDAY_NAMES = ["B.", "B.E.", "ÇA.", "Ç.", "CA.", "C.", "Ş."];
 
@@ -13,6 +15,8 @@ function toIso(d) {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
   const [startDate, setStartDate] = useState(toIso(getMonthStart()));
   const [endDate, setEndDate] = useState(toIso(new Date()));
   const [groupBy, setGroupBy] = useState("Day");
@@ -105,7 +109,7 @@ export default function AnalyticsPage() {
       link.click();
       link.remove();
     } catch (err) {
-      alert("Excel ixraci ugursuz oldu.");
+      showToast(t("admin_excel_export_error"), "error");
     }
   };
 

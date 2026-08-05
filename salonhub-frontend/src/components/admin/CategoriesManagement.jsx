@@ -1,5 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Layers, AlertTriangle, FileText, Scissors, ChevronDown, ChevronUp } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../context/ToastContext';
 
 export default function CategoriesManagement({
   categories = [],
@@ -11,6 +13,8 @@ export default function CategoriesManagement({
   onMoveService,
   onCreateServiceForCategory
 }) {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
   const [expandedCat, setExpandedCat] = useState({});
   const toggleExpand = (id) => setExpandedCat(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -30,7 +34,7 @@ export default function CategoriesManagement({
 
   const handleAddServiceSubmit = (e) => {
     e.preventDefault();
-    if (svcSalonIds.length === 0) return alert('En azi bir salon secmelisiniz!');
+    if (svcSalonIds.length === 0) { showToast(t("admin_select_at_least_one_salon"), "warning"); return; }
     onCreateServiceForCategory?.(
       { name: svcName, price: parseFloat(svcPrice), durationMinutes: parseInt(svcDuration), categoryId: addServiceCatId },
       svcSalonIds

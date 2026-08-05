@@ -20,19 +20,70 @@ namespace SalonHub.Api.Controllers
         private readonly IServiceCrudService _serviceCrudService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
+        private readonly IEmailService _emailService;
+
+        private const string DefaultStaffPassword = "Test1234!";
 
         public SpecialistApplicationController(
             ISpecialistApplicationService applicationService,
             IEmployeeService employeeService,
             IServiceCrudService serviceCrudService,
             UserManager<ApplicationUser> userManager,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IEmailService emailService)
         {
             _applicationService = applicationService;
             _employeeService = employeeService;
             _serviceCrudService = serviceCrudService;
             _userManager = userManager;
             _notificationService = notificationService;
+            _emailService = emailService;
+        }
+
+        private static string Transliterate(string input)
+        {
+            var map = new Dictionary<char, char>
+            {
+                ['ə'] = 'e', ['Ə'] = 'e',
+                ['ö'] = 'o', ['Ö'] = 'o',
+                ['ü'] = 'u', ['Ü'] = 'u',
+                ['ç'] = 'c', ['Ç'] = 'c',
+                ['ş'] = 's', ['Ş'] = 's',
+                ['ğ'] = 'g', ['Ğ'] = 'g',
+                ['ı'] = 'i', ['I'] = 'i',
+                ['İ'] = 'i',
+            };
+
+            var sb = new System.Text.StringBuilder();
+            foreach (var ch in input)
+            {
+                if (map.TryGetValue(ch, out var replacement))
+                    sb.Append(replacement);
+                else if (char.IsLetterOrDigit(ch))
+                    sb.Append(char.ToLowerInvariant(ch));
+            }
+            return sb.ToString();
+        }
+
+        private async Task<string> GenerateStaffEmailAsync(string fullName)
+        {
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var firstName = parts.Length > 0 ? Transliterate(parts[0]) : "usta";
+            var lastName = parts.Length > 1 ? Transliterate(parts[^1]) : string.Empty;
+
+            var baseLocal = string.IsNullOrEmpty(lastName) ? firstName : $"{firstName}.{lastName}";
+            if (string.IsNullOrWhiteSpace(baseLocal))
+                baseLocal = "usta";
+
+            var candidate = $"{baseLocal}@salonhub.com";
+            var suffix = 1;
+            while (await _userManager.FindByEmailAsync(candidate) is not null)
+            {
+                suffix++;
+                candidate = $"{baseLocal}{suffix}@salonhub.com";
+            }
+
+            return candidate;
         }
 
         private string GetRequesterId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -141,17 +192,36 @@ namespace SalonHub.Api.Controllers
             if (!await _userManager.IsInRoleAsync(applicant, Roles.Employee))
                 await _userManager.AddToRoleAsync(applicant, Roles.Employee);
 
+            // Ustaya rəsmi SalonHub iş email-i və standart şifrə təhkim edilir
+            var staffEmail = await GenerateStaffEmailAsync(applicant.FullName);
+            var setEmailResult = await _userManager.SetEmailAsync(applicant, staffEmail);
+            var setUserNameResult = await _userManager.SetUserNameAsync(applicant, staffEmail);
+            applicant.EmailConfirmed = true;
+
+            var removePasswordResult = await _userManager.RemovePasswordAsync(applicant);
+            var addPasswordResult = await _userManager.AddPasswordAsync(applicant, DefaultStaffPassword);
+
+            await _userManager.UpdateAsync(applicant);
+
             await _applicationService.MarkApprovedAsync(id, GetRequesterId());
 
             var approvalMessage = dto?.AgreedSalary.HasValue == true
-                ? $"🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz. Razılaşdırılan aylıq maaşınız: {dto.AgreedSalary.Value} AZN."
-                : "🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz.";
+                ? $"🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz. Razılaşdırılan aylıq maaşınız: {dto.AgreedSalary.Value} AZN. Yeni iş email-iniz: {staffEmail} (şifrə: {DefaultStaffPassword})"
+                : $"🎉 Təbriklər! Usta müraciətiniz təsdiqləndi, artıq SalonHub komandasının bir hissəsisiniz. Yeni iş email-iniz: {staffEmail} (şifrə: {DefaultStaffPassword})";
 
             await _notificationService.NotifyReservationChangedAsync(
                 applicant.Id,
                 approvalMessage);
 
-            return Ok(new { message = "Müraciət təsdiqləndi, işçi qeydi yaradıldı." });
+            var emailBody = $"Salam {applicant.FullName},\n\nSalonHub komandasına xoş gəlmisiniz! Sistemə daxil olmaq üçün yeni iş hesabınız yaradıldı:\n\nEmail: {staffEmail}\nŞifrə: {DefaultStaffPassword}\n\nZəhmət olmasa ilk daxilolmadan sonra şifrənizi dəyişin.\n\nSalonHub komandası";
+            await _emailService.SendEmailAsync(staffEmail, "SalonHub - İş Hesabınız Yaradıldı", emailBody);
+
+            return Ok(new
+            {
+                message = "Müraciət təsdiqləndi, işçi qeydi yaradıldı.",
+                staffEmail,
+                staffPassword = DefaultStaffPassword
+            });
         }
 
         [HttpPost("{id}/reject")]

@@ -10,6 +10,8 @@ namespace SalonHub.Application.DTOs.Salons
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
         public string OwnerId { get; set; } = string.Empty;
+        public string? OwnerFullName { get; set; }
+        public string? OwnerEmail { get; set; }
         public bool IsMonthlyTopSalon { get; set; }
     }
 

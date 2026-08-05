@@ -23,7 +23,7 @@ namespace SalonHub.Application.Services
 
         public async Task SendFollowUpsForUnansweredReviews()
         {
-            _logger.LogInformation("RÉ™y qaytarma yoxlamasÄ± baÅŸladÄ±: {Date}", DateTime.UtcNow);
+            _logger.LogInformation("Rəy qaytarma yoxlaması başladı: {Date}", DateTime.UtcNow);
 
             var cutoffDate = DateTime.UtcNow.AddDays(-DaysToWaitForResponse);
 
@@ -45,17 +45,17 @@ namespace SalonHub.Application.Services
                     review.FollowUpSent = true;
                     _unitOfWork.Reviews.Update(review);
 
-                    _logger.LogInformation("RÉ™y qaytarma mesajÄ± gÃ¶ndÉ™rildi: ReviewId={ReviewId}, CustomerId={CustomerId}", review.Id, review.CustomerId);
+                    _logger.LogInformation("Rəy qaytarma mesajı göndərildi: ReviewId={ReviewId}, CustomerId={CustomerId}", review.Id, review.CustomerId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "RÉ™y qaytarma mesajÄ± gÃ¶ndÉ™rilÉ™rkÉ™n xÉ™ta: ReviewId={ReviewId}", review.Id);
+                    _logger.LogError(ex, "Rəy qaytarma mesajı göndərilərkən xəta: ReviewId={ReviewId}", review.Id);
                 }
             }
 
             await _unitOfWork.CompleteAsync();
 
-            _logger.LogInformation("RÉ™y qaytarma yoxlamasÄ± bitdi. GÃ¶ndÉ™rilÉ™n mesaj sayÄ±: {Count}", reviewList.Count);
+            _logger.LogInformation("Rəy qaytarma yoxlaması bitdi. Göndərilən mesaj sayı: {Count}", reviewList.Count);
         }
     }
 }

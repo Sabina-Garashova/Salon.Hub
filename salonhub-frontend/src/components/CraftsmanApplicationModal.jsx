@@ -15,8 +15,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import api from "../services/api";
+import { useLanguage } from "../context/LanguageContext";
+import { useToast } from "../context/ToastContext";
 
 export default function CraftsmanApplicationModal({ isOpen, onClose }) {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
   const [salons, setSalons] = useState([]);
   const [branches, setBranches] = useState([]);
   const [services, setServices] = useState([]);
@@ -69,7 +73,7 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
       });
       setProfileImageUrl(res.data.url);
     } catch (err) {
-      alert(err.response?.data?.message || "Sekil yuklenmedi.");
+      showToast(err.response?.data?.message || t("admin_image_upload_error"), "error");
     } finally {
       setUploadingProfile(false);
       e.target.value = "";
@@ -91,7 +95,7 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
         });
         setPortfolioUrls((prev) => [...prev, res.data.url]);
       } catch (err) {
-        alert(err.response?.data?.message || "Sekil yuklenmedi.");
+        showToast(err.response?.data?.message || t("admin_image_upload_error"), "error");
       } finally {
         setUploadingCount((c) => c - 1);
       }
@@ -123,7 +127,7 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
 
     try {
       await api.post("/SpecialistApplication", payload);
-      alert("Müraciətiniz uğurla göndərildi!");
+      showToast(t("craftsman_app_success"), "success");
       setSalon("");
       setBranch("");
       setPhoneNumber("");
@@ -136,8 +140,8 @@ export default function CraftsmanApplicationModal({ isOpen, onClose }) {
       setPortfolioUrls([]);
       onClose();
     } catch (err) {
-      const msg = err.response?.data?.message || "Xəta baş verdi. Məlumatları yenidən yoxlayın.";
-      alert(msg);
+      const msg = err.response?.data?.message || t("admin_generic_error");
+      showToast(msg, "error");
     } finally {
       setSubmitting(false);
     }

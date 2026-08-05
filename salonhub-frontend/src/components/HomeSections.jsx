@@ -73,13 +73,14 @@ export const HomeStatsSection = ({ stats = { salonCount: 0, employeeCount: 0, av
   );
 };
 
-export const HomeCTASection = ({ onApplySpecialist, onApplySalon }) => {
+export const HomeCTASection = ({ onApplySpecialist, onApplySalon, onlySalon = false }) => {
   const { t } = useLanguage();
   return (
     <section className="py-10 font-sans">
       <div className="max-w-[1400px] mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className={onlySalon ? "grid grid-cols-1 gap-5" : "grid grid-cols-1 lg:grid-cols-2 gap-5"}>
 
+          {!onlySalon && (
           <div className="group relative overflow-hidden rounded-2xl bg-[#1A1714] p-6 md:p-7 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
             <div className="absolute -bottom-20 -right-20 w-56 h-56 bg-[#C9A227]/20 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-150"></div>
 
@@ -128,6 +129,7 @@ export const HomeCTASection = ({ onApplySpecialist, onApplySalon }) => {
               </button>
             </div>
           </div>
+          )}
 
           <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#D4AF37] via-[#AA8232] to-[#6E5223] border border-white/20 shadow-xl p-6 md:p-7 hover:shadow-[0_20px_40px_rgba(110,82,35,0.3)] transition-all duration-500 hover:-translate-y-1">
             <div className="absolute -top-20 -left-20 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-150"></div>

@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import WorkingHoursView from './WorkingHoursView';
+import { useLanguage } from '../../context/LanguageContext';
+import { useToast } from '../../context/ToastContext';
 
 export default function EmployeeModal({
   formData = {
@@ -36,6 +38,8 @@ export default function EmployeeModal({
   onClose = () => {},
   employeeId = null
 }) {
+  const { t } = useLanguage();
+  const { showToast } = useToast();
 
   const [uploading, setUploading] = useState(false);
   const [workingHours, setWorkingHours] = useState([]);
@@ -136,7 +140,7 @@ export default function EmployeeModal({
       });
       onChange("profileImageUrl", res.data.url);
     } catch (err) {
-      alert("Sekil yuklenmedi: " + (err.response?.data?.message || err.message));
+      showToast(t("admin_image_upload_error") + ": " + (err.response?.data?.message || err.message), "error");
     } finally {
       setUploading(false);
     }

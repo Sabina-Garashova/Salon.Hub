@@ -1,13 +1,19 @@
 ﻿import React, { useRef, useState } from 'react';
 import { Sparkles, ScanFace, Upload } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function AIStyleRecommendationIdle({
-  title = "AI ilə Sizə Uyğun Görünüşü Tapın",
-  subtitle = "Süni intellekt üz formanızı analiz edib, sizə ən yaraşan saç düzümü və makyaj tövsiyə edir!",
-  uploadHint = "Selfinizi yükləyin",
-  uploadButtonText = "Şəklinizi Yükləyin",
+  title,
+  subtitle,
+  uploadHint,
+  uploadButtonText,
   onImageUpload
 }) {
+  const { t } = useLanguage();
+  const resolvedTitle = title || t("ai_style_title");
+  const resolvedSubtitle = subtitle || t("ai_style_subtitle");
+  const resolvedUploadHint = uploadHint || t("ai_style_upload_hint");
+  const resolvedUploadButtonText = uploadButtonText || t("ai_style_upload_btn");
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -51,11 +57,11 @@ export default function AIStyleRecommendationIdle({
           </div>
 
           <h2 className="text-2xl md:text-3xl font-serif font-medium text-[#1A1714] leading-tight mb-4">
-            {title}
+            {resolvedTitle}
           </h2>
 
           <p className="text-[#1A1714]/70 text-sm md:text-base leading-relaxed mb-8">
-            {subtitle}
+            {resolvedSubtitle}
           </p>
         </div>
       </div>
@@ -82,10 +88,10 @@ export default function AIStyleRecommendationIdle({
           </div>
 
           <p className="text-[#1A1714] font-medium mb-2 text-center">
-            {uploadHint}
+            {resolvedUploadHint}
           </p>
           <p className="text-[#1A1714]/50 text-xs mb-8 text-center">
-            və ya şəkli bura sürükləyin
+            {t("ai_style_drag_hint")}
           </p>
 
           <button
@@ -95,7 +101,7 @@ export default function AIStyleRecommendationIdle({
               fileInputRef.current?.click();
             }}
           >
-            <span>{uploadButtonText}</span>
+            <span>{resolvedUploadButtonText}</span>
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_2s_infinite]" />
           </button>
         </div>

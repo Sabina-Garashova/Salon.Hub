@@ -28,5 +28,17 @@ namespace SalonHub.Application.DTOs.StyleRecommendation
         public string ImageUrl { get; set; } = string.Empty;
         public string? Description { get; set; }
     }
+
+    public class VirtualTryOnRequestDto
+    {
+        public string ImageBase64 { get; set; } = string.Empty;
+        public string StyleDescription { get; set; } = string.Empty;
+    }
+
+    public class VirtualTryOnResultDto
+    {
+        public string GeneratedImageBase64 { get; set; } = string.Empty;
+        public string MimeType { get; set; } = "image/png";
+    }
 }
 
