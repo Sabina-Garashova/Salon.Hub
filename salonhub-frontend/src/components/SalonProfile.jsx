@@ -101,12 +101,45 @@ export default function SalonProfile({
   canManageWorks = false,
   onUploadWorkPhoto,
   uploadingWorkPhoto = false,
+  currentUserId,
+  onEditReview,
+  onDeleteReview,
 }) {
   const { t } = useLanguage();
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewEmployeeId, setReviewEmployeeId] = useState("");
   const [reviewComment, setReviewComment] = useState("");
   const workPhotoInputRef = useRef(null);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState("");
+  const [savingReviewId, setSavingReviewId] = useState(null);
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
+
+  const startEditReview = (review) => {
+    setEditingReviewId(review.id);
+    setEditRating(review.rating || 5);
+    setEditComment(review.comment || "");
+  };
+
+  const handleSaveReviewEdit = async (id) => {
+    setSavingReviewId(id);
+    try {
+      await onEditReview?.(id, { rating: editRating, comment: editComment });
+      setEditingReviewId(null);
+    } finally {
+      setSavingReviewId(null);
+    }
+  };
+
+  const handleDeleteReviewClick = async (id) => {
+    setDeletingReviewId(id);
+    try {
+      await onDeleteReview?.(id);
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
@@ -370,40 +403,107 @@ export default function SalonProfile({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {reviews.map((review) => (
-                        <article
-                          key={review.id}
-                          className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-5"
-                        >
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <span className="font-semibold text-[#1A1714] text-sm">
-                              {review.customerFullName}
-                            </span>
-                            <StarRating rating={review.rating} size="sm" />
-                          </div>
-                          {(() => {
-                            const reviewEmployeeName = review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName;
-                            return (
+                      {reviews.map((review) => {
+                        const isOwn = currentUserId && String(review.customerId) === String(currentUserId);
+                        const isEditing = editingReviewId === review.id;
+                        return (
+                          <article
+                            key={review.id}
+                            className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-5"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <span className="font-semibold text-[#1A1714] text-sm">
+                                {review.customerFullName}
+                              </span>
+                              {!isEditing && <StarRating rating={review.rating} size="sm" />}
+                            </div>
+
+                            {isEditing ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3, 4, 5].map((i) => (
+                                    <button key={i} type="button" onClick={() => setEditRating(i)} className="p-0.5">
+                                      <Star className={"w-5 h-5 " + (i <= editRating ? "text-[#C9A227] fill-[#C9A227]" : "text-gray-300 fill-gray-300")} />
+                                    </button>
+                                  ))}
+                                </div>
+                                <textarea
+                                  rows={3}
+                                  value={editComment}
+                                  onChange={(e) => setEditComment(e.target.value)}
+                                  className="w-full p-2.5 bg-white/70 border border-amber-300/40 rounded-lg text-sm text-[#1A1714] focus:outline-none focus:border-[#C9A227] resize-none"
+                                />
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingReviewId(null)}
+                                    disabled={savingReviewId === review.id}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-[#6B5D45] hover:bg-white/50"
+                                  >
+                                    {t("common_cancel")}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveReviewEdit(review.id)}
+                                    disabled={savingReviewId === review.id}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#1A1714] text-[#F0D68A] hover:bg-[#C9A227] hover:text-[#1A1714] disabled:opacity-50"
+                                  >
+                                    {savingReviewId === review.id ? t("common_saving") : t("common_save")}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
                               <>
-                                {reviewEmployeeName && (
-                                  <p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {reviewEmployeeName}</p>
-                                )}
-                                <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-                                {review.response && (
-                                  <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
-                                    <p className="text-xs text-gray-500">
-                                      <span className="font-semibold text-[#B8935A]">
-                                        {reviewEmployeeName ? `${t("sp_usta_reply")} ${reviewEmployeeName} — ` : t("sp_salon_reply") + " "}
-                                      </span>
-                                      {review.response}
-                                    </p>
+                                {(() => {
+                                  const reviewEmployeeName = review.employeeFullName || employees?.find((e) => String(e.id) === String(review.employeeId))?.fullName;
+                                  return (
+                                    <>
+                                      {reviewEmployeeName && (
+                                        <p className="text-xs text-[#B8935A] font-medium mb-1">{t("sp_master_label")} {reviewEmployeeName}</p>
+                                      )}
+                                      <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                                      {review.response && (
+                                        <div className="mt-3 pl-3 border-l-2 border-[#C9A227]/40 bg-[#FAF6F0] rounded-r-lg py-2 pr-3">
+                                          <p className="text-xs text-gray-500">
+                                            <span className="font-semibold text-[#B8935A]">
+                                              {reviewEmployeeName ? `${t("sp_usta_reply")} ${reviewEmployeeName} — ` : t("sp_salon_reply") + " "}
+                                            </span>
+                                            {review.response}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+
+                                {isOwn && (onEditReview || onDeleteReview) && (
+                                  <div className="flex items-center justify-end gap-4 mt-3 pt-3 border-t border-amber-300/30">
+                                    {onEditReview && (
+                                      <button
+                                        type="button"
+                                        onClick={() => startEditReview(review)}
+                                        className="text-xs font-semibold text-[#B8935A] hover:text-[#C9A227]"
+                                      >
+                                        {t("review_edit_btn")}
+                                      </button>
+                                    )}
+                                    {onDeleteReview && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteReviewClick(review.id)}
+                                        disabled={deletingReviewId === review.id}
+                                        className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                                      >
+                                        {deletingReviewId === review.id ? t("common_saving") : t("review_delete_btn")}
+                                      </button>
+                                    )}
                                   </div>
                                 )}
                               </>
-                            );
-                          })()}
-                        </article>
-                      ))}
+                            )}
+                          </article>
+                        );
+                      })}
                     </div>
                   )}
                 </section>

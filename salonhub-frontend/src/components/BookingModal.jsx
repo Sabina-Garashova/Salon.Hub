@@ -20,7 +20,7 @@ function decodeToken(t) {
   }
 }
 
-export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, initialReferenceImage2, showAllSalons = false }) {
+export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, initialReferenceImage2, initialServiceId, showAllSalons = false }) {
   const getMatchingServiceIds = (svcName) => services.filter((s) => s.name === svcName).map((s) => s.id);
   const getActualServiceId = () => {
     if (!selectedEmployee || !selectedService) return selectedService?.id;
@@ -83,7 +83,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
 
     Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
       .then(([servRes, empRes, balRes]) => {
-        setServices(servRes.data.filter((s) => showAllSalons || s.salonId === salonId));
+        const filteredServices = servRes.data.filter((s) => showAllSalons || s.salonId === salonId);
+        setServices(filteredServices);
         setEmployees(
           empRes.data.filter(
             (e) =>
@@ -93,6 +94,13 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
           )
         );
         setLoyaltyBalance(balRes.data);
+        if (initialServiceId) {
+          const preselected = filteredServices.find((s) => s.id === initialServiceId);
+          if (preselected) {
+            setSelectedService(preselected);
+            setStep(2);
+          }
+        }
       })
       .catch((err) => console.error("Məlumat yüklənmədi", err))
       .finally(() => setLoadingOptions(false));

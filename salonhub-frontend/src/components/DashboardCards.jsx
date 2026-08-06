@@ -1,8 +1,8 @@
 import React from 'react';
-import { QrCode, Calendar, TrendingUp, ChevronRight, Wand2 } from 'lucide-react';
+import { QrCode, Calendar, TrendingUp, ChevronRight, Wand2, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role, onShowAll }) => {
+export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role, onShowAll, onPostCare }) => {
   const { t } = useLanguage();
   const getStatusBadge = (status) => {
     const s = status?.toLowerCase();
@@ -70,6 +70,7 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role, onSh
                     <th className="pb-3 text-xs font-medium text-[#7A6A50] uppercase tracking-wider">{t("dc_look")}</th>
                   )}
                   <th className="pb-3 text-xs font-medium text-[#7A6A50] uppercase tracking-wider">{t("dc_status")}</th>
+                  {role === "Customer" && onPostCare && <th className="pb-3 text-xs font-medium text-[#7A6A50] uppercase tracking-wider"></th>}
                   {role === "Customer" && <th className="pb-3 text-xs font-medium text-[#7A6A50] uppercase tracking-wider text-right">QR</th>}
                 </tr>
               </thead>
@@ -128,6 +129,19 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role, onSh
                         {appt.status}
                       </span>
                     </td>
+                    {role === "Customer" && onPostCare && (
+                      <td className="py-4 whitespace-nowrap pr-4">
+                        {appt.rawStatus === "Completed" && (
+                          <button
+                            onClick={() => onPostCare(appt)}
+                            className="p-1.5 text-[#7A6A50] hover:text-[#C9A227] hover:bg-[#FAF6F0] rounded-md transition-all outline-none"
+                            title={t("postcare_open_btn")}
+                          >
+                            <Sparkles className="w-5 h-5" />
+                          </button>
+                        )}
+                      </td>
+                    )}
                     {role === "Customer" && (
                       <td className="py-4 whitespace-nowrap text-right pl-4">
                         <button

@@ -6,11 +6,19 @@ namespace SalonHub.Application.DTOs.ChatBooking
         public string Text { get; set; } = string.Empty;
     }
 
+    public class PreviousSuggestionDto
+    {
+        public int EmployeeId { get; set; }
+        public int ServiceId { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+    }
+
     public class ChatBookingMessageDto
     {
         public string Message { get; set; } = string.Empty;
         public List<ChatTurnDto> ConversationHistory { get; set; } = new();
         public int? SalonId { get; set; }
+        public List<PreviousSuggestionDto> PreviousSuggestions { get; set; } = new();
     }
 
     public class SuggestedSlotDto

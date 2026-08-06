@@ -148,6 +148,20 @@ public class ChatBookingService : IChatBookingService
             .GroupBy(r => r.EmployeeId!.Value)
             .ToDictionary(g => g.Key, g => Math.Round(g.Average(r => r.Rating), 1));
 
+        var lowerMessage = dto.Message.ToLowerInvariant();
+        var wantsOtherEmployees = lowerMessage.Contains("digər usta") || lowerMessage.Contains("başqa usta");
+        var wantsOtherTimes = lowerMessage.Contains("başqa saat") || lowerMessage.Contains("digər saat");
+
+        var excludedEmployeeIds = wantsOtherEmployees
+            ? dto.PreviousSuggestions.Select(p => p.EmployeeId).Distinct().ToHashSet()
+            : new HashSet<int>();
+
+        var excludedTimesByEmployee = wantsOtherTimes
+            ? dto.PreviousSuggestions
+                .GroupBy(p => p.EmployeeId)
+                .ToDictionary(g => g.Key, g => g.Select(p => p.StartTime).ToHashSet())
+            : new Dictionary<int, HashSet<string>>();
+
         var suggestions = new List<SuggestedSlotDto>();
 
         foreach (var svc in matchedServices)
@@ -158,6 +172,7 @@ public class ChatBookingService : IChatBookingService
             {
                 if (suggestions.Count >= 3) break;
                 if (empStub.SalonId != svc.SalonId) continue;
+                if (excludedEmployeeIds.Contains(empStub.Id)) continue;
 
                 var emp = await _unitOfWork.Employees.SingleOrDefaultAsync(
                     e => e.Id == empStub.Id, e => e.EmployeeServices, e => e.AssignedEquipment);
@@ -174,6 +189,9 @@ public class ChatBookingService : IChatBookingService
                 {
                     continue;
                 }
+
+                if (excludedTimesByEmployee.TryGetValue(emp.Id, out var usedTimes))
+                    slots = slots.Where(s => !usedTimes.Contains(s)).ToList();
 
                 if (slots.Count == 0) continue;
 

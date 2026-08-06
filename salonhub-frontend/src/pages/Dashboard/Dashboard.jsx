@@ -16,6 +16,7 @@ import {
   X,
   Send,
   Building2,
+  Loader2,
 } from "lucide-react";
 import { ImageOff, Quote, CalendarPlus } from "lucide-react";
 import Layout from "../../components/Layout";
@@ -31,6 +32,7 @@ import jsQR from "jsqr";
 import QRCode from "qrcode";
 import NewsSection from "../../components/NewsSection";
 import StyleRecommendationWidget from "../../components/StyleRecommendationWidget";
+import OutfitMatchWidget from "../../components/OutfitMatchWidget";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 
@@ -93,6 +95,9 @@ export default function Dashboard() {
   const [bookingSalon, setBookingSalon] = useState(null);
   const [qrModalAppt, setQrModalAppt] = useState(null);
   const [showAllReservationsModal, setShowAllReservationsModal] = useState(false);
+  const [postCareAppt, setPostCareAppt] = useState(null);
+  const [postCareResult, setPostCareResult] = useState(null);
+  const [postCareStatus, setPostCareStatus] = useState("idle");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [qrCode, setQrCode] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -285,6 +290,19 @@ export default function Dashboard() {
   const statusLabel = (s) =>
     s === "Confirmed" ? t("status_confirmed") : s === "Completed" ? t("status_completed") : s === "Cancelled" ? t("status_cancelled") : t("status_pending");
 
+  const openPostCareGuide = async (appt) => {
+    setPostCareAppt(appt);
+    setPostCareStatus("loading");
+    setPostCareResult(null);
+    try {
+      const res = await api.post("/PostCare/generate", { reservationId: appt.id });
+      setPostCareResult(res.data);
+      setPostCareStatus("result");
+    } catch (err) {
+      setPostCareStatus("error");
+    }
+  };
+
   const topEmployeeRanks = {};
   [...employees]
     .filter((e) => e.averageRating > 0)
@@ -371,6 +389,9 @@ export default function Dashboard() {
           )}
           {/* 4. AI Stil Tövsiyəsi Vidceti */}
           <StyleRecommendationWidget />
+
+          {/* 4b. AI Geyimə Uyğun Stil Vidceti */}
+          {role === "Customer" && <OutfitMatchWidget />}
 
           {/* 5. Salonlarımız Bölməsi */}
           <div id="salons-section" className="bg-gradient-to-br from-[#E3CC9E]/90 to-[#C9AD70]/85 backdrop-blur-lg p-5 rounded-2xl border border-[#B8935A]/40 shadow-sm space-y-4">
@@ -475,9 +496,11 @@ export default function Dashboard() {
                   time: appt.startTime?.slice(0, 5),
                   rawPrice: appt.price,
                   price: appt.price + " AZN",
+                  rawStatus: appt.status,
                   status: statusLabel(appt.status),
                 }))}
                 onShowQr={(appt) => setQrModalAppt(appt)}
+                onPostCare={role === "Customer" ? openPostCareGuide : undefined}
                 role={role}
                 onShowAll={
                   role === "SuperAdmin" || role === "SalonAdmin"
@@ -542,11 +565,103 @@ export default function Dashboard() {
                       time: appt.startTime?.slice(0, 5),
                       rawPrice: appt.price,
                       price: appt.price + " AZN",
+                      rawStatus: appt.status,
                       status: statusLabel(appt.status),
                     }))}
                   onShowQr={(appt) => { setShowAllReservationsModal(false); setQrModalAppt(appt); }}
+                  onPostCare={role === "Customer" ? (appt) => { setShowAllReservationsModal(false); openPostCareGuide(appt); } : undefined}
                   role={role}
                 />
+              </div>
+            </div>
+          )}
+
+          {postCareAppt && (
+            <div
+              onClick={() => setPostCareAppt(null)}
+              className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[radial-gradient(circle_at_center,_#FFFFFF_0%,_#FDFBF7_45%,_#F4E7CE_100%)] w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-3xl shadow-2xl border border-[#E5D2B1] p-6"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-serif font-bold text-[#1A1714] flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[#C9A227]" />
+                    {t("postcare_modal_title")}
+                  </h3>
+                  <button
+                    onClick={() => setPostCareAppt(null)}
+                    className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {postCareStatus === "loading" && (
+                  <div className="flex flex-col items-center justify-center py-14 text-center">
+                    <Loader2 className="w-8 h-8 text-[#C9A227] animate-spin mb-4" />
+                    <p className="text-[#7A6A50] text-sm">{t("postcare_loading")}</p>
+                  </div>
+                )}
+
+                {postCareStatus === "error" && (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <p className="text-red-500 text-sm mb-4">{t("postcare_error")}</p>
+                    <button
+                      onClick={() => openPostCareGuide(postCareAppt)}
+                      className="px-5 py-2 rounded-full border border-[#B8935A]/40 text-[#6B5D45] text-sm hover:bg-[#B8935A]/10"
+                    >
+                      {t("style_try_again")}
+                    </button>
+                  </div>
+                )}
+
+                {postCareStatus === "result" && postCareResult && (
+                  <div className="space-y-5">
+                    <p className="text-sm text-[#6B5D45] italic">{postCareResult.introMessage}</p>
+
+                    {postCareResult.dailyPlan && postCareResult.dailyPlan.length > 0 && (
+                      <div className="space-y-2">
+                        {postCareResult.dailyPlan.map((day) => (
+                          <div key={day.day} className="flex gap-3 bg-white rounded-xl border border-gray-100 p-3">
+                            <div className="shrink-0 w-8 h-8 rounded-full bg-[#C9A227]/15 text-[#B8935A] font-bold text-xs flex items-center justify-center">
+                              {day.day}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-[#1A1714]">{day.title}</p>
+                              <p className="text-xs text-[#7A6A50] mt-0.5">{day.advice}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {postCareResult.productRecommendations && postCareResult.productRecommendations.length > 0 && (
+                      <div>
+                        <h4 className="text-xs text-[#B8935A] uppercase tracking-wider mb-2">{t("postcare_products_label")}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {postCareResult.productRecommendations.map((p, idx) => (
+                            <span key={idx} className="px-3 py-1.5 rounded-full bg-[#C9A227]/10 border border-[#C9A227]/30 text-[#6B5D45] text-xs font-medium">
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {postCareResult.thingsToAvoid && postCareResult.thingsToAvoid.length > 0 && (
+                      <div>
+                        <h4 className="text-xs text-red-400 uppercase tracking-wider mb-2">{t("postcare_avoid_label")}</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          {postCareResult.thingsToAvoid.map((a, idx) => (
+                            <li key={idx} className="text-xs text-[#6B5D45]">{a}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

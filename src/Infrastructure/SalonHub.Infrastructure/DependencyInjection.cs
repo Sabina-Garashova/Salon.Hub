@@ -16,6 +16,8 @@ namespace SalonHub.Infrastructure
             services.AddScoped<ISmsService, AwsSnsSmsService>();
             services.AddHttpClient<IStyleRecommendationService, StyleRecommendationService>();
             services.AddHttpClient<IChatBookingService, ChatBookingService>();
+            services.AddHttpClient<IPostCareService, PostCareService>();
+            services.AddHttpClient<IOutfitMatchService, OutfitMatchService>();
             return services;
         }
     }

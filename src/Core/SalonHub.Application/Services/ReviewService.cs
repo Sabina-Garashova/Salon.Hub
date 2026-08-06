@@ -9,8 +9,8 @@ namespace SalonHub.Application.Services
         Task<IReadOnlyList<ReviewReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true);
         Task<ReviewReadDto?> GetByIdAsync(int id);
         Task<ReviewReadDto> CreateAsync(ReviewCreateDto dto, string customerId);
-        Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isAdmin);
-        Task DeleteAsync(int id, string requesterId, bool isAdmin);
+        Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isSuperAdmin, bool isSalonAdmin);
+        Task DeleteAsync(int id, string requesterId, bool isSuperAdmin, bool isSalonAdmin);
         Task RespondAsync(int id, ReviewResponseDto dto, string requesterId, bool isSuperAdmin);
     }
 
@@ -77,7 +77,7 @@ namespace SalonHub.Application.Services
             return MapToReadDto(review);
         }
 
-        public async Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isAdmin)
+        public async Task UpdateAsync(int id, ReviewUpdateDto dto, string requesterId, bool isSuperAdmin, bool isSalonAdmin)
         {
             if (dto.Rating < 1 || dto.Rating > 5)
                 throw new ArgumentException("Reytinq 1 ilə 5 arasında olmalıdır.");
@@ -85,7 +85,14 @@ namespace SalonHub.Application.Services
             var review = await _unitOfWork.Reviews.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Rəy tapılmadı: {id}");
 
-            if (!isAdmin && review.CustomerId != requesterId)
+            var allowed = isSuperAdmin || review.CustomerId == requesterId;
+            if (!allowed && isSalonAdmin)
+            {
+                var ownSalon = await _unitOfWork.Salons.GetByIdAsync(review.SalonId);
+                allowed = ownSalon is not null && ownSalon.OwnerId == requesterId;
+            }
+
+            if (!allowed)
                 throw new UnauthorizedAccessException("Bu rəyi dəyişmək icazəniz yoxdur.");
 
             review.Rating = dto.Rating;
@@ -96,12 +103,19 @@ namespace SalonHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteAsync(int id, string requesterId, bool isAdmin)
+        public async Task DeleteAsync(int id, string requesterId, bool isSuperAdmin, bool isSalonAdmin)
         {
             var review = await _unitOfWork.Reviews.GetByIdAsync(id)
                 ?? throw new KeyNotFoundException($"Rəy tapılmadı: {id}");
 
-            if (!isAdmin && review.CustomerId != requesterId)
+            var allowed = isSuperAdmin || review.CustomerId == requesterId;
+            if (!allowed && isSalonAdmin)
+            {
+                var ownSalon = await _unitOfWork.Salons.GetByIdAsync(review.SalonId);
+                allowed = ownSalon is not null && ownSalon.OwnerId == requesterId;
+            }
+
+            if (!allowed)
                 throw new UnauthorizedAccessException("Bu rəyi silmək icazəniz yoxdur.");
 
             _unitOfWork.Reviews.Remove(review);

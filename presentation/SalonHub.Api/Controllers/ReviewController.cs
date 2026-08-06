@@ -64,8 +64,9 @@ namespace SalonHub.Api.Controllers
         public async Task<IActionResult> Update(int id, ReviewUpdateDto dto)
         {
             var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
-            await _reviewService.UpdateAsync(id, dto, requesterId, isAdmin);
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            var isSalonAdmin = !isSuperAdmin && User.IsInRole(Roles.SalonAdmin);
+            await _reviewService.UpdateAsync(id, dto, requesterId, isSuperAdmin, isSalonAdmin);
             return NoContent();
         }
         [HttpDelete("{id}")]
@@ -73,8 +74,9 @@ namespace SalonHub.Api.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var requesterId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var isAdmin = User.IsInRole(Roles.SalonAdmin) || User.IsInRole(Roles.SuperAdmin);
-            await _reviewService.DeleteAsync(id, requesterId, isAdmin);
+            var isSuperAdmin = User.IsInRole(Roles.SuperAdmin);
+            var isSalonAdmin = !isSuperAdmin && User.IsInRole(Roles.SalonAdmin);
+            await _reviewService.DeleteAsync(id, requesterId, isSuperAdmin, isSalonAdmin);
             return NoContent();
         }
         [HttpPost("{id}/respond")]

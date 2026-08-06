@@ -29,10 +29,11 @@ export default function AllReservations({ reservations = [], isSuperAdmin = fals
     const cancelled = reservations.filter(r => r.status === 'Cancelled').length;
     const completedList = reservations.filter(r => r.status === 'Completed');
     const totalRevenue = completedList.reduce((sum, r) => sum + (r.price || 0), 0);
-    const cardRevenue = completedList.filter(r => r.paymentMethod !== 'LoyaltyPoints').reduce((sum, r) => sum + (r.price || 0), 0);
+    const cardRevenue = completedList.filter(r => r.paymentMethod === 'Card').reduce((sum, r) => sum + (r.price || 0), 0);
+    const cashRevenue = completedList.filter(r => r.paymentMethod === 'Cash').reduce((sum, r) => sum + (r.price || 0), 0);
     const loyaltyRevenue = completedList.filter(r => r.paymentMethod === 'LoyaltyPoints').reduce((sum, r) => sum + (r.price || 0), 0);
 
-    return { total, completed, cancelled, totalRevenue, cardRevenue, loyaltyRevenue };
+    return { total, completed, cancelled, totalRevenue, cardRevenue, cashRevenue, loyaltyRevenue };
   }, [reservations]);
 
   const filteredAndSortedReservations = useMemo(() => {
@@ -164,9 +165,10 @@ export default function AllReservations({ reservations = [], isSuperAdmin = fals
             <h3 className="text-2xl font-bold mt-1 text-[#C9A227] font-serif">
               {stats.totalRevenue.toFixed(2)} AZN
             </h3>
-            <div className="flex items-center gap-1.5 mt-1.5 text-[10px]">
-              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Kartla: {stats.cardRevenue.toFixed(2)} AZN</span>
-              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">Bal ilə: {stats.loyaltyRevenue.toFixed(2)} AZN</span>
+            <div className="flex items-center gap-1.5 mt-1.5 text-[10px] flex-wrap">
+              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">💳 Kartla: {stats.cardRevenue.toFixed(2)} AZN</span>
+              <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">💵 Nağd: {stats.cashRevenue.toFixed(2)} AZN</span>
+              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded">⭐ Bal ilə: {stats.loyaltyRevenue.toFixed(2)} AZN</span>
             </div>
           </div>
           <div className="p-3 rounded-lg bg-[#C9A227] text-white">

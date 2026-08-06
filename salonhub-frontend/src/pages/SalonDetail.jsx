@@ -142,6 +142,27 @@ export default function SalonDetail() {
     }
   };
 
+  const handleEditReview = async (id, { rating, comment }) => {
+    try {
+      await api.put(`/Review/${id}`, { rating, comment });
+      setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, rating, comment } : r)));
+      showToast(t("review_edit_success"), "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || t("review_edit_error"), "error");
+    }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm(t("review_delete_confirm"))) return;
+    try {
+      await api.delete(`/Review/${id}`);
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+      showToast(t("review_delete_success"), "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || t("review_delete_error"), "error");
+    }
+  };
+
   const handleUploadWorkPhoto = async (file) => {
     if (!file) return;
     setUploadingWorkPhoto(true);
@@ -189,6 +210,9 @@ export default function SalonDetail() {
         onBack={() => navigate(-1)}
         onBook={handleBook}
         onSubmitReview={handleSubmitReview}
+        currentUserId={myUserId}
+        onEditReview={handleEditReview}
+        onDeleteReview={handleDeleteReview}
         workPhotos={gallery.filter((g) => g.type === "Portfolio")}
         canManageWorks={canManageWorks}
         onUploadWorkPhoto={handleUploadWorkPhoto}

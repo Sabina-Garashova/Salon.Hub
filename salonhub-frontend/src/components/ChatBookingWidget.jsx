@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Star, Sparkles, Loader2, Check, CalendarPlus } from "lucide-react";
+import { X, Send, Star, Loader2, Check, CalendarPlus } from "lucide-react";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "../context/ToastContext";
+import PaymentMethodSelector from "./PaymentMethodSelector";
+import { CHATBOT_LOGO } from "../assets/chatbotLogo";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -11,29 +13,43 @@ function getInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function icsEscape(text) {
+  return String(text || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+
 function downloadIcs(slot) {
   const [h, m] = slot.startTime.split(":").map(Number);
   const start = new Date(slot.date);
   start.setHours(h, m, 0, 0);
   const end = new Date(start.getTime() + 45 * 60000);
   const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const uid = `salonhub-${slot.employeeId}-${slot.serviceId}-${fmt(start)}@salonhub.com`;
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
+    "PRODID:-//SalonHub//Reservation//AZ",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `SUMMARY:${slot.serviceName} - ${slot.salonName}`,
+    `UID:${uid}`,
+    `DTSTAMP:${fmt(new Date())}`,
+    `SUMMARY:${icsEscape(slot.serviceName + " - " + slot.salonName)}`,
     `DTSTART:${fmt(start)}`,
     `DTEND:${fmt(end)}`,
-    `DESCRIPTION:Usta: ${slot.employeeName}`,
+    `DESCRIPTION:${icsEscape("Usta: " + slot.employeeName)}`,
+    `LOCATION:${icsEscape(slot.salonName)}`,
+    "STATUS:CONFIRMED",
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
-  const blob = new Blob([ics], { type: "text/calendar" });
+  ].join("\r\n") + "\r\n";
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = "rezervasiya.ics";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
@@ -49,11 +65,27 @@ export default function ChatBookingWidget() {
   const [pendingSlot, setPendingSlot] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [successSlot, setSuccessSlot] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("Card");
+  const [remainderMethod, setRemainderMethod] = useState("Card");
+  const [loyaltyBalance, setLoyaltyBalance] = useState({ points: 0, equivalentDiscount: 0 });
   const scrollRef = useRef(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, pendingSlot, sending, successSlot]);
+
+  const getLastSuggestions = () => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].slots && messages[i].slots.length > 0) {
+        return messages[i].slots.map((s) => ({
+          employeeId: s.employeeId,
+          serviceId: s.serviceId,
+          startTime: s.startTime,
+        }));
+      }
+    }
+    return [];
+  };
 
   const sendMessage = async (text) => {
     const trimmed = text.trim();
@@ -64,6 +96,8 @@ export default function ChatBookingWidget() {
       .slice(-8)
       .map((m) => ({ role: m.role, text: m.text }));
 
+    const previousSuggestions = getLastSuggestions();
+
     setMessages((prev) => [...prev, { id: Date.now() + "-u", role: "user", text: trimmed }]);
     setInputValue("");
     setSending(true);
@@ -72,6 +106,7 @@ export default function ChatBookingWidget() {
       const res = await api.post("/ChatBooking/message", {
         message: trimmed,
         conversationHistory: history,
+        previousSuggestions,
       });
       setMessages((prev) => [
         ...prev,
@@ -93,18 +128,45 @@ export default function ChatBookingWidget() {
     }
   };
 
+  const selectSlot = async (slot) => {
+    setPendingSlot(slot);
+    setPaymentMethod("Card");
+    setRemainderMethod("Card");
+    try {
+      const res = await api.get(`/Loyalty/balance/${slot.salonId}`);
+      setLoyaltyBalance(res.data);
+    } catch {
+      setLoyaltyBalance({ points: 0, equivalentDiscount: 0 });
+    }
+  };
+
   const confirmReservation = async () => {
     if (!pendingSlot) return;
     setConfirming(true);
     try {
-      await api.post("/Reservation", {
+      const finalMethod = paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod;
+      const res = await api.post("/Reservation", {
         serviceId: pendingSlot.serviceId,
         employeeId: pendingSlot.employeeId,
         branchId: pendingSlot.branchId,
         reservationDate: pendingSlot.date,
         startTime: pendingSlot.startTime + ":00",
-        paymentMethod: "Cash",
+        paymentMethod: finalMethod,
       });
+
+      if (paymentMethod === "LoyaltyPoints" && loyaltyBalance.points > 0) {
+        const discountAmount = Math.min(pendingSlot.price, loyaltyBalance.equivalentDiscount);
+        try {
+          await api.post("/Loyalty/redeem", {
+            salonId: pendingSlot.salonId,
+            discountAmount,
+            reservationId: res.data.id,
+          });
+        } catch (redeemErr) {
+          console.error("Bal istifadə edilərkən xəta", redeemErr);
+        }
+      }
+
       setSuccessSlot(pendingSlot);
       setPendingSlot(null);
     } catch (err) {
@@ -116,20 +178,27 @@ export default function ChatBookingWidget() {
 
   return (
     <>
+      {!isOpen && (
+        <span className="fixed bottom-5 right-5 z-30 w-24 h-24 rounded-full bg-[#C9A227]/40 animate-ping pointer-events-none" />
+      )}
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#C9A227] to-[#B8935A] text-[#1A1714] shadow-[0_8px_24px_rgba(201,162,39,0.45)] flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed bottom-5 right-5 z-40 w-24 h-24 rounded-full bg-gradient-to-br from-[#C9A227] to-[#B8935A] text-[#1A1714] shadow-[0_0_0_4px_rgba(240,214,138,0.25),0_8px_32px_rgba(201,162,39,0.7)] flex items-center justify-center hover:scale-105 transition-transform overflow-hidden ring-[3px] ring-[#F0D68A]"
         title={t("chatbot_button_title")}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {isOpen ? (
+          <X className="w-9 h-9" />
+        ) : (
+          <img src={CHATBOT_LOGO} alt={t("chatbot_title")} className="w-full h-full object-cover" />
+        )}
       </button>
 
       {isOpen && (
         <div className="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:right-5 sm:bottom-24 z-40 w-full sm:w-[380px] h-[80vh] sm:h-[560px] max-h-[85vh] bg-[#1A1714] sm:rounded-3xl rounded-t-3xl shadow-2xl border border-[#B8935A]/20 flex flex-col overflow-hidden">
           <div className="flex items-center gap-2.5 px-4 py-3.5 bg-gradient-to-r from-[#1A1714] via-[#2B2118] to-[#1A1714] border-b border-[#B8935A]/20 shrink-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F0D68A] to-[#B8935A] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-[#1A1714]" />
+            <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-[#C9A227]/60 shrink-0">
+              <img src={CHATBOT_LOGO} alt={t("chatbot_title")} className="w-full h-full object-cover" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-serif font-bold text-[#F4EDE0] leading-tight">{t("chatbot_title")}</p>
@@ -180,7 +249,7 @@ export default function ChatBookingWidget() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setPendingSlot(slot)}
+                            onClick={() => selectSlot(slot)}
                             className="shrink-0 px-3 py-1.5 rounded-lg bg-[#1A1714] border border-[#C9A227] text-[#C9A227] text-[11px] font-bold hover:bg-[#C9A227] hover:text-[#1A1714] transition"
                           >
                             {t("chatbot_select")}
@@ -224,6 +293,16 @@ export default function ChatBookingWidget() {
                   <p>{t("chatbot_summary_master")}: <span className="font-semibold">{pendingSlot.employeeName}</span></p>
                   <p>{t("chatbot_summary_date")}: <span className="font-semibold">{new Date(pendingSlot.date).toLocaleDateString()}, {pendingSlot.startTime}</span></p>
                   <p>{t("chatbot_summary_price")}: <span className="font-semibold">{pendingSlot.price} AZN</span></p>
+                </div>
+                <div className="bg-white rounded-xl p-3">
+                  <PaymentMethodSelector
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    loyaltyBalance={loyaltyBalance}
+                    selectedService={{ price: pendingSlot.price }}
+                    remainderMethod={remainderMethod}
+                    setRemainderMethod={setRemainderMethod}
+                  />
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button

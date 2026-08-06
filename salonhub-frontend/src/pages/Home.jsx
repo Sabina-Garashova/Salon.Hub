@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, LogIn, UserPlus, MapPin, Phone, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
+import { Sparkles, LogIn, UserPlus, MapPin, Phone, Mail, Star, Users, Building2, Crown, Quote, X, Send, CalendarPlus } from "lucide-react";
 import BookingModal from "../components/BookingModal";
 import SalonApplicationModal from "../components/SalonApplicationModal";
 import { HomeStatsSection, HomeCTASection } from "../components/HomeSections";
@@ -404,7 +404,12 @@ export default function Home() {
             </div>
             <div>
               <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wide mb-3">{t("footer_contact")}</h4>
-              <p className="text-sm text-gray-400">info@salonhub.com</p>
+              <p className="text-sm text-gray-400 flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-[#C9A227] shrink-0" /> info@salonhub.com
+              </p>
+              <p className="text-sm text-gray-400 flex items-center gap-2 mt-2">
+                <Phone className="w-3.5 h-3.5 text-[#C9A227] shrink-0" /> +994 12 345 67 89
+              </p>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-[#B8935A]/10 text-center text-xs text-gray-500">

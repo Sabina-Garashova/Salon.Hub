@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Upload, Loader2, RefreshCw, Wand2 } from "lucide-react";
+import { Sparkles, Upload, Loader2, RefreshCw, Wand2, ZoomIn } from "lucide-react";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import BookingModal from "./BookingModal";
 import AIStyleRecommendationIdle from "./AIStyleRecommendationIdle";
+
+// Virtual Try-On, Gemini-nin öz billing/kredit balansını tələb edir. Kredit yüklənənə qədər
+// bu funksiya deaktivdir (gizlədilib) — kredit alınandan sonra bunu true edin, kifayətdir.
+const TRY_ON_ENABLED = false;
 
 function BeforeAfterSlider({ beforeSrc, afterSrc, t }) {
   const [percent, setPercent] = useState(50);
@@ -107,7 +111,9 @@ export default function StyleRecommendationWidget({ salonId }) {
       const dataUrl = `data:${res.data.mimeType || "image/png"};base64,${res.data.generatedImageBase64}`;
       setTryOnMap((prev) => ({ ...prev, [keyword]: { status: "done", imageDataUrl: dataUrl } }));
     } catch (err) {
-      setTryOnMap((prev) => ({ ...prev, [keyword]: { status: "error" } }));
+      const message = err.response?.data?.message || err.message || "";
+      console.error("Virtual try-on xetasi:", message);
+      setTryOnMap((prev) => ({ ...prev, [keyword]: { status: "error", errorMessage: message } }));
     }
   };
 
@@ -250,7 +256,7 @@ export default function StyleRecommendationWidget({ salonId }) {
                   <span className="text-[10px] text-gray-400">{selectedInspirationIds.length}/2 {t("style_selected")}</span>
                 </div>
                 <div className="flex overflow-x-auto gap-3 pb-2">
-                  {result.recommendedImages.map((img) => {
+                  {result.recommendedImages.filter((img) => img.imageUrl).map((img) => {
                     const isSelected = selectedInspirationIds.includes(img.id);
                     return (
                       <div
@@ -265,10 +271,10 @@ export default function StyleRecommendationWidget({ salonId }) {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setLightboxImage(img.imageUrl); }}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center text-xs"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center"
                           title={t("style_zoom")}
                         >
-                          🔍
+                          <ZoomIn className="w-3.5 h-3.5" />
                         </button>
                         {isSelected && (
                           <div className="absolute bottom-1.5 left-1.5 w-5 h-5 rounded-full bg-[#C9A227] text-[#1A1714] flex items-center justify-center text-[10px] font-bold">
@@ -302,7 +308,7 @@ export default function StyleRecommendationWidget({ salonId }) {
               </div>
             ) : null}
 
-            {result.styleKeywords && result.styleKeywords.length > 0 && (
+            {TRY_ON_ENABLED && result.styleKeywords && result.styleKeywords.length > 0 && (
               <div className="mb-8 rounded-2xl bg-[#1A1714]/60 border border-[#C9A227]/20 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Wand2 className="w-4 h-4 text-[#C9A227]" />
@@ -343,7 +349,12 @@ export default function StyleRecommendationWidget({ salonId }) {
 
                 {activeTryOnKeyword && tryOnMap[activeTryOnKeyword]?.status === "error" && (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <p className="text-red-300 text-xs mb-3">{t("style_tryon_error")}</p>
+                    <p className="text-red-300 text-xs mb-1">{t("style_tryon_error")}</p>
+                    {tryOnMap[activeTryOnKeyword]?.errorMessage && (
+                      <p className="text-red-400/70 text-[10px] mb-3 max-w-xs break-words">
+                        {tryOnMap[activeTryOnKeyword].errorMessage}
+                      </p>
+                    )}
                     <button
                       onClick={() => generateTryOn(activeTryOnKeyword)}
                       className="px-4 py-1.5 rounded-full border border-[#B8935A]/40 text-gray-300 text-xs hover:bg-[#B8935A]/10"

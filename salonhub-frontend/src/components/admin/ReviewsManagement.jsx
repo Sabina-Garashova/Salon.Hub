@@ -12,13 +12,15 @@ import { Star,
   CornerDownRight,
   Loader2,
   Filter,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 
 export default function ReviewsManagement({
   reviews = [],
   employees = [],
   onRespond,
+  onDelete,
   showSalonName = false
 }) {
   const [fetchedEmployees, setFetchedEmployees] = useState([]);
@@ -56,6 +58,20 @@ export default function ReviewsManagement({
   const [replyTexts, setReplyTexts] = useState({});
   const [loadingIds, setLoadingIds] = useState({});
   const [successIds, setSuccessIds] = useState({});
+  const [deletingIds, setDeletingIds] = useState({});
+
+  const handleDelete = async (reviewId) => {
+    if (!onDelete) return;
+    if (!window.confirm('Bu rəyi silmək istədiyinizə əminsiniz?')) return;
+    setDeletingIds(prev => ({ ...prev, [reviewId]: true }));
+    try {
+      await onDelete(reviewId);
+    } catch (err) {
+      console.error('Rey silinerken xeta', err);
+    } finally {
+      setDeletingIds(prev => ({ ...prev, [reviewId]: false }));
+    }
+  };
 
   const totalReviews = reviews.length;
 
@@ -401,6 +417,23 @@ export default function ReviewsManagement({
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           Cavablandirilib
                         </span>
+                      )}
+
+                      {onDelete && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(review.id)}
+                          disabled={deletingIds[review.id]}
+                          title="Rəyi sil"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-white text-rose-600 border border-rose-200 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                        >
+                          {deletingIds[review.id] ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3 h-3" />
+                          )}
+                          Sil
+                        </button>
                       )}
                     </div>
 

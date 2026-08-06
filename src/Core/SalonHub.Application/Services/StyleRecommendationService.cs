@@ -113,7 +113,11 @@ public class StyleRecommendationService : IStyleRecommendationService
                 result.StyleKeywords.Any(kw => img.Description.Contains(kw, StringComparison.OrdinalIgnoreCase))).ToList()
             : new List<SalonHub.Domain.Entities.GalleryImage>();
 
-        var finalPool = keywordMatches.Count > 0 ? keywordMatches : pool;
+        // Diqqet: burada artiq "hec bir uyğun sekil tapilmasa, butun portfolio-nu goster" davranisi
+        // GOTURULUB — cunki bu, elaqesiz (mes. cinsiyyete uygun olmayan) sekillerin gostermesine
+        // sebeb olurdu. Uyğun sekil yoxdursa, RecommendedImages bos qalir ve asagida Unsplash-dan
+        // acar sozlere DEQIQ uygun sekiller getirilir.
+        var finalPool = keywordMatches;
 
         result.RecommendedImages = finalPool
             .Take(5)
@@ -125,15 +129,19 @@ public class StyleRecommendationService : IStyleRecommendationService
             })
             .ToList();
 
-        if (result.RecommendedImages.Count == 0 && result.StyleKeywords.Count > 0)
+        // Salonun oz qalereyasi az sekilli olanda (yeni ise, ya da az sekil yuklenibse) hemise ayni 1-2
+        // sekili gostermemek ucun, kicik pool olanda Unsplash-den elave secimler qatiriq ki, novbeti
+        // analizlerde de rengarenglik olsun.
+        if (result.RecommendedImages.Count < 3 && result.StyleKeywords.Count > 0)
         {
             try
             {
                 var unsplashKey = _configuration["Unsplash:AccessKey"];
                 if (!string.IsNullOrEmpty(unsplashKey))
                 {
+                    var needed = 5 - result.RecommendedImages.Count;
                     var query = Uri.EscapeDataString(string.Join(" ", result.StyleKeywords.Take(2)));
-                    var unsplashUrl = $"https://api.unsplash.com/search/photos?query={query}&per_page=5&client_id={unsplashKey}";
+                    var unsplashUrl = $"https://api.unsplash.com/search/photos?query={query}&per_page={needed}&client_id={unsplashKey}";
                     var unsplashResponse = await _httpClient.GetAsync(unsplashUrl);
                     if (unsplashResponse.IsSuccessStatusCode)
                     {
@@ -145,13 +153,17 @@ public class StyleRecommendationService : IStyleRecommendationService
                             foreach (var photo in resultsEl.EnumerateArray())
                             {
                                 var imgUrl = photo.GetProperty("urls").GetProperty("regular").GetString() ?? "";
+                                if (string.IsNullOrWhiteSpace(imgUrl)) continue;
                                 var desc = photo.TryGetProperty("alt_description", out var descEl) ? descEl.GetString() : null;
                                 result.RecommendedImages.Add(new RecommendedImageDto
                                 {
-                                    Id = idx++,
+                                    // Unsplash-dan gelenlere menfi ID veririk ki, DB-deki portfolio
+                                    // sekillerinin heqiqi ID-leri ile tesadufen ustuste dusmesin.
+                                    Id = -(idx + 1),
                                     ImageUrl = imgUrl,
                                     Description = desc ?? string.Join(", ", result.StyleKeywords)
                                 });
+                                idx++;
                             }
                         }
                     }
@@ -159,7 +171,7 @@ public class StyleRecommendationService : IStyleRecommendationService
             }
             catch (Exception)
             {
-                // Unsplash ugursuz olsa, sadece acar sozlerle davam et
+                // Unsplash ugursuz olsa, sadece movcud netice ile davam et
             }
         }
 

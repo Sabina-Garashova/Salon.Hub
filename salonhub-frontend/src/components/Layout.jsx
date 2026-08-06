@@ -431,7 +431,12 @@ export default function Layout({ children }) {
             </div>
             <div>
               <h4 className="text-xs font-bold text-[#C9A227] uppercase tracking-wide mb-3">{t("footer_contact")}</h4>
-              <p className="text-sm text-gray-400">info@salonhub.com</p>
+              <p className="text-sm text-gray-400 flex items-center gap-2">
+                <Mail className="w-3.5 h-3.5 text-[#C9A227] shrink-0" /> info@salonhub.com
+              </p>
+              <p className="text-sm text-gray-400 flex items-center gap-2 mt-2">
+                <Phone className="w-3.5 h-3.5 text-[#C9A227] shrink-0" /> +994 12 345 67 89
+              </p>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-[#B8935A]/10 text-center text-xs text-gray-500">

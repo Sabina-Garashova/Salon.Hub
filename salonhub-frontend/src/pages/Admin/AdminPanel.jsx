@@ -390,6 +390,10 @@ export default function AdminPanel() {
     await api.post(`/Review/${id}/respond`, { response });
     setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, response, respondedAt: new Date().toISOString() } : r)));
   };
+  const handleDeleteReview = async (id) => {
+    await api.delete(`/Review/${id}`);
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+  };
   const handleCreateEquipment = async (data) => {
     const { salonId, ...rest } = data;
     let branch = branches.find((b) => b.salonId === salonId);
@@ -921,6 +925,7 @@ export default function AdminPanel() {
                 <ReviewsManagement
                   reviews={reviews}
                   onRespond={handleRespondReview}
+                  onDelete={handleDeleteReview}
                   showSalonName={isSuperAdmin}
                 />
               )}
