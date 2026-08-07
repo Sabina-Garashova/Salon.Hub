@@ -28,7 +28,7 @@ public class PostCareService : IPostCareService
             r => r.Service);
 
         if (reservation is null)
-            throw new KeyNotFoundException("Rezervasiya tapılmadı.");
+            throw new KeyNotFoundException("Rezervasiya tapilmadi.");
 
         var allowed = isSuperAdmin || reservation.CustomerId == requesterId;
         if (!allowed && isSalonAdmin)
@@ -37,24 +37,24 @@ public class PostCareService : IPostCareService
             allowed = ownSalon is not null && ownSalon.OwnerId == requesterId;
         }
         if (!allowed)
-            throw new UnauthorizedAccessException("Bu rezervasiya üçün qulluq bələdçisi yaratmaq icazəniz yoxdur.");
+            throw new UnauthorizedAccessException("Bu rezervasiya ucun qulluq beledcisi yaratmaq icazeniz yoxdur.");
 
         if (reservation.Status != ReservationStatus.Completed)
-            throw new InvalidOperationException("Qulluq bələdçisi yalnız tamamlanmış rezervasiyalar üçün yaradıla bilər.");
+            throw new InvalidOperationException("Qulluq beledcisi yalniz tamamlanmis rezervasiyalar ucun yaradila biler.");
 
         var serviceName = reservation.Service?.NameAz ?? "";
         var serviceDescription = reservation.Service?.DescriptionAz ?? "";
 
         var apiKey = _configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Gemini API açarı konfiqurasiya edilməyib.");
+            ?? throw new InvalidOperationException("Gemini API acari konfiqurasiya edilmeyib.");
 
         var promptText =
-            $"Bir müştəri salonda \"{serviceName}\" xidmətini aldı. Xidmətin təsviri: \"{serviceDescription}\". " +
-            "Bu xidmətdən sonrakı 7 gün üçün ev şəraitində qulluq bələdçisi hazırla, Azərbaycan dilində. " +
-            "Məsləhətlər real və praktiki olsun (məs. saç boyandısa - sulfatsız şampun, isti alətlərdən çəkinmək; dırnaq edildisə - əl kremi, əlcək taxaraq iş görmək və s). " +
-            "CavabI YALNIZ bu JSON formatında ver, başqa heç nə yazma, izahat əlavə etmə: " +
-            "{\"introMessage\": \"qısa səmimi giriş cümləsi\", " +
-            "\"dailyPlan\": [{\"day\": 1, \"title\": \"...\", \"advice\": \"...\"}, ... 7 günə qədər], " +
+            $"Bir musteri salonda \"{serviceName}\" xidmetini aldi. Xidmetin tesviri: \"{serviceDescription}\". " +
+            "Bu xidmetden sonraki 7 gun ucun ev seraitinde qulluq beledcisi hazirla, Azerbaycan dilinde. " +
+            "Meslehetler real ve praktiki olsun (mes. sac boyandisa - sulfatsiz sampun, isti aletlerden cekinmek; dirnaq edildise - el kremi, elcek taxaraq is gormek ve s). " +
+            "Cavabi YALNIZ bu JSON formatinda ver, basqa hec ne yazma, izahat elave etme: " +
+            "{\"introMessage\": \"qisa semimi giris cumlesi\", " +
+            "\"dailyPlan\": [{\"day\": 1, \"title\": \"...\", \"advice\": \"...\"}, ... 7 gune qeder], " +
             "\"productRecommendations\": [\"...\", \"...\"], " +
             "\"thingsToAvoid\": [\"...\", \"...\"]}";
 
@@ -72,7 +72,8 @@ public class PostCareService : IPostCareService
             }
         };
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={apiKey}";
+        var textModel = _configuration["Gemini:TextModel"] ?? "gemini-3.6-flash";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{textModel}:generateContent?key={apiKey}";
 
         var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
@@ -81,7 +82,7 @@ public class PostCareService : IPostCareService
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"AI qulluq bələdçisi xətası: {responseContent}");
+            throw new InvalidOperationException($"AI qulluq beledcisi xetasi: {responseContent}");
 
         using var doc = JsonDocument.Parse(responseContent);
         var textContent = doc.RootElement

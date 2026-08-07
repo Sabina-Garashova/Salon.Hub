@@ -423,7 +423,6 @@ export default function StyleRecommendationWidget({ salonId }) {
           onClose={() => { setShowBooking(false); setBookingFromTryOn(null); }}
           salonId={salonId || 1}
           salonName=""
-          initialCurrentImage={selectedImage}
           initialReferenceImage={bookingFromTryOn || getChosenReferenceImage()}
           initialReferenceImage2={bookingFromTryOn ? null : getChosenReferenceImage2()}
           showAllSalons={true}

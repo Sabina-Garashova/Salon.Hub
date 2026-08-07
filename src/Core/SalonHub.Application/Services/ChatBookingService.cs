@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using SalonHub.Application.DTOs.ChatBooking;
@@ -38,27 +38,27 @@ public class ChatBookingService : IChatBookingService
     public async Task<ChatBookingResponseDto> ProcessMessageAsync(ChatBookingMessageDto dto, string customerId)
     {
         var apiKey = _configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Gemini API açarı konfiqurasiya edilməyib.");
+            ?? throw new InvalidOperationException("Gemini API aÃ§arÄ± konfiqurasiya edilmÉ™yib.");
 
         var allServices = await _unitOfWork.Services.GetAllAsync();
         var serviceNames = allServices.Select(s => s.NameAz).Distinct().Take(40).ToList();
 
         var today = DateTime.Now;
         var historyText = string.Join("\n", dto.ConversationHistory.TakeLast(6)
-            .Select(h => (h.Role == "user" ? "Müştəri: " : "Konsyerj: ") + h.Text));
+            .Select(h => (h.Role == "user" ? "MÃ¼ÅŸtÉ™ri: " : "Konsyerj: ") + h.Text));
 
         var promptText =
-            "Sən SalonHub gözəllik salonu üçün nəzakətli, səmimi bir rezervasiya konsyerjisən. " +
-            $"Bugünkü tarix: {today:yyyy-MM-dd} ({today:dddd}). " +
-            "Mövcud xidmətlər: " + string.Join(", ", serviceNames) + ". " +
-            (historyText.Length > 0 ? "Söhbət tarixçəsi:\n" + historyText + "\n" : "") +
-            $"Müştərinin son mesajı: \"{dto.Message}\"\n\n" +
-            "Bu mesajı analiz et və YALNIZ aşağıdakı JSON formatında cavab ver, başqa heç nə yazma, izahat əlavə etmə: " +
-            "{\"intent\": \"search\" (əgər müştəri xidmət axtarır/rezervasiya istəyirsə) və ya \"chitchat\" (salamlaşma, sual, aydın olmayan istək), " +
-            "\"serviceName\": mövcud xidmətlərdən DƏQİQ biri (əgər aydındırsa) və ya null, " +
-            "\"resolvedDate\": bugünkü tarixə görə hesablanmış \"YYYY-MM-DD\" formatında tarix (əgər müştəri vaxt qeyd edibsə, məs. \"sabah\" -> sabahın tarixi) və ya null, " +
-            "\"timePreference\": \"morning\", \"afternoon\", \"evening\" və ya null, " +
-            "\"replyText\": müştəriyə veriləcək qısa (1-2 cümlə), nəzakətli, Azərbaycan dilində, salon konsyerjisi tonunda cavab}";
+            "SÉ™n SalonHub gÃ¶zÉ™llik salonu Ã¼Ã§Ã¼n nÉ™zakÉ™tli, sÉ™mimi bir rezervasiya konsyerjisÉ™n. " +
+            $"BugÃ¼nkÃ¼ tarix: {today:yyyy-MM-dd} ({today:dddd}). " +
+            "MÃ¶vcud xidmÉ™tlÉ™r: " + string.Join(", ", serviceNames) + ". " +
+            (historyText.Length > 0 ? "SÃ¶hbÉ™t tarixÃ§É™si:\n" + historyText + "\n" : "") +
+            $"MÃ¼ÅŸtÉ™rinin son mesajÄ±: \"{dto.Message}\"\n\n" +
+            "Bu mesajÄ± analiz et vÉ™ YALNIZ aÅŸaÄŸÄ±dakÄ± JSON formatÄ±nda cavab ver, baÅŸqa heÃ§ nÉ™ yazma, izahat É™lavÉ™ etmÉ™: " +
+            "{\"intent\": \"search\" (É™gÉ™r mÃ¼ÅŸtÉ™ri xidmÉ™t axtarÄ±r/rezervasiya istÉ™yirsÉ™) vÉ™ ya \"chitchat\" (salamlaÅŸma, sual, aydÄ±n olmayan istÉ™k), " +
+            "\"serviceName\": mÃ¶vcud xidmÉ™tlÉ™rdÉ™n DÆQÄ°Q biri (É™gÉ™r aydÄ±ndÄ±rsa) vÉ™ ya null, " +
+            "\"resolvedDate\": bugÃ¼nkÃ¼ tarixÉ™ gÃ¶rÉ™ hesablanmÄ±ÅŸ \"YYYY-MM-DD\" formatÄ±nda tarix (É™gÉ™r mÃ¼ÅŸtÉ™ri vaxt qeyd edibsÉ™, mÉ™s. \"sabah\" -> sabahÄ±n tarixi) vÉ™ ya null, " +
+            "\"timePreference\": \"morning\", \"afternoon\", \"evening\" vÉ™ ya null, " +
+            "\"replyText\": mÃ¼ÅŸtÉ™riyÉ™ verilÉ™cÉ™k qÄ±sa (1-2 cÃ¼mlÉ™), nÉ™zakÉ™tli, AzÉ™rbaycan dilindÉ™, salon konsyerjisi tonunda cavab}";
 
         var requestBody = new
         {
@@ -78,7 +78,7 @@ public class ChatBookingService : IChatBookingService
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"AI söhbət xətası: {responseContent}");
+            throw new InvalidOperationException($"AI sÃ¶hbÉ™t xÉ™tasÄ±: {responseContent}");
 
         using var doc = JsonDocument.Parse(responseContent);
         var textContent = doc.RootElement
@@ -107,7 +107,7 @@ public class ChatBookingService : IChatBookingService
         {
             return new ChatBookingResponseDto
             {
-                ReplyText = "Üzr istəyirəm, bunu tam başa düşmədim. Hansı xidmətlə maraqlanırsınız?",
+                ReplyText = "Ãœzr istÉ™yirÉ™m, bunu tam baÅŸa dÃ¼ÅŸmÉ™dim. HansÄ± xidmÉ™tlÉ™ maraqlanÄ±rsÄ±nÄ±z?",
                 QuickReplies = DefaultQuickReplies(serviceNames)
             };
         }
@@ -117,7 +117,7 @@ public class ChatBookingService : IChatBookingService
             return new ChatBookingResponseDto
             {
                 ReplyText = string.IsNullOrWhiteSpace(intent.ReplyText)
-                    ? "Necə kömək edə bilərəm? Hansı xidmətlə maraqlanırsınız?"
+                    ? "NecÉ™ kÃ¶mÉ™k edÉ™ bilÉ™rÉ™m? HansÄ± xidmÉ™tlÉ™ maraqlanÄ±rsÄ±nÄ±z?"
                     : intent.ReplyText,
                 QuickReplies = DefaultQuickReplies(serviceNames)
             };
@@ -132,7 +132,7 @@ public class ChatBookingService : IChatBookingService
         {
             return new ChatBookingResponseDto
             {
-                ReplyText = $"Təəssüf ki, \"{intent.ServiceName}\" adlı xidməti tapa bilmədim. Bunlardan birini sınayın:",
+                ReplyText = $"TÉ™É™ssÃ¼f ki, \"{intent.ServiceName}\" adlÄ± xidmÉ™ti tapa bilmÉ™dim. Bunlardan birini sÄ±nayÄ±n:",
                 QuickReplies = DefaultQuickReplies(serviceNames)
             };
         }
@@ -149,8 +149,8 @@ public class ChatBookingService : IChatBookingService
             .ToDictionary(g => g.Key, g => Math.Round(g.Average(r => r.Rating), 1));
 
         var lowerMessage = dto.Message.ToLowerInvariant();
-        var wantsOtherEmployees = lowerMessage.Contains("digər usta") || lowerMessage.Contains("başqa usta");
-        var wantsOtherTimes = lowerMessage.Contains("başqa saat") || lowerMessage.Contains("digər saat");
+        var wantsOtherEmployees = lowerMessage.Contains("digÉ™r usta") || lowerMessage.Contains("baÅŸqa usta");
+        var wantsOtherTimes = lowerMessage.Contains("baÅŸqa saat") || lowerMessage.Contains("digÉ™r saat");
 
         var excludedEmployeeIds = wantsOtherEmployees
             ? dto.PreviousSuggestions.Select(p => p.EmployeeId).Distinct().ToHashSet()
@@ -217,15 +217,15 @@ public class ChatBookingService : IChatBookingService
         }
 
         var replyText = suggestions.Count > 0
-            ? (string.IsNullOrWhiteSpace(intent.ReplyText) ? "Sizin üçün bu seçimləri tapdım:" : intent.ReplyText)
-            : $"Təəssüf ki, {searchDate:dd.MM.yyyy} tarixi üçün \"{intent.ServiceName}\" xidmətinə uyğun boş vaxt tapmadım. Başqa tarix yoxlayaq?";
+            ? (string.IsNullOrWhiteSpace(intent.ReplyText) ? "Sizin Ã¼Ã§Ã¼n bu seÃ§imlÉ™ri tapdÄ±m:" : intent.ReplyText)
+            : $"TÉ™É™ssÃ¼f ki, {searchDate:dd.MM.yyyy} tarixi Ã¼Ã§Ã¼n \"{intent.ServiceName}\" xidmÉ™tinÉ™ uyÄŸun boÅŸ vaxt tapmadÄ±m. BaÅŸqa tarix yoxlayaq?";
 
         return new ChatBookingResponseDto
         {
             ReplyText = replyText,
             SuggestedSlots = suggestions,
             QuickReplies = suggestions.Count > 0
-                ? new List<string> { "Başqa saatlar göstər", "Digər ustalar", "Qiyməti nə qədərdir?" }
+                ? new List<string> { "BaÅŸqa saatlar gÃ¶stÉ™r", "DigÉ™r ustalar", "QiymÉ™ti nÉ™ qÉ™dÉ™rdir?" }
                 : DefaultQuickReplies(serviceNames)
         };
     }
@@ -249,3 +249,4 @@ public class ChatBookingService : IChatBookingService
     private static List<string> DefaultQuickReplies(List<string> serviceNames) =>
         serviceNames.Take(3).ToList();
 }
+

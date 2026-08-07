@@ -1,4 +1,4 @@
-﻿export const translations = {
+export const translations = {
   az: {
     nav_home: "Ana Səhifə",
     nav_loyalty: "Loyallıq",
@@ -244,6 +244,7 @@
     outfit_match_manicure: "Manikür təklifi",
     outfit_match_bundle_label: "Uyğun xidmət paketi",
     outfit_match_book_btn: "Rezerv et",
+    outfit_match_inspiration_label: "İlham üçün stil qalereyası",
 
     bm_online_booking: "ONLAYN REZERVASİYA",
     bm_step_service: "Xidmət",
@@ -722,6 +723,7 @@
     outfit_match_manicure: "Manicure suggestion",
     outfit_match_bundle_label: "Matching service bundle",
     outfit_match_book_btn: "Book",
+    outfit_match_inspiration_label: "Style inspiration gallery",
 
     bm_online_booking: "ONLINE BOOKING",
     bm_step_service: "Service",
@@ -1200,6 +1202,7 @@
     outfit_match_manicure: "Рекомендация по маникюру",
     outfit_match_bundle_label: "Подходящий пакет услуг",
     outfit_match_book_btn: "Забронировать",
+    outfit_match_inspiration_label: "Галерея стильных образов",
 
     bm_online_booking: "ОНЛАЙН ЗАПИСЬ",
     bm_step_service: "Услуга",

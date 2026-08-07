@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -25,13 +25,13 @@ public class StyleRecommendationService : IStyleRecommendationService
     public async Task<StyleAnalysisResultDto> AnalyzeAsync(StyleAnalysisRequestDto dto)
     {
         var apiKey = _configuration["Gemini:ApiKey"]
-            ?? throw new InvalidOperationException("Gemini API aÃ§arÄ± konfiqurasiya edilmÉ™yib.");
+            ?? throw new InvalidOperationException("Gemini API açarı konfiqurasiya edilməyib.");
 
         var promptText =
-            "Bu ÅŸÉ™kildÉ™ki insanÄ±n Ã¼z formasÄ±nÄ±, dÉ™ri tonunu vÉ™ mÃ¶vcud saÃ§ xÃ¼susiyyÉ™tlÉ™rini analiz et. " +
-            "Ona uyÄŸun saÃ§ dÃ¼zÃ¼mÃ¼ vÉ™ makyaj stilini AzÉ™rbaycan dilindÉ™ tÃ¶vsiyÉ™ et. " +
-            "CavabÄ± YALNIZ bu JSON formatÄ±nda ver, baÅŸqa heÃ§ nÉ™ yazma, izahat É™lavÉ™ etmÉ™: " +
-            "Bu tÃ¶vsiyÉ™lÉ™rÉ™ uyÄŸun 3-4 Ä°ngilis dilindÉ™, qÄ±sa, ÅŸÉ™kil axtarÄ±ÅŸÄ± Ã¼Ã§Ã¼n mÃ¼nasib aÃ§ar sÃ¶z dÉ™ ver (mÉ™sÉ™lÉ™n: \"layered bob haircut\", \"bronze glow makeup\"). " +
+            "Bu şəkildəki insanın üz formasını, dəri tonunu və mövcud saç xüsusiyyətlərini analiz et. " +
+            "Ona uyğun saç düzümü və makyaj stilini Azərbaycan dilində tövsiyə et. " +
+            "Cavabı YALNIZ bu JSON formatında ver, başqa heç nə yazma, izahat əlavə etmə: " +
+            "Bu tövsiyələrə uyğun 3-4 İngilis dilində, qısa, şəkil axtarışı üçün münasib açar söz də ver (məsələn: \"layered bob haircut\", \"bronze glow makeup\"). " +
             "{\"faceShapeAnalysis\": \"...\", \"hairRecommendation\": \"...\", \"makeupRecommendation\": \"...\", \"fullExplanation\": \"...\", \"styleKeywords\": [\"...\", \"...\"]}";
 
         var requestBody = new
@@ -56,7 +56,8 @@ public class StyleRecommendationService : IStyleRecommendationService
             }
         };
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={apiKey}";
+        var visionModel = _configuration["Gemini:VisionModel"] ?? "gemini-3.6-flash";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{visionModel}:generateContent?key={apiKey}";
 
         var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
@@ -65,7 +66,7 @@ public class StyleRecommendationService : IStyleRecommendationService
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"AI analiz xÉ™tasÄ±: {responseContent}");
+            throw new InvalidOperationException($"AI analiz xətası: {responseContent}");
 
         using var doc = JsonDocument.Parse(responseContent);
         var textContent = doc.RootElement
@@ -113,10 +114,6 @@ public class StyleRecommendationService : IStyleRecommendationService
                 result.StyleKeywords.Any(kw => img.Description.Contains(kw, StringComparison.OrdinalIgnoreCase))).ToList()
             : new List<SalonHub.Domain.Entities.GalleryImage>();
 
-        // Diqqet: burada artiq "hec bir uyğun sekil tapilmasa, butun portfolio-nu goster" davranisi
-        // GOTURULUB — cunki bu, elaqesiz (mes. cinsiyyete uygun olmayan) sekillerin gostermesine
-        // sebeb olurdu. Uyğun sekil yoxdursa, RecommendedImages bos qalir ve asagida Unsplash-dan
-        // acar sozlere DEQIQ uygun sekiller getirilir.
         var finalPool = keywordMatches;
 
         result.RecommendedImages = finalPool
@@ -129,9 +126,6 @@ public class StyleRecommendationService : IStyleRecommendationService
             })
             .ToList();
 
-        // Salonun oz qalereyasi az sekilli olanda (yeni ise, ya da az sekil yuklenibse) hemise ayni 1-2
-        // sekili gostermemek ucun, kicik pool olanda Unsplash-den elave secimler qatiriq ki, novbeti
-        // analizlerde de rengarenglik olsun.
         if (result.RecommendedImages.Count < 3 && result.StyleKeywords.Count > 0)
         {
             try
@@ -157,8 +151,6 @@ public class StyleRecommendationService : IStyleRecommendationService
                                 var desc = photo.TryGetProperty("alt_description", out var descEl) ? descEl.GetString() : null;
                                 result.RecommendedImages.Add(new RecommendedImageDto
                                 {
-                                    // Unsplash-dan gelenlere menfi ID veririk ki, DB-deki portfolio
-                                    // sekillerinin heqiqi ID-leri ile tesadufen ustuste dusmesin.
                                     Id = -(idx + 1),
                                     ImageUrl = imgUrl,
                                     Description = desc ?? string.Join(", ", result.StyleKeywords)
@@ -171,7 +163,6 @@ public class StyleRecommendationService : IStyleRecommendationService
             }
             catch (Exception)
             {
-                // Unsplash ugursuz olsa, sadece movcud netice ile davam et
             }
         }
 
@@ -268,4 +259,3 @@ public class StyleRecommendationService : IStyleRecommendationService
         return keywords;
     }
 }
-

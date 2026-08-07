@@ -20,16 +20,6 @@ function decodeToken(t) {
   }
 }
 
-const API_BASE_URL = "http://localhost:5000"; // Backend ünvanınız
-
-const formatImageUrl = (url) => {
-  if (!url) return null;
-  if (typeof url !== 'string' || url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:')) {
-    return url;
-  }
-  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-};
-
 export default function BookingModal({ isOpen, onClose, salonId, salonName, initialReferenceImage, initialReferenceImage2, initialCurrentImage, initialDesiredImages, initialServiceId, showAllSalons = false }) {
   const getMatchingServiceIds = (svcName) => services.filter((s) => s.name === svcName).map((s) => s.id);
   const getActualServiceId = () => {
@@ -64,8 +54,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   const [paymentMethod, setPaymentMethod] = useState("Card");
   const [loyaltyBalance, setLoyaltyBalance] = useState({ points: 0, equivalentDiscount: 0 });
   const [remainderMethod, setRemainderMethod] = useState("Card");
-  const [currentPhotoUrl, setCurrentPhotoUrl] = useState(formatImageUrl(initialCurrentImage));
-  const [desiredPhotoUrl, setDesiredPhotoUrl] = useState(formatImageUrl(initialReferenceImage || initialDesiredImages?.[0]));
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState(initialCurrentImage || null);
+  const [desiredPhotoUrl, setDesiredPhotoUrl] = useState(initialReferenceImage || initialDesiredImages?.[0] || null);
   const [desiredPhotoUrl2, setDesiredPhotoUrl2] = useState(initialReferenceImage2 || initialDesiredImages?.[1] || null);
   const [uploadingCurrent, setUploadingCurrent] = useState(false);
   const [uploadingDesired, setUploadingDesired] = useState(false);
@@ -80,8 +70,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     setSelectedTime(null);
     setAvailableSlots([]);
     setLoadingOptions(true);
-    setCurrentPhotoUrl(formatImageUrl(initialCurrentImage));
-    setDesiredPhotoUrl(formatImageUrl(initialReferenceImage || initialDesiredImages?.[0]));
+    setCurrentPhotoUrl(initialCurrentImage || null);
+    setDesiredPhotoUrl(initialReferenceImage || initialDesiredImages?.[0] || null);
     setDesiredPhotoUrl2(initialReferenceImage2 || initialDesiredImages?.[1] || null);
     setPhotoUploadError("");
 

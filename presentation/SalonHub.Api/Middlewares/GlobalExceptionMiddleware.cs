@@ -32,9 +32,9 @@ namespace SalonHub.Api.Middlewares
             var statusCode = exception switch
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,
-                InvalidOperationException => HttpStatusCode.Conflict,
                 UnauthorizedAccessException => HttpStatusCode.Forbidden,
                 ArgumentException => HttpStatusCode.BadRequest,
+                InvalidOperationException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
 

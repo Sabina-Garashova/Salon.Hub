@@ -16,6 +16,13 @@ namespace SalonHub.Application.DTOs.OutfitMatch
         public string CategoryName { get; set; } = string.Empty;
     }
 
+    public class RecommendedImageDto
+    {
+        public int Id { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
     public class OutfitMatchResultDto
     {
         public string StyleSummary { get; set; } = string.Empty;
@@ -24,5 +31,6 @@ namespace SalonHub.Application.DTOs.OutfitMatch
         public string ManicureSuggestion { get; set; } = string.Empty;
         public List<string> StyleKeywords { get; set; } = new();
         public List<RecommendedServiceDto> RecommendedServices { get; set; } = new();
+        public List<RecommendedImageDto> RecommendedImages { get; set; } = new();
     }
 }
