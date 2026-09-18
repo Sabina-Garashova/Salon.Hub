@@ -7,6 +7,7 @@ import NewsSection from "../components/NewsSection";
 import api from "../services/api";
 import { useLanguage } from "../context/LanguageContext";
 import { useToast } from "../context/ToastContext";
+import { useConfirm } from "../context/ConfirmContext.jsx";
 
 function decodeToken(t) {
   try {
@@ -26,12 +27,14 @@ function decodeToken(t) {
 export default function SalonDetail() {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const confirm = useConfirm();
   const { id } = useParams();
   const navigate = useNavigate();
   const salonId = Number(id);
 
   const [salon, setSalon] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [services, setServices] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [gallery, setGallery] = useState([]);
@@ -68,10 +71,12 @@ export default function SalonDetail() {
       api.get("/Review"),
       api.get("/GalleryImage"),
       api.get("/Tag"),
+      api.get("/Branch"),
     ])
-      .then(([salonRes, empRes, servRes, revRes, galRes, tagRes]) => {
+      .then(([salonRes, empRes, servRes, revRes, galRes, tagRes, branchRes]) => {
         setSalon(salonRes.data);
         setEmployees(empRes.data.filter((e) => e.salonId === salonId));
+          setBranches(branchRes.data.filter((b) => b.salonId === salonId));
         setServices(servRes.data.filter((s) => s.salonId === salonId));
         setReviews(revRes.data.filter((r) => r.salonId === salonId));
         setGallery(
@@ -107,7 +112,7 @@ export default function SalonDetail() {
           });
         }
       })
-      .catch((err) => console.error("Salon mÉ™lumatÄ± yÃ¼klÉ™nmÉ™di", err))
+      .catch((err) => console.error("Salon məlumatı yüklənmədi", err))
       .finally(() => setLoading(false));
   }, [salonId, token]);
 
@@ -153,7 +158,7 @@ export default function SalonDetail() {
   };
 
   const handleDeleteReview = async (id) => {
-    if (!window.confirm(t("review_delete_confirm"))) return;
+    if (!(await confirm(t("review_delete_confirm")))) return;
     try {
       await api.delete(`/Review/${id}`);
       setReviews((prev) => prev.filter((r) => r.id !== id));
@@ -202,6 +207,7 @@ export default function SalonDetail() {
         services={services}
         tags={tags}
         employees={employees}
+        branches={branches}
         reviews={reviews}
         canReview={canReview}
         reviewableEmployees={reviewableEmployees}

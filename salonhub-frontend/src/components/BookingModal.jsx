@@ -51,6 +51,8 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   const [isLogoLightboxOpen, setIsLogoLightboxOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [branchFilter, setBranchFilter] = useState("all");
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   const [selectedService, setSelectedService] = useState(null);
@@ -91,10 +93,14 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
       decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
       decoded?.sub;
 
-    Promise.all([api.get("/Service"), api.get("/Employee"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
-      .then(([servRes, empRes, balRes]) => {
+    Promise.all([api.get("/Service"), api.get("/Employee"), api.get("/Branch"), api.get(`/Loyalty/balance/${salonId}`).catch(() => ({ data: { points: 0, equivalentDiscount: 0 } }))])
+      .then(([servRes, empRes, branchRes, balRes]) => {
         const filteredServices = servRes.data.filter((s) => showAllSalons || s.salonId === salonId);
         setServices(filteredServices);
+        const branchList = Array.isArray(branchRes.data) ? branchRes.data : (branchRes.data?.$values || []);
+        const filteredBranches = branchList.filter((b) => showAllSalons || String(b.salonId) === String(salonId));
+        console.log("Yüklənən Filiallar:", filteredBranches, "Mövcud SalonId:", salonId);
+        setBranches(filteredBranches);
         setEmployees(
           empRes.data.filter(
             (e) =>
@@ -163,6 +169,14 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
     setSelectedDate(e.target.value);
   };
 
+  
+  const getFilteredEmployees = () => {
+    return employees.filter((e) => {
+      const matchesService = e.serviceIds?.some((id) => getMatchingServiceIds(selectedService?.name).includes(id));
+      const matchesBranch = branchFilter === "all" || String(e.branchId) === String(branchFilter);
+      return matchesService && matchesBranch;
+    });
+  };
   const handleNext = () => {
     if (step < 5) setStep(step + 1);
   };
@@ -182,7 +196,7 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
       const res = await api.post("/Upload/image", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setUrl(res.data.url);
+      setUrl(formatImageUrl(res.data.url));
     } catch (err) {
       setPhotoUploadError(err.response?.data?.message || t("admin_image_upload_error"));
     } finally {
@@ -191,6 +205,30 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
   };
 
   const handleFinalConfirm = async () => {
+    let finalCurrentPhoto = currentPhotoUrl;
+    let finalDesiredPhoto = desiredPhotoUrl;
+
+    if (finalCurrentPhoto && finalCurrentPhoto.startsWith("blob:")) {
+      try {
+        const b = await fetch(finalCurrentPhoto).then(r => r.blob());
+        const f = new File([b], "current_photo.jpg", { type: b.type || "image/jpeg" });
+        const fd = new FormData();
+        fd.append("file", f);
+        const res = await api.post("/Upload/image", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        finalCurrentPhoto = res.data.url;
+      } catch (err) { console.error("Current photo upload error:", err); }
+    }
+
+    if (finalDesiredPhoto && finalDesiredPhoto.startsWith("blob:")) {
+      try {
+        const b = await fetch(finalDesiredPhoto).then(r => r.blob());
+        const f = new File([b], "desired_photo.jpg", { type: b.type || "image/jpeg" });
+        const fd = new FormData();
+        fd.append("file", f);
+        const res = await api.post("/Upload/image", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        finalDesiredPhoto = res.data.url;
+      } catch (err) { console.error("Desired photo upload error:", err); }
+    }
     setSubmitting(true);
     try {
       const startTime = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
@@ -200,9 +238,9 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
         branchId: selectedEmployee.branchId,
         reservationDate: selectedDate,
         startTime,
-        referenceImageUrl: desiredPhotoUrl || null,
+        referenceImageUrl: finalDesiredPhoto || null,
         referenceImageUrl2: desiredPhotoUrl2 || null,
-        currentPhotoUrl: currentPhotoUrl || null,
+        currentPhotoUrl: finalCurrentPhoto || null,
         paymentMethod: paymentMethod === "LoyaltyPoints" ? remainderMethod : paymentMethod,
       });
 
@@ -364,11 +402,36 @@ export default function BookingModal({ isOpen, onClose, salonId, salonName, init
               {step === 2 && (
                 <div className="space-y-4">
                   <h3 className="text-xl font-serif text-[#1A1714] mb-2">Usta seçin</h3>
-                  {employees.filter((e) => e.serviceIds?.some((id) => getMatchingServiceIds(selectedService?.name).includes(id))).length === 0 ? (
+                  {branches.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setBranchFilter("all")}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                          branchFilter === "all" ? "bg-[#C9A227] text-white border-[#C9A227]" : "bg-white text-[#6B5D45] border-[#E5D2B1] hover:border-[#C9A227]/50"
+                        }`}
+                      >
+                        Hamisi
+                      </button>
+                      {branches.map((branch) => (
+                        <button
+                          key={branch.id}
+                          type="button"
+                          onClick={() => setBranchFilter(branch.id)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+                            String(branchFilter) === String(branch.id) ? "bg-[#C9A227] text-white border-[#C9A227]" : "bg-white text-[#6B5D45] border-[#E5D2B1] hover:border-[#C9A227]/50"
+                          }`}
+                        >
+                          {branch.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {getFilteredEmployees().length === 0 ? (
                     <p className="text-sm text-gray-400">Bu salonda hələ usta əlavə edilməyib.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {employees.filter((e) => e.serviceIds?.some((id) => getMatchingServiceIds(selectedService?.name).includes(id))).map((employee) => (
+                      {getFilteredEmployees().map((employee) => (
                         <div
                           key={employee.id}
                           onClick={() => setSelectedEmployee(employee)}

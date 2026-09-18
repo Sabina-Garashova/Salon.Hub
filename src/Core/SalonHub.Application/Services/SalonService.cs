@@ -1,4 +1,4 @@
-using SalonHub.Application.Common;
+﻿using SalonHub.Application.Common;
 using SalonHub.Application.DTOs.Salons;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
@@ -124,6 +124,10 @@ namespace SalonHub.Application.Services
             var reviews = await _unitOfWork.Reviews.FindAsync(r => r.SalonId == salon.Id);
             var reviewList = reviews.ToList();
 
+            var branches = await _unitOfWork.Branches.FindAsync(b => b.SalonId == salon.Id);
+            var mainBranch = branches.OrderBy(b => b.Id).FirstOrDefault();
+            var currentAddress = mainBranch?.Address ?? salon.Address;
+
             string? ownerFullName = null;
             string? ownerEmail = null;
             if (!string.IsNullOrWhiteSpace(salon.OwnerId))
@@ -141,7 +145,7 @@ namespace SalonHub.Application.Services
                     salon.DescriptionRu,
                     salon.DescriptionEn,
                     language),
-                Address = salon.Address,
+                Address = currentAddress,
                 PhoneNumber = salon.PhoneNumber,
                 AverageRating = reviewList.Count > 0 ? Math.Round(reviewList.Average(r => r.Rating), 2) : 0,
                 ReviewCount = reviewList.Count,

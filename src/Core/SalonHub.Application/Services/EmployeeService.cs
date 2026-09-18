@@ -1,4 +1,4 @@
-using SalonHub.Application.DTOs.Employees;
+﻿using SalonHub.Application.DTOs.Employees;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Application.Interfaces.Services;
 using SalonHub.Domain.Entities;
@@ -20,11 +20,13 @@ namespace SalonHub.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserLookupService _userLookupService;
+        private readonly INotificationService _notificationService;
 
-        public EmployeeService(IUnitOfWork unitOfWork, IUserLookupService userLookupService)
+        public EmployeeService(IUnitOfWork unitOfWork, IUserLookupService userLookupService, INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _userLookupService = userLookupService;
+            _notificationService = notificationService;
         }
 
         public async Task<IReadOnlyList<EmployeeReadDto>> GetAllAsync(string requesterId, bool isSuperAdmin)
@@ -58,7 +60,7 @@ namespace SalonHub.Application.Services
                 throw new UnauthorizedAccessException("Bu salona işçi əlavə etmək icazəniz yoxdur.");
 
             var existingWithSameUser = await _unitOfWork.Employees.FindAsync(e =>
-                e.ApplicationUserId == dto.ApplicationUserId);
+                e.ApplicationUserId == dto.ApplicationUserId && !e.IsDeleted);
             if (existingWithSameUser.Any())
                 throw new InvalidOperationException("Bu istifadəçi hesabı artıq bir işçiyə bağlıdır.");
 
@@ -93,6 +95,7 @@ namespace SalonHub.Application.Services
                 Bio = dto.Bio,
                 ProfileImageUrl = dto.ProfileImageUrl,
                 ApplicationUserId = dto.ApplicationUserId,
+                OriginalEmail = dto.OriginalEmail,
                 SalonId = dto.SalonId,
                 BranchId = effectiveBranchId,
                 AssignedEquipmentId = dto.AssignedEquipmentId,
@@ -120,7 +123,7 @@ namespace SalonHub.Application.Services
             if (!string.IsNullOrEmpty(dto.ApplicationUserId) && dto.ApplicationUserId != employee.ApplicationUserId)
             {
                 var existingWithSameUser = await _unitOfWork.Employees.FindAsync(e =>
-                    e.Id != id && e.ApplicationUserId == dto.ApplicationUserId);
+                    e.Id != id && e.ApplicationUserId == dto.ApplicationUserId && !e.IsDeleted);
                 if (existingWithSameUser.Any())
                     throw new InvalidOperationException("Bu istifadəçi hesabı artıq başqa bir işçiyə bağlıdır.");
 
@@ -192,7 +195,17 @@ namespace SalonHub.Application.Services
             {
                 var otherActiveRecords = await _unitOfWork.Employees.FindAsync(e => e.ApplicationUserId == employee.ApplicationUserId && e.Id != employee.Id && !e.IsDeleted);
                 if (!otherActiveRecords.Any())
+                {
                     await _userLookupService.DemoteFromEmployeeAsync(employee.ApplicationUserId);
+
+                    if (!string.IsNullOrWhiteSpace(employee.OriginalEmail))
+                    {
+                        await _userLookupService.RestoreOriginalAccessAsync(employee.ApplicationUserId, employee.OriginalEmail);
+                        await _notificationService.NotifyReservationChangedAsync(
+                            employee.ApplicationUserId,
+                            $"İşçi statusunuz ləğv edildi. Artıq {employee.OriginalEmail} email-iniz ilə müştəri kimi sistemə daxil ola bilərsiniz.");
+                    }
+                }
             }
             await _unitOfWork.CompleteAsync();
         }

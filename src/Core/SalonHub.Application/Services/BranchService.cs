@@ -1,4 +1,4 @@
-using SalonHub.Application.DTOs.Branches;
+﻿using SalonHub.Application.DTOs.Branches;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
 
@@ -24,7 +24,7 @@ namespace SalonHub.Application.Services
 
         public async Task<IReadOnlyList<BranchReadDto>> GetAllAsync(string? requesterId = null, bool isSuperAdmin = true)
         {
-            var branches = await _unitOfWork.Branches.GetAllAsync();
+            var branches = (await _unitOfWork.Branches.GetAllAsync()).Where(b => !b.IsDeleted);
             var result = new List<BranchReadDto>();
             foreach (var b in branches)
             {

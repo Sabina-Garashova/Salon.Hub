@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
+import { useConfirm } from "../../context/ConfirmContext.jsx";
 import { Star,
   MessageSquare,
   Clock,
@@ -23,6 +24,7 @@ export default function ReviewsManagement({
   onDelete,
   showSalonName = false
 }) {
+  const confirm = useConfirm();
   const [fetchedEmployees, setFetchedEmployees] = useState([]);
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function ReviewsManagement({
 
   const handleDelete = async (reviewId) => {
     if (!onDelete) return;
-    if (!window.confirm('Bu rəyi silmək istədiyinizə əminsiniz?')) return;
+    if (!(await confirm('Bu rəyi silmək istədiyinizə əminsiniz?'))) return;
     setDeletingIds(prev => ({ ...prev, [reviewId]: true }));
     try {
       await onDelete(reviewId);

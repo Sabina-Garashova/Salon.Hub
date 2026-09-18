@@ -96,19 +96,27 @@ export default function SalonApplicationModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            <div>
+                        <div>
               <label className="block text-sm font-medium text-[#1A1714] mb-2">Telefon Nömrəsi</label>
               <div className="relative flex items-center">
-                <Phone className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400 z-10" />
-                <span className="absolute left-11 top-3.5 text-sm text-gray-500 font-medium select-none pointer-events-none">+994</span>
+                <Phone className="absolute left-3.5 h-5 w-5 text-gray-400 pointer-events-none z-10" />
+                <span className="absolute left-11 text-sm font-medium text-[#1A1714] pointer-events-none z-10">+994</span>
                 <input
                   type="tel"
                   required
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9 ]/g, ""))}
-                  maxLength={12}
-                  className="pl-[4.7rem] block w-full border border-gray-200 rounded-xl py-3 text-[#1A1714] placeholder-gray-400 focus:ring-2 focus:ring-[#C9A227]/20 focus:border-[#C9A227] sm:text-sm transition-all outline-none bg-white"
-                  placeholder="(XX) XXX XX XX"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+                    let formatted = "";
+                    if (digits.length > 0) formatted += "(" + digits.slice(0, 2);
+                    if (digits.length >= 2) formatted += ") " + digits.slice(2, 5);
+                    if (digits.length >= 5) formatted += "-" + digits.slice(5, 7);
+                    if (digits.length >= 7) formatted += "-" + digits.slice(7, 9);
+                    setPhone(formatted);
+                  }}
+                  maxLength={15}
+                  className="pl-[84px] block w-full border border-gray-200 rounded-xl py-3 text-[#1A1714] placeholder-gray-400 focus:ring-2 focus:ring-[#C9A227]/20 focus:border-[#C9A227] sm:text-sm transition-all outline-none bg-white font-normal"
+                  placeholder="(50) 348-45-89"
                 />
               </div>
             </div>

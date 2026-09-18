@@ -19,7 +19,7 @@ function decodeToken(t) {
 }
 
 function getCurrentUserId() {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   if (!token) return null;
   const decoded = decodeToken(token);
   return (

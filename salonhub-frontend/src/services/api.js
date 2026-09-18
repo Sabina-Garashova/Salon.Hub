@@ -5,7 +5,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,6 +19,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       sessionStorage.removeItem("token");
+      localStorage.removeItem("token");
       const protectedPaths = ["/dashboard", "/admin", "/employee-dashboard", "/loyalty"];
       const isOnProtectedPage = protectedPaths.some((p) => window.location.pathname.startsWith(p));
       if (isOnProtectedPage) {

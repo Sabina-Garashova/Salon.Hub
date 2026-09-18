@@ -1,3 +1,8 @@
+const formatImageUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("blob:")) return url;
+  return "https://localhost:7289" + (url.startsWith("/") ? url : "/" + url);
+};
 import React from 'react';
 import { QrCode, Calendar, TrendingUp, ChevronRight, Wand2, Sparkles } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
@@ -104,18 +109,18 @@ export const TodayAppointmentsTable = ({ appointments = [], onShowQr, role, onSh
                         {(appt.currentPhotoUrl || appt.referenceImageUrl || appt.referenceImageUrl2) ? (
                           <div className="flex items-center -space-x-2">
                             {appt.currentPhotoUrl && (
-                              <a href={appt.currentPhotoUrl} target="_blank" rel="noreferrer" title={t("dc_current_look")}>
-                                <img src={appt.currentPhotoUrl} alt={t("dc_current_look")} className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm hover:z-10 hover:scale-125 transition-transform" />
+                              <a href={formatImageUrl(appt.currentPhotoUrl)} target="_blank" rel="noreferrer" title={t("dc_current_look")}>
+                                <img src={formatImageUrl(appt.currentPhotoUrl)} alt={t("dc_current_look")} className="w-8 h-8 rounded-full object-cover border-2 border-white shadow-sm hover:z-10 hover:scale-125 transition-transform" />
                               </a>
                             )}
                             {appt.referenceImageUrl && (
-                              <a href={appt.referenceImageUrl} target="_blank" rel="noreferrer" title={t("dc_desired_look")}>
-                                <img src={appt.referenceImageUrl} alt={t("dc_desired_look")} className="w-8 h-8 rounded-full object-cover border-2 border-[#C9A227] shadow-sm hover:z-10 hover:scale-125 transition-transform" />
+                              <a href={formatImageUrl(appt.referenceImageUrl)} target="_blank" rel="noreferrer" title={t("dc_desired_look")}>
+                                <img src={formatImageUrl(appt.referenceImageUrl)} alt={t("dc_desired_look")} className="w-8 h-8 rounded-full object-cover border-2 border-[#C9A227] shadow-sm hover:z-10 hover:scale-125 transition-transform" />
                               </a>
                             )}
                             {appt.referenceImageUrl2 && (
-                              <a href={appt.referenceImageUrl2} target="_blank" rel="noreferrer" title={t("dc_desired_look_2")}>
-                                <img src={appt.referenceImageUrl2} alt={t("dc_desired_look_2")} className="w-8 h-8 rounded-full object-cover border-2 border-[#C9A227] shadow-sm hover:z-10 hover:scale-125 transition-transform" />
+                              <a href={formatImageUrl(appt.referenceImageUrl2)} target="_blank" rel="noreferrer" title={t("dc_desired_look_2")}>
+                                <img src={formatImageUrl(appt.referenceImageUrl2)} alt={t("dc_desired_look_2")} className="w-8 h-8 rounded-full object-cover border-2 border-[#C9A227] shadow-sm hover:z-10 hover:scale-125 transition-transform" />
                               </a>
                             )}
                           </div>

@@ -1,4 +1,4 @@
-﻿using SalonHub.Application.Common;
+using SalonHub.Application.Common;
 using SalonHub.Application.DTOs.Categories;
 using SalonHub.Application.Interfaces.Repositories;
 using SalonHub.Domain.Entities;
@@ -96,6 +96,10 @@ namespace SalonHub.Application.Services
             var relatedServices = await _unitOfWork.Services.FindAsync(s => s.CategoryId == id);
             if (relatedServices.Any())
                 throw new InvalidOperationException("Bu kateqoriyaya bagli xidmetler var. Evvelce onlari silin ve ya baska kateqoriyaya kocurun.");
+
+            var orphanedDeletedServices = await _unitOfWork.Services.FindIgnoreFiltersAsync(s => s.CategoryId == id);
+            foreach (var orphan in orphanedDeletedServices)
+                _unitOfWork.Services.Remove(orphan);
 
             _unitOfWork.Categories.Remove(category);
             await _unitOfWork.CompleteAsync();

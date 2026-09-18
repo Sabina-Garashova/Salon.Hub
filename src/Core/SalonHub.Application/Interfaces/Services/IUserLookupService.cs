@@ -6,4 +6,6 @@ public interface IUserLookupService
     Task<int> GetNewCustomersCountInMonthAsync(int month, int year);
     Task PromoteToEmployeeAsync(string userId);
     Task DemoteFromEmployeeAsync(string userId);
+    Task BlockLoginAsync(string userId);
+    Task RestoreOriginalAccessAsync(string userId, string originalEmail);
 }

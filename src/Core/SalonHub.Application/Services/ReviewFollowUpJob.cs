@@ -12,7 +12,6 @@ namespace SalonHub.Application.Services
         private readonly ILogger<ReviewFollowUpJob> _logger;
 
         private const int LowRatingThreshold = 2;
-        private const int DaysToWaitForResponse = 2;
 
         public ReviewFollowUpJob(IUnitOfWork unitOfWork, INotificationService notificationService, ILogger<ReviewFollowUpJob> logger)
         {
@@ -25,11 +24,8 @@ namespace SalonHub.Application.Services
         {
             _logger.LogInformation("Rəy qaytarma yoxlaması başladı: {Date}", DateTime.UtcNow);
 
-            var cutoffDate = DateTime.UtcNow.AddDays(-DaysToWaitForResponse);
-
             var unansweredLowReviews = await _unitOfWork.Reviews.FindAsync(r =>
                 r.Rating <= LowRatingThreshold &&
-                r.CreatedAt <= cutoffDate &&
                 r.Response == null &&
                 !r.FollowUpSent);
 
@@ -59,4 +55,3 @@ namespace SalonHub.Application.Services
         }
     }
 }
-

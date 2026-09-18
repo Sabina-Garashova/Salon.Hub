@@ -191,8 +191,6 @@ namespace SalonHub.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DateTime");
-
                     b.ToTable("AuditLogs");
                 });
 
@@ -309,6 +307,9 @@ namespace SalonHub.Persistence.Migrations
 
                     b.Property<bool>("IsMonthlyTopEmployee")
                         .HasColumnType("bit");
+
+                    b.Property<string>("OriginalEmail")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()

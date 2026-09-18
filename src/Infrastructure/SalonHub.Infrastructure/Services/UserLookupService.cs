@@ -38,4 +38,28 @@ public class UserLookupService : IUserLookupService
         if (await _userManager.IsInRoleAsync(user, "Employee"))
             await _userManager.RemoveFromRoleAsync(user, "Employee");
     }
+
+    public async Task BlockLoginAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return;
+        if (!_userManager.SupportsUserLockout) return;
+        await _userManager.SetLockoutEnabledAsync(user, true);
+        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+    }
+
+    public async Task RestoreOriginalAccessAsync(string userId, string originalEmail)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return;
+
+        await _userManager.SetEmailAsync(user, originalEmail);
+        await _userManager.SetUserNameAsync(user, originalEmail);
+        user.EmailConfirmed = true;
+
+        if (_userManager.SupportsUserLockout)
+            await _userManager.SetLockoutEndDateAsync(user, null);
+
+        await _userManager.UpdateAsync(user);
+    }
 }

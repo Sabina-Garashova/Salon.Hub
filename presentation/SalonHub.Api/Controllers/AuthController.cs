@@ -113,6 +113,9 @@ namespace SalonHub.Api.Controllers
             if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 return Unauthorized(new { message = "Email və ya şifrə yanlışdır." });
 
+            if (await _userManager.IsLockedOutAsync(user))
+                return Unauthorized(new { message = "Hesabınız bloklanıb. Zəhmət olmasa SuperAdmin ilə əlaqə saxlayın." });
+
             var roles = await _userManager.GetRolesAsync(user);
 
             // Öz-özünü düzəldən yoxlama: istifadəçi aktiv bir Employee qeydinə bağlıdırsa,
@@ -167,8 +170,18 @@ namespace SalonHub.Api.Controllers
             if (user is not null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var message = $"Şifrənizi sıfırlamaq üçün bu kodu istifadə edin: {token}";
-                await _emailService.SendEmailAsync(dto.Email, "SalonHub - Şifrə Sıfırlama", message);
+                var encodedToken = Uri.EscapeDataString(token);
+                var encodedEmail = Uri.EscapeDataString(dto.Email);
+                var resetLink = $"http://localhost:5173/reset-password?email={encodedEmail}&token={encodedToken}";
+
+                var emailBody = $@"
+                    <div style='font-family: Arial, sans-serif; padding: 20px;'>
+                        <h2 style='color: #C9A227;'>SalonHub - Şifrə Sıfırlama</h2>
+                        <p>Şifrənizi yeniləmək üçün aşağıdakı düyməyə klikləyin:</p>
+                        <a href='{resetLink}' style='padding: 10px 18px; background-color: #C9A227; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>Şifrəni Yenilə</a>
+                    </div>";
+
+                await _emailService.SendEmailAsync(user.Email!, "SalonHub - Şifrə Sıfırlama", emailBody);
             }
 
             // Təhlükəsizlik üçün, email mövcud olsa da olmasa da eyni cavabı veririk

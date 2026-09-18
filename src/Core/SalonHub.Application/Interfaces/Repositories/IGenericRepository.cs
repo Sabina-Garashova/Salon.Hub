@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,6 +14,7 @@ namespace SalonHub.Application.Interfaces.Repositories
         Task<IReadOnlyList<T>> GetAllAsync();
         Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate);
         Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
+        Task<IReadOnlyList<T>> FindIgnoreFiltersAsync(Expression<Func<T, bool>> predicate);
         Task AddAsync(T entity);
         void Update(T entity);
         void Remove(T entity);

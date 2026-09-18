@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using SalonHub.Infrastructure.Services;
 
 namespace SalonHub.Api.Middlewares
 {
@@ -7,13 +8,11 @@ namespace SalonHub.Api.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionMiddleware> _logger;
-
         public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
             _logger = logger;
         }
-
         public async Task InvokeAsync(HttpContext context)
         {
             try
@@ -26,27 +25,24 @@ namespace SalonHub.Api.Middlewares
                 await HandleExceptionAsync(context, ex);
             }
         }
-
         private static Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var statusCode = exception switch
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 UnauthorizedAccessException => HttpStatusCode.Forbidden,
+                AiServiceUnavailableException => HttpStatusCode.ServiceUnavailable,
                 ArgumentException => HttpStatusCode.BadRequest,
                 InvalidOperationException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
-
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
-
             var response = JsonSerializer.Serialize(new
             {
                 statusCode = (int)statusCode,
                 message = exception.Message
             });
-
             return context.Response.WriteAsync(response);
         }
     }

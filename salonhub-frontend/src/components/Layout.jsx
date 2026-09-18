@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+﻿import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { LogOut, LayoutDashboard, Calendar, Gift, Sparkles, ShieldCheck, Bell, Check, CheckCheck, Building2, Users, Newspaper, Star, X, Mail, Phone, User, CreditCard } from "lucide-react";
 import api from "../services/api";
@@ -32,7 +32,7 @@ export default function Layout({ children }) {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
   const decoded = token ? decodeToken(token) : null;
 
   const [notifications, setNotifications] = useState([]);
@@ -196,6 +196,7 @@ export default function Layout({ children }) {
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
     navigate("/auth");
   };
 

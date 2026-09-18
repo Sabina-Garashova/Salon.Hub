@@ -12,6 +12,7 @@ namespace SalonHub.Domain.Entities
         public decimal? Salary { get; set; }
 
         public string ApplicationUserId { get; set; } = string.Empty;
+        public string? OriginalEmail { get; set; }
 
         public int SalonId { get; set; }
         public Salon Salon { get; set; } = null!;

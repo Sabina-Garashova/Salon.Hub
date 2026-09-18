@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+﻿import { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { Mail, Lock, User, Eye, EyeOff, Calendar, Gift } from "lucide-react";
 import api from "../../services/api";
 import { useLanguage } from "../../context/LanguageContext";
@@ -40,6 +40,7 @@ export default function AuthPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loginData, setLoginData] = useState({ emailOrPhone: "", password: "" });
+  const [rememberMe, setRememberMe] = useState(false);
   const [registerData, setRegisterData] = useState({
     fullName: "",
     email: "",
@@ -57,7 +58,11 @@ export default function AuthPage() {
         password: loginData.password,
       };
       const res = await api.post("/auth/login", payload);
-      sessionStorage.setItem("token", res.data.token);
+      if (rememberMe) {
+        localStorage.setItem("token", res.data.token);
+      } else {
+        sessionStorage.setItem("token", res.data.token);
+      }
       window.location.href = "/dashboard";
     } catch (err) {
       const msg = err.response?.data?.message || t("auth_login_error");
@@ -120,17 +125,13 @@ export default function AuthPage() {
               className={`relative z-10 flex-1 py-2 font-medium transition-colors ${
                 tab === "login" ? "text-white" : "text-[#1A1714]"
               }`}
-            >
-              Login
-            </button>
+            >{t("auth_login")}</button>
             <button
               onClick={() => setTab("register")}
               className={`relative z-10 flex-1 py-2 font-medium transition-colors ${
                 tab === "register" ? "text-white" : "text-[#1A1714]"
               }`}
-            >
-              Register
-            </button>
+            >{t("auth_register")}</button>
           </div>
 
           {tab === "login" ? (
@@ -141,7 +142,7 @@ export default function AuthPage() {
                 <Mail className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Email ve ya Telefon"
+                  placeholder={t("auth_email_or_phone")}
                   value={loginData.emailOrPhone}
                   onChange={(e) => setLoginData({ ...loginData, emailOrPhone: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -154,7 +155,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showPass ? "text" : "password"}
-                  placeholder="Sifre"
+                  placeholder={t("auth_password")}
                   value={loginData.password}
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -167,15 +168,13 @@ export default function AuthPage() {
 
               <div className="flex justify-between items-center text-sm">
                 <label className="flex items-center gap-2 text-gray-600">
-                  <input type="checkbox" className="accent-[#C9A227]" />
-                  Meni xatirla
+                  <input type="checkbox" className="accent-[#C9A227]" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                  {t("auth_remember_me")}
                 </label>
-                <a href="#" className="text-[#C9A227] font-medium">Sifreni unutmusunuz?</a>
+                <Link to="/forgot-password" className="text-[#C9A227] font-medium">{t("auth_forgot_password")}</Link>
               </div>
 
-              <button type="submit" className="w-full py-3 rounded-xl bg-[#1A1714] text-white font-medium hover:bg-[#2A231C] transition">
-                Log In
-              </button>
+              <button type="submit" className="w-full py-3 rounded-xl bg-[#1A1714] text-white font-medium hover:bg-[#2A231C] transition">{t("auth_log_in")}</button>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
@@ -211,7 +210,7 @@ export default function AuthPage() {
                 <Calendar className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="date"
-                  placeholder="Dogum Tarixi"
+                  placeholder={t("auth_date_of_birth")}
                   value={registerData.dateOfBirth}
                   onChange={(e) => setRegisterData({ ...registerData, dateOfBirth: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227] text-gray-600"
@@ -223,7 +222,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showPass ? "text" : "password"}
-                  placeholder="Sifre"
+                  placeholder={t("auth_password")}
                   value={registerData.password}
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -238,7 +237,7 @@ export default function AuthPage() {
                 <Lock className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showConfirm ? "text" : "password"}
-                  placeholder="Sifreni Tesdiqle"
+                  placeholder={t("auth_confirm_password")}
                   value={registerData.confirmPassword}
                   onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                   className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
@@ -253,16 +252,14 @@ export default function AuthPage() {
                 <Gift className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Devet kodu (isteye gore)"
+                  placeholder={t("auth_referral_code")}
                   value={registerData.referredByCode}
                   onChange={(e) => setRegisterData({ ...registerData, referredByCode: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
                 />
               </div>
 
-              <button type="submit" className="w-full py-3 rounded-xl bg-[#C9A227] text-white font-medium hover:bg-[#B8935A] transition">
-                Create Account
-              </button>
+              <button type="submit" className="w-full py-3 rounded-xl bg-[#C9A227] text-white font-medium hover:bg-[#B8935A] transition">{t("auth_create_account")}</button>
             </form>
           )}
         </div>

@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import {
   ArrowLeft,
@@ -89,6 +89,7 @@ export default function SalonProfile({
   services = [],
   tags = [],
   employees = [],
+  branches = [],
   reviews = [],
   canReview = false,
   loading = false,
@@ -254,6 +255,38 @@ export default function SalonProfile({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="lg:col-span-2 space-y-8">
                 <section>
+                  <SectionTitle icon={MapPin}>Filiallar</SectionTitle>
+                  {branches.length === 0 ? (
+                    <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
+                      Filial melumati yoxdur
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                      {branches.map((branch) => (
+                        <div
+                          key={branch.id}
+                          className="bg-gradient-to-br from-[#F6EAD3] via-[#F1E2C5] to-[#E9D5A8] rounded-xl border border-amber-300/30 shadow-md p-4"
+                        >
+                          <p className="font-semibold text-[#1A1714] text-sm flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-[#C9A227] shrink-0" />
+                            {branch.name}
+                          </p>
+                          {branch.address && (
+                            <p className="text-xs text-gray-500 mt-1 ml-5.5">{branch.address}</p>
+                          )}
+                          {(branch.phoneNumber || branch.phone) && (
+                            <p className="text-xs text-gray-500 mt-0.5 ml-5.5 flex items-center gap-1">
+                              <Phone className="w-3 h-3 text-[#C9A227] shrink-0" />
+                              {branch.phoneNumber || branch.phone}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section>
                   <SectionTitle icon={Scissors}>{t("sp_services")}</SectionTitle>
                   {services.length === 0 ? (
                     <div className="bg-[#F1E2C5] rounded-xl border border-dashed border-[#C9A227]/40 p-8 text-center text-sm text-[#6B5D45]">
@@ -329,6 +362,12 @@ export default function SalonProfile({
                           <p className="text-sm font-semibold text-[#1A1714] truncate">
                             {employee.fullName}
                           </p>
+                          {(() => {
+                            const branch = branches.find((b) => String(b.id) === String(employee.branchId));
+                            return branch ? (
+                              <p className="text-[11px] text-[#B8935A] mt-0.5 truncate">{branch.name}</p>
+                            ) : null;
+                          })()}
                           <div className="flex items-center justify-center gap-1 mt-1">
                             <Star className="w-3 h-3 text-[#C9A227] fill-[#C9A227]" />
                             <span className="text-xs text-[#B8935A] font-medium">
@@ -572,6 +611,7 @@ export default function SalonProfile({
     </div>
   );
 }
+
 
 
 

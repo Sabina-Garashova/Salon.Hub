@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SalonHub.Application.Interfaces.Repositories;
 using System.Linq.Expressions;
 
@@ -24,6 +24,8 @@ namespace SalonHub.Persistence.Repositories
                 query = query.Include(include);
             return await query.SingleOrDefaultAsync(predicate);
         }
+        public async Task<IReadOnlyList<T>> FindIgnoreFiltersAsync(Expression<Func<T, bool>> predicate) =>
+            await _dbSet.IgnoreQueryFilters().Where(predicate).ToListAsync();
         public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
         public void Update(T entity) => _dbSet.Update(entity);
         public void Remove(T entity) => _dbSet.Remove(entity);

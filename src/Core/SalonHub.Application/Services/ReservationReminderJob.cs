@@ -22,7 +22,8 @@ namespace SalonHub.Application.Services
 
         public async Task SendUpcomingReminders()
         {
-            var now = DateTime.UtcNow;
+            var azTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Azerbaijan Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, azTimeZone);
             var windowStart = now.AddMinutes(15);
             var windowEnd = now.AddMinutes(15).AddMinutes(5);
 

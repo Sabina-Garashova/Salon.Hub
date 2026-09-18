@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import WorkingHoursView from "../../components/admin/WorkingHoursView";
 import BranchManagement from "../../components/admin/BranchManagement";
 import { useLocation } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext.jsx";
 import {
   LayoutDashboard, Inbox, Users, Scissors, Tag, Hash, Store, Wrench, Clock,
   Calendar, Image, Star, BarChart3, Building2, UserCog, Award, Newspaper,
@@ -42,6 +43,7 @@ function decodeToken(token) {
 export default function AdminPanel() {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const confirm = useConfirm();
   const token = sessionStorage.getItem("token");
   const decoded = token ? decodeToken(token) : null;
   const role =
@@ -380,9 +382,18 @@ export default function AdminPanel() {
     setCategories(res.data);
   };
 
-  const handleDeleteCategory = async (id) => {
-    await api.delete(`/Category/${id}`);
-    setCategories(categories.filter((c) => c.id !== id));
+      const handleDeleteCategory = async (id) => {
+    try {
+      await api.delete(`/Category/${id}`);
+      setCategories(categories.filter((c) => c.id !== id));
+      showToast("Kateqoriya uğurla silindi", "success");
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Bu kateqoriyaya bağlı xidmətlər olduğu üçün silmək mümkün deyil.";
+      showToast(errorMsg, "error");
+    }
   };
 
 
@@ -428,7 +439,7 @@ export default function AdminPanel() {
     setBranches((prev) => prev.map((b) => (b.id === id ? { ...b, ...data } : b)));
   };
   const handleDeleteBranch = async (id) => {
-    if (!window.confirm(t("admin_confirm_delete"))) return;
+    if (!(await confirm(t("admin_confirm_delete")))) return;
     await api.delete(`/Branch/${id}`);
     setBranches((prev) => prev.filter((b) => b.id !== id));
   };
@@ -508,7 +519,7 @@ export default function AdminPanel() {
   };
 
   const handleDelete = async (type, id) => {
-    if (!window.confirm(t("admin_confirm_delete"))) return;
+    if (!(await confirm(t("admin_confirm_delete")))) return;
     try {
       if (type === "employee") {
         await api.delete(`/Employee/${id}`);

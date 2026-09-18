@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
+import { useConfirm } from "../../context/ConfirmContext.jsx";
 import {
   ChevronDown,
   Clock,
@@ -52,6 +53,7 @@ export default function AdminServicesSection({
   onEdit,
   onDelete,
 }) {
+  const confirm = useConfirm();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -169,7 +171,8 @@ export default function AdminServicesSection({
   };
 
   const handleDelete = async (service) => {
-    if (!window.confirm(`"${service.name}" xidmetini ${getSalonName(salons, service.salonId)} salonundan silmek isteyirsiniz?`)) {
+    const ok = await confirm(`"${service.name}" xidmetini ${getSalonName(salons, service.salonId)} salonundan silmek isteyirsiniz?`);
+    if (!ok) {
       return;
     }
 

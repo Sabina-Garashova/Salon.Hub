@@ -55,7 +55,7 @@ namespace SalonHub.Application.Services
                     From = new MailAddress(fromEmail, fromName),
                     Subject = subject,
                     Body = body,
-                    IsBodyHtml = false
+                    IsBodyHtml = true
                 };
                 mailMessage.To.Add(to);
 

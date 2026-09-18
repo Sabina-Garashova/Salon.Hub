@@ -99,12 +99,18 @@ namespace SalonHub.Api.Controllers
 
             var result = await _applicationService.CreateAsync(userId, user.FullName, user.Email!, dto);
 
+            var notificationMessage = $"Yeni usta müraciəti: {user.FullName} ({user.Email}) - {result.YearsOfExperience} il təcrübə, {result.ExpectedSalaryMin}-{result.ExpectedSalaryMax} AZN gözləntisi.";
+
             var superAdmins = await _userManager.GetUsersInRoleAsync(Roles.SuperAdmin);
             foreach (var admin in superAdmins)
             {
-                await _notificationService.NotifyReservationChangedAsync(
-                    admin.Id,
-                    $"Yeni usta müraciəti: {user.FullName} ({user.Email}) - {result.YearsOfExperience} il təcrübə, {result.ExpectedSalaryMin}-{result.ExpectedSalaryMax} AZN gözləntisi.");
+                await _notificationService.NotifyReservationChangedAsync(admin.Id, notificationMessage);
+            }
+
+            var applicationEntity = await _applicationService.GetEntityByIdAsync(result.Id);
+            if (applicationEntity?.Salon?.OwnerId != null && !superAdmins.Any(a => a.Id == applicationEntity.Salon.OwnerId))
+            {
+                await _notificationService.NotifyReservationChangedAsync(applicationEntity.Salon.OwnerId, notificationMessage);
             }
 
             return Ok(result);
@@ -151,6 +157,7 @@ namespace SalonHub.Api.Controllers
                 Bio = application.Bio,
                 ProfileImageUrl = application.ProfileImageUrl,
                 ApplicationUserId = applicant.Id,
+                OriginalEmail = applicant.Email,
                 SalonId = application.SalonId,
                 BranchId = application.BranchId,
                 AssignedEquipmentId = null,
@@ -248,6 +255,7 @@ namespace SalonHub.Api.Controllers
         }
     }
 }
+
 
 
 

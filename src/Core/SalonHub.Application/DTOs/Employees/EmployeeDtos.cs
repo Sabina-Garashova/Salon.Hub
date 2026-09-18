@@ -24,6 +24,7 @@ public class EmployeeCreateDto
     public string? Bio { get; set; }
     public string? ProfileImageUrl { get; set; }
     public string ApplicationUserId { get; set; } = string.Empty;
+    public string? OriginalEmail { get; set; }
     public int SalonId { get; set; }
     public int? BranchId { get; set; }
     public int? AssignedEquipmentId { get; set; }

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atam üçün Sürpriz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --cream: #FDF6EC;
+            --gold: #F4B860;
+            --night-deep: #160F26;
+            --bg-color: #2c3e50;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--cream);
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'Caveat', cursive;
+            font-size: 4rem;
+            color: var(--gold);
+            margin-top: 50px;
+            text-align: center;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* --- HƏDİYYƏ QUTUSU VƏ ŞAM KODLARI (Nümunəvi) --- */
+        .gift-container {
+            margin: 40px 0;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .gift-box {
+            width: 150px;
+            height: 150px;
+            background-color: #e74c3c;
+            position: relative;
+            margin: 0 auto;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-box::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background-color: var(--gold);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gift-box::after {
+            content: '';
+            position: absolute;
+            height: 30px;
+            width: 100%;
+            background-color: var(--gold);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .surprise-content {
+            display: none; /* Qutu açılana qədər gizlidir */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* --- YENİ ŞƏKİL QALEREYASI DİZAYNI (POLAROID) --- */
+        .photo-gallery-container {
+            padding: 40px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            perspective: 1000px;
+            margin-top: 40px;
+            z-index: 5;
+            position: relative;
+            max-width: 1000px;
+        }
+
+        .polaroid-card {
+            background: var(--cream);
+            padding: 15px 15px 25px 15px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 250px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            transform: rotate(var(--rot)) translateY(0);
+        }
+
+        .polaroid-card:nth-child(1) { --rot: -6deg; }
+        .polaroid-card:nth-child(2) { --rot: 4deg; }
+        .polaroid-card:nth-child(3) { --rot: -3deg; }
+
+        .polaroid-card:hover {
+            transform: scale(1.15) rotate(0deg) translateY(-10px);
+            box-shadow: 0 20px 40px rgba(244, 184, 96, 0.4); 
+            z-index: 10;
+        }
+
+        .polaroid-img-wrapper {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .polaroid-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .polaroid-card:hover .polaroid-img-wrapper img {
+            transform: scale(1.08);
+        }
+
+        .polaroid-caption {
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            color: var(--night-deep);
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 700;
+        }
+        
+        .hint-text {
+            font-size: 1.2rem;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ad Günün Mübarək, Ata! 🎉</h1>
+
+    <!-- HƏDİYYƏ QUTUSU -->
+    <div class="gift-container" id="giftBox" onclick="openGift()">
+        <div class="gift-box"></div>
+        <p class="hint-text">Açmaq üçün hədiyyənin üzərinə toxun</p>
+    </div>
+
+    <!-- QUTU AÇILANDAN SONRA GÖRÜNƏCƏK HİSSƏ -->
+    <div class="surprise-content" id="surpriseContent">
+        
+        <h2 style="font-family: 'Caveat', cursive; font-size: 3rem; color: var(--gold);">Sənin üçün xüsusi xatirələrimiz:</h2>
+
+        <!-- YENİ ŞƏKİL QALEREYASI HİSSƏSİ -->
+        <div class="photo-gallery-container">
+            
+            <!-- Şəkil 1 -->
+            <div class="polaroid-card">
+                <div class="polaroid-img-wrapper">
+                    <!-- Şəklin linkini bura yazın -->
+                    <img src="sekil1.jpg" alt="Ata ilə xatirə 1"> 
+                </div>
+                <div class="polaroid-caption">Ən gözəl günlərimiz ❤️</div>
+            </div>
+
+            <!-- Şəkil 2 -->
+            <div class="polaroid-card">
+                <div class="polaroid-img-wrapper">
+                    <img src="sekil2.jpg" alt="Ata ilə xatirə 2">
+                </div>
+                <div class="polaroid-caption">Səninlə qürur duyuram!</div>
+            </div>
+
+            <!-- Şəkil 3 -->
+            <div class="polaroid-card">
+                <div class="polaroid-img-wrapper">
+                    <img src="sekil3.jpg" alt="Ata ilə xatirə 3">
+                </div>
+                <div class="polaroid-caption">Yaxşı ki, varsan! 🎂</div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // Hədiyyə qutusunu açmaq üçün funksiya
+        function openGift() {
+            var giftBox = document.getElementById('giftBox');
+            var surprise = document.getElementById('surpriseContent');
+            
+            // Qutunu gizlət və sürprizi göstər
+            giftBox.style.display = 'none';
+            surprise.style.display = 'flex';
+        }
+    </script>
+
+</body>
+</html>

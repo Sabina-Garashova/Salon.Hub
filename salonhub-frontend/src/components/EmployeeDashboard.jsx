@@ -61,8 +61,16 @@ export default function EmployeeDashboard() {
   };
 
   const handleDeleteNews = async (id) => {
-    await api.delete(`/News/${id}`);
-    setNews((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await api.delete(`/News/${id}`);
+      setNews((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      if (err.response?.status === 403) {
+        showToast("Bu xəbəri silmək üçün icazəniz yoxdur.", "error");
+      } else {
+        showToast(err.response?.data?.message || t("emp_error_occurred"), "error");
+      }
+    }
   };
 
   const performCheckIn = async (code) => {
@@ -525,7 +533,7 @@ export default function EmployeeDashboard() {
                                   {app?.status === "Completed" && (
                                     <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700">{t("emp_completed")}</span>
                                   )}
-                                  {(app?.status === "Pending" || app?.status === "GÃ¶zlÉ™mÉ™dÉ™") && (
+                                  {(app?.status === "Pending" || app?.status === "Gözləmədə") && (
                                     <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700">{t("emp_pending")}</span>
                                   )}
 
